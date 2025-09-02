@@ -18,12 +18,12 @@ const poppins = Poppins({
 })
 
 export const metadata: Metadata = {
-  title: "EngiSphere - One-stop hub for every engineering student",
+  title: "Engivora - One-stop hub for every engineering student",
   description: "Your comprehensive platform for exam updates, job opportunities, blogs, discounts, and career guidance for engineering students.",
   keywords: "engineering, exams, jobs, career, student hub, engineering students",
-  authors: [{ name: "EngiSphere Team" }],
+  authors: [{ name: "Engivora Team" }],
   openGraph: {
-    title: "EngiSphere - Engineering Student Hub",
+    title: "Engivora - Engineering Student Hub",
     description: "One-stop hub for every engineering student",
     type: "website",
   },

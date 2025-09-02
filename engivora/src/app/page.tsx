@@ -8,12 +8,7 @@ import {
   Percent, 
   Users, 
   MessageCircle,
-  ArrowRight,
-  TrendingUp,
-  Clock,
-  MapPin,
-  Building,
-  Star
+  ArrowRight
 } from "lucide-react"
 import { UpdateTicker } from "@/components/home/update-ticker"
 import { HighlightsGrid } from "@/components/home/highlights-grid"
@@ -61,7 +56,7 @@ export default function HomePage() {
               Everything you need in one place
             </h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              From exam preparation to career guidance, we've got you covered with comprehensive tools and resources.
+              From exam preparation to career guidance, we have got you covered with comprehensive tools and resources.
             </p>
           </div>
 
@@ -202,7 +197,7 @@ export default function HomePage() {
             Ready to accelerate your engineering career?
           </h2>
           <p className="text-xl mb-8 text-primary-foreground/80 max-w-2xl mx-auto">
-            Join thousands of engineering students who are already using EngiSphere to stay ahead in their careers.
+            Join thousands of engineering students who are already using Engivora to stay ahead in their careers.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" variant="secondary" asChild>

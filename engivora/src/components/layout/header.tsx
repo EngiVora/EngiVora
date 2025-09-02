@@ -20,6 +20,7 @@ import {
   MessageCircle
 } from "lucide-react"
 import { useTheme } from "next-themes"
+import { Logo } from "@/components/ui/logo"
 
 const navigation = [
   { name: "Home", href: "/", icon: null },
@@ -42,10 +43,8 @@ export function Header() {
           {/* Logo */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-600 to-green-500 flex items-center justify-center">
-                <span className="text-white font-bold text-sm">E</span>
-              </div>
-              <span className="text-xl font-bold gradient-text">EngiSphere</span>
+              <Logo size="md" />
+              <span className="text-xl font-bold gradient-text">Engivora</span>
             </Link>
           </div>
 
@@ -88,6 +87,7 @@ export function Header() {
               variant="ghost"
               size="icon"
               onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+              disabled={!theme}
             >
               <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />

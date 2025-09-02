@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { Logo } from "@/components/ui/logo"
 import { 
   Facebook, 
   Twitter, 
@@ -45,10 +46,8 @@ export function Footer() {
           {/* Brand Section */}
           <div className="lg:col-span-1">
             <div className="flex items-center space-x-2 mb-4">
-              <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-600 to-green-500 flex items-center justify-center">
-                <span className="text-white font-bold text-sm">E</span>
-              </div>
-              <span className="text-xl font-bold gradient-text">EngiSphere</span>
+              <Logo size="md" />
+              <span className="text-xl font-bold gradient-text">Engivora</span>
             </div>
             <p className="text-muted-foreground text-sm mb-4">
               One-stop hub for every engineering student. Your gateway to exams, jobs, 
@@ -153,7 +152,7 @@ export function Footer() {
         {/* Bottom Section */}
         <div className="border-t mt-8 pt-8 flex flex-col sm:flex-row justify-between items-center">
           <p className="text-muted-foreground text-sm">
-            © 2025 EngiSphere. All rights reserved.
+            © 2025 Engivora. All rights reserved.
           </p>
           <div className="flex items-center space-x-4 mt-4 sm:mt-0">
             <Link
