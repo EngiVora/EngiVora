@@ -44,7 +44,7 @@ export function Header() {
             >
               <Search className="h-5 w-5" />
             </button>
-            <Link href="#" className="inline-flex">
+            <Link href="/profile" className="inline-flex" aria-label="Open profile">
               <Image
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHxk_X3fqMqiWTv_ZoKF2PnnpB5Y5zAi9bqXeIB8kPBtl2tyaDXqSJvjcI17HjT4MCz9RfzXbFkeIkjPl_qIV4N5RWQoNO3sPAxOFOIeIxgnQOEUoK1e8x2uLLMAKjbufp4vFoLiMh7eZgeZbOee-mkxqw9FpxxvMxeZoK4B9H0AvQroAHmB6u1h6r-k-1iys666WQe5Qpbb-OFgpKEhE33Yxp_rMWvf8mkjNZw9GsIF-fPU3FFjwhE3goud5jHjVfvM4QXxQE-YI"
                 alt="Profile"
