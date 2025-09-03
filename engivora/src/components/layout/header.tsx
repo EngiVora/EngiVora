@@ -34,8 +34,20 @@ export function Header() {
             ))}
           </nav>
 
-          {/* Right: Search + Avatar */}
+          {/* Right: Auth + Search + Avatar */}
           <div className="flex items-center gap-4">
+            <Link
+              href="/signup"
+              className="hidden sm:inline-flex h-9 items-center justify-center rounded-md px-4 bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors"
+            >
+              Sign Up
+            </Link>
+            <Link
+              href="/login"
+              className="inline-flex h-9 items-center justify-center rounded-md px-4 bg-white text-foreground text-sm font-semibold ring-1 ring-inset ring-gray-300 hover:bg-secondary transition-colors"
+            >
+              Login
+            </Link>
             <button
               type="button"
               aria-label="Search"
