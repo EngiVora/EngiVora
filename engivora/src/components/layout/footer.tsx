@@ -3,6 +3,8 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Logo } from "@/components/ui/logo"
+import { FaWhatsapp } from "react-icons/fa"; 
+
 import { 
   Facebook, 
   Twitter, 
@@ -11,23 +13,32 @@ import {
   Youtube,
   Mail,
   ArrowRight
-} from "lucide-react"
-import { useState } from "react"
+} from "lucide-react"; 
+
+import { useState } from "react";
 
 const quickLinks = [
   { name: "About", href: "/about" },
   { name: "Contact", href: "/contact" },
   { name: "Privacy", href: "/privacy" },
   { name: "Terms", href: "/terms" },
-]
+];
 
 const socialLinks = [
-  { name: "Facebook", href: "#", icon: Facebook },
-  { name: "Twitter", href: "#", icon: Twitter },
-  { name: "Instagram", href: "#", icon: Instagram },
-  { name: "LinkedIn", href: "#", icon: Linkedin },
-  { name: "YouTube", href: "#", icon: Youtube },
-]
+  { name: "Facebook", href: "https://www.facebook.com/share/17ADfX3ftc/", icon: Facebook },
+  { name: "Twitter", href: "https://x.com/EngiVora?t=cGq6vflclyOXbSLS7A5dtA&s=09", icon: Twitter },
+  { name: "Instagram", href: "https://www.instagram.com/engivora?igsh=bXRqa3Y2czR5OXJr", icon: Instagram },
+  { name: "LinkedIn", href: "http://linkedin.com/company/engivora", icon: Linkedin },
+  { name: "YouTube", href: "https://www.youtube.com/@EngiVora", icon: Youtube },
+  { name: "WhatsApp", href: "https://whatsapp.com/channel/0029Vb6Xf4dLY6czwlSlyK0B", icon: FaWhatsapp }, 
+{ 
+  name: "Mail", 
+  href: "https://mail.google.com/mail/?view=cm&fs=1&to=help.engivora@gmail.com", 
+  icon: Mail 
+}
+
+];
+
 
 export function Footer() {
   const [email, setEmail] = useState("")
