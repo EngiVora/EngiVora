@@ -3,8 +3,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Logo } from "@/components/ui/logo"
-import { FaWhatsapp } from "react-icons/fa"; 
-
+import { FaWhatsapp } from "react-icons/fa"
 import { 
   Facebook, 
   Twitter, 
@@ -12,17 +11,17 @@ import {
   Linkedin, 
   Youtube,
   Mail,
-  ArrowRight
-} from "lucide-react"; 
-
-import { useState } from "react";
+  ArrowRight,
+  X
+} from "lucide-react"
+import { useState } from "react"
 
 const quickLinks = [
   { name: "About", href: "/about" },
-  { name: "Contact", href: "/contact" },
+  { name: "Contact", href: "https://mail.google.com/mail/?view=cm&fs=1&to=help.engivora@gmail.com" },
   { name: "Privacy", href: "/privacy" },
   { name: "Terms", href: "/terms" },
-];
+]
 
 const socialLinks = [
   { name: "Facebook", href: "https://www.facebook.com/share/17ADfX3ftc/", icon: Facebook },
@@ -30,28 +29,27 @@ const socialLinks = [
   { name: "Instagram", href: "https://www.instagram.com/engivora?igsh=bXRqa3Y2czR5OXJr", icon: Instagram },
   { name: "LinkedIn", href: "http://linkedin.com/company/engivora", icon: Linkedin },
   { name: "YouTube", href: "https://www.youtube.com/@EngiVora", icon: Youtube },
-  { name: "WhatsApp", href: "https://whatsapp.com/channel/0029Vb6Xf4dLY6czwlSlyK0B", icon: FaWhatsapp }, 
-{ 
-  name: "Mail", 
-  href: "https://mail.google.com/mail/?view=cm&fs=1&to=help.engivora@gmail.com", 
-  icon: Mail 
-}
-
-];
-
+  { name: "WhatsApp", href: "https://whatsapp.com/channel/0029Vb6Xf4dLY6czwlSlyK0B", icon: FaWhatsapp },
+  { name: "Mail", href: "https://mail.google.com/mail/?view=cm&fs=1&to=help.engivora@gmail.com", icon: Mail },
+]
 
 export function Footer() {
   const [email, setEmail] = useState("")
+  const [showPopup, setShowPopup] = useState(false)
 
   const handleNewsletterSignup = (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement newsletter signup
     console.log("Newsletter signup:", email)
-    setEmail("")
+    setShowPopup(true)  
+    setEmail("")        
+  }
+
+  const closePopup = () => {
+    setShowPopup(false)
   }
 
   return (
-    <footer className="bg-muted/50 border-t">
+    <footer className="bg-muted/50 border-t relative">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Section */}
@@ -61,8 +59,7 @@ export function Footer() {
               <span className="text-xl font-bold gradient-text">Engivora</span>
             </div>
             <p className="text-muted-foreground text-sm mb-4">
-              One-stop hub for every engineering student. Your gateway to exams, jobs, 
-              career guidance, and exclusive student discounts.
+              One-stop hub for every engineering student. Your gateway to exams, jobs, career guidance, and exclusive student discounts.
             </p>
             <div className="flex space-x-4">
               {socialLinks.map((social) => (
@@ -100,34 +97,22 @@ export function Footer() {
             <h3 className="font-semibold text-lg mb-4">Services</h3>
             <ul className="space-y-2">
               <li>
-                <Link
-                  href="/exams"
-                  className="text-muted-foreground hover:text-primary transition-colors text-sm"
-                >
+                <Link href="/exams" className="text-muted-foreground hover:text-primary transition-colors text-sm">
                   Exam Updates
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/jobs"
-                  className="text-muted-foreground hover:text-primary transition-colors text-sm"
-                >
+                <Link href="/jobs" className="text-muted-foreground hover:text-primary transition-colors text-sm">
                   Job Opportunities
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/counselling"
-                  className="text-muted-foreground hover:text-primary transition-colors text-sm"
-                >
+                <Link href="/counselling" className="text-muted-foreground hover:text-primary transition-colors text-sm">
                   Career Counselling
                 </Link>
               </li>
               <li>
-                <Link
-                  href="/discounts"
-                  className="text-muted-foreground hover:text-primary transition-colors text-sm"
-                >
+                <Link href="/discounts" className="text-muted-foreground hover:text-primary transition-colors text-sm">
                   Student Discounts
                 </Link>
               </li>
@@ -166,20 +151,33 @@ export function Footer() {
             © 2025 Engivora. All rights reserved.
           </p>
           <div className="flex items-center space-x-4 mt-4 sm:mt-0">
-            <Link
-              href="/privacy"
-              className="text-muted-foreground hover:text-primary transition-colors text-sm"
-            >
+            <Link href="/privacy" className="text-muted-foreground hover:text-primary transition-colors text-sm">
               Privacy Policy
             </Link>
-            <Link
-              href="/terms"
-              className="text-muted-foreground hover:text-primary transition-colors text-sm"
-            >
+            <Link href="/terms" className="text-muted-foreground hover:text-primary transition-colors text-sm">
               Terms of Service
             </Link>
           </div>
         </div>
+
+        {/*  Popup Section */}
+        {showPopup && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-sm w-full shadow-lg relative">
+              <button
+                onClick={closePopup}
+                className="absolute top-2 right-2 text-muted-foreground hover:text-primary"
+              >
+                <X className="h-5 w-5" />
+              </button>
+              <h4 className="text-lg font-semibold mb-2">Thank You!</h4>
+              <p className="text-sm text-muted-foreground mb-4">You have successfully subscribed to our newsletter.</p>
+              <Button onClick={closePopup} className="w-full">
+                Close
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </footer>
   )
