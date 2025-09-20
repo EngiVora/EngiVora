@@ -55,7 +55,8 @@ const mockBlogs = [
 ];
 
 // Helper function to get user from token
-function getUserFromToken(token: string) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function getUserFromToken(_token: string) {
   return {
     id: '1',
     name: 'John Doe',
@@ -65,10 +66,10 @@ function getUserFromToken(token: string) {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const blog = mockBlogs.find(b => b.id === id);
 
     if (!blog) {
@@ -97,7 +98,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authHeader = request.headers.get('authorization');
@@ -119,7 +120,7 @@ export async function PUT(
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
     const blog = mockBlogs.find(b => b.id === id);
 
     if (!blog) {
@@ -172,7 +173,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const authHeader = request.headers.get('authorization');
@@ -194,7 +195,7 @@ export async function DELETE(
       );
     }
 
-    const { id } = params;
+    const { id } = await params;
     const blogIndex = mockBlogs.findIndex(b => b.id === id);
 
     if (blogIndex === -1) {

@@ -117,7 +117,7 @@ export function UpdateTicker() {
                              <div 
                  className={`flex transition-transform duration-500 ease-in-out update-slider-${currentIndex}`}
                >
-                {updates.map((update, index) => (
+                {updates.map((update) => (
                   <div
                     key={update.id}
                     className="flex items-center justify-between min-w-full"

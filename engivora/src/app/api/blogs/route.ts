@@ -12,8 +12,6 @@ const blogSchema = z.object({
   published: z.boolean().optional().default(true),
 });
 
-const blogUpdateSchema = blogSchema.partial();
-
 // Mock blog database
 type BlogPost = {
   id: string;
@@ -96,7 +94,8 @@ const mockBlogs: BlogPost[] = [
 ];
 
 // Helper function to get user from token
-function getUserFromToken(token: string) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function getUserFromToken(_token: string) {
   // Mock user extraction from token
   return {
     id: '1',

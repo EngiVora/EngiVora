@@ -47,7 +47,8 @@ export async function POST(request: NextRequest) {
     }
     
     // Create user session data (exclude password)
-    const { password, ...userWithoutPassword } = user;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _, ...userWithoutPassword } = user;
     
     // In production, create JWT token here
     const token = `mock_token_${user.id}_${Date.now()}`;
