@@ -2,9 +2,8 @@ import type { Metadata } from "next"
 import { Inter, Poppins } from "next/font/google"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import { Header } from "@/components/layout/header"
-import { Footer } from "@/components/layout/footer"
 import { Toaster } from "react-hot-toast"
+import { ConditionalLayout } from "@/components/conditional-layout"
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -43,13 +42,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="min-h-screen flex flex-col">
-            <Header />
-            <main className="flex-1">
-              {children}
-            </main>
-            <Footer />
-          </div>
+          <ConditionalLayout>
+            {children}
+          </ConditionalLayout>
           <Toaster position="top-right" />
         </ThemeProvider>
       </body>
