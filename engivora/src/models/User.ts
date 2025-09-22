@@ -26,7 +26,6 @@ const UserSchema = new Schema<UserDocument>({
   rollNumber: { type: String },
 }, { timestamps: true })
 
-UserSchema.index({ email: 1 })
 
 export const User = models.User || model<UserDocument>('User', UserSchema)
 
