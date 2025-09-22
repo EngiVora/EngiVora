@@ -1,9 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import Image from "next/image"
 import { Search } from "lucide-react"
 import { Logo } from "@/components/ui/logo"
+import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs'
+import { isClerkConfigured, MockSignedIn, MockSignedOut, MockUserButton } from '@/lib/clerk-utils'
 
 const navigation = [
   { name: "Home", href: "/" },
@@ -15,6 +16,12 @@ const navigation = [
 ]
 
 export function Header() {
+  const clerkEnabled = isClerkConfigured()
+  
+  // Use appropriate components based on Clerk configuration
+  const SignedInComponent = clerkEnabled ? SignedIn : MockSignedIn
+  const SignedOutComponent = clerkEnabled ? SignedOut : MockSignedOut
+  const UserButtonComponent = clerkEnabled ? UserButton : MockUserButton
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/90 backdrop-blur">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -34,20 +41,29 @@ export function Header() {
             ))}
           </nav>
 
-          {/* Right: Auth + Search + Avatar */}
+          {/* Right: Auth + Search + UserButton */}
           <div className="flex items-center gap-4">
-            <Link
-              href="/signup"
-              className="hidden sm:inline-flex h-9 items-center justify-center rounded-md px-4 bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors"
-            >
-              Sign Up
-            </Link>
-            <Link
-              href="/login"
-              className="inline-flex h-9 items-center justify-center rounded-md px-4 bg-white text-foreground text-sm font-semibold ring-1 ring-inset ring-gray-300 hover:bg-secondary transition-colors"
-            >
-              Login
-            </Link>
+            <SignedOutComponent>
+              <Link
+                href={clerkEnabled ? "/sign-up" : "/signup"}
+                className="hidden sm:inline-flex h-9 items-center justify-center rounded-md px-4 bg-primary text-white text-sm font-semibold hover:bg-primary/90 transition-colors"
+              >
+                Sign Up
+              </Link>
+              <Link
+                href={clerkEnabled ? "/sign-in" : "/login"}
+                className="inline-flex h-9 items-center justify-center rounded-md px-4 bg-white text-foreground text-sm font-semibold ring-1 ring-inset ring-gray-300 hover:bg-secondary transition-colors"
+              >
+                Sign In
+              </Link>
+            </SignedOutComponent>
+            
+            <SignedInComponent>
+              <Link href="/profile" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">
+                Profile
+              </Link>
+            </SignedInComponent>
+            
             <button
               type="button"
               aria-label="Search"
@@ -56,15 +72,20 @@ export function Header() {
             >
               <Search className="h-5 w-5" />
             </button>
-            <Link href="/profile" className="inline-flex" aria-label="Open profile">
-              <Image
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHxk_X3fqMqiWTv_ZoKF2PnnpB5Y5zAi9bqXeIB8kPBtl2tyaDXqSJvjcI17HjT4MCz9RfzXbFkeIkjPl_qIV4N5RWQoNO3sPAxOFOIeIxgnQOEUoK1e8x2uLLMAKjbufp4vFoLiMh7eZgeZbOee-mkxqw9FpxxvMxeZoK4B9H0AvQroAHmB6u1h6r-k-1iys666WQe5Qpbb-OFgpKEhE33Yxp_rMWvf8mkjNZw9GsIF-fPU3FFjwhE3goud5jHjVfvM4QXxQE-YI"
-                alt="Profile"
-                width={40}
-                height={40}
-                className="rounded-full ring-2 ring-white shadow"
-              />
-            </Link>
+            
+            <SignedInComponent>
+              {clerkEnabled && (
+                <UserButtonComponent 
+                  appearance={{
+                    elements: {
+                      avatarBox: "h-9 w-9",
+                      userButtonPopoverCard: "shadow-lg border border-gray-200",
+                    }
+                  }}
+                  afterSignOutUrl="/"
+                />
+              )}
+            </SignedInComponent>
           </div>
         </div>
       </div>

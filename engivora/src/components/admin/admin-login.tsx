@@ -54,7 +54,8 @@ export function AdminLogin() {
       } else {
         setError("Invalid email or password")
       }
-    } catch (err) {
+    } catch (error) {
+      console.error('Admin login error:', error)
       setError("Login failed. Please try again.")
     } finally {
       setLoading(false)

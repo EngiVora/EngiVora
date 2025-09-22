@@ -8,14 +8,11 @@ import {
   GraduationCap, 
   TrendingUp, 
   TrendingDown,
-  Eye,
-  MessageSquare,
   Calendar,
   DollarSign,
   Activity,
   AlertCircle,
   CheckCircle,
-  Clock,
   BarChart3,
   PieChart,
   LineChart
@@ -126,7 +123,7 @@ const systemStatus = [
 ]
 
 export function AdminDashboard() {
-  const [selectedPeriod, setSelectedPeriod] = useState("7d")
+  const [selectedPeriod] = useState("7d")
   const [isExportModalOpen, setIsExportModalOpen] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
 

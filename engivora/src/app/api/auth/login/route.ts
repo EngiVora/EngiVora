@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import { findUserByEmail } from '@/lib/auth-db';
 
 // Validation schema
 const loginSchema = z.object({
@@ -7,25 +10,7 @@ const loginSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-// Mock user database (replace with actual database)
-const mockUsers = [
-  {
-    id: '1',
-    email: 'student@example.com',
-    password: 'password123', // In production, this should be hashed
-    name: 'John Doe',
-    role: 'student',
-    department: 'Computer Science',
-  },
-  {
-    id: '2',
-    email: 'admin@engivora.com',
-    password: 'admin123',
-    name: 'Admin User',
-    role: 'admin',
-    department: 'Administration',
-  },
-];
+
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,12 +19,31 @@ export async function POST(request: NextRequest) {
     // Validate input
     const validatedData = loginSchema.parse(body);
     
-    // Find user (replace with actual database query)
-    const user = mockUsers.find(
-      (u) => u.email === validatedData.email && u.password === validatedData.password
-    );
+    // Find user by email
+    const user = findUserByEmail(validatedData.email);
     
     if (!user) {
+      return NextResponse.json(
+        { error: 'Invalid email or password' },
+        { status: 401 }
+      );
+    }
+    
+    // Check email verification
+    if (!user.emailVerified) {
+      return NextResponse.json(
+        { 
+          error: 'Please verify your email before logging in. Check your inbox for the verification link.',
+          requiresEmailVerification: true 
+        },
+        { status: 403 }
+      );
+    }
+    
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(validatedData.password, user.password);
+    
+    if (!isPasswordValid) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
@@ -50,8 +54,17 @@ export async function POST(request: NextRequest) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _, ...userWithoutPassword } = user;
     
-    // In production, create JWT token here
-    const token = `mock_token_${user.id}_${Date.now()}`;
+    // Create JWT token
+    const jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
+    const token = jwt.sign(
+      { 
+        userId: user.id, 
+        email: user.email, 
+        role: user.role 
+      },
+      jwtSecret,
+      { expiresIn: '7d' }
+    );
     
     return NextResponse.json({
       success: true,

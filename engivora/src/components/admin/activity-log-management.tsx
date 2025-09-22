@@ -7,7 +7,6 @@ import {
   MoreVertical, 
   Eye, 
   Download,
-  Calendar,
   User,
   Activity,
   Clock,
@@ -109,7 +108,7 @@ const mockActivityLogs = [
 ]
 
 export function ActivityLogManagement() {
-  const [logs, setLogs] = useState(mockActivityLogs)
+  const [logs] = useState(mockActivityLogs)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedAction, setSelectedAction] = useState("all")
   const [selectedStatus, setSelectedStatus] = useState("all")
@@ -187,7 +186,10 @@ export function ActivityLogManagement() {
           <p className="text-gray-600">Monitor user activities and system events</p>
         </div>
         <div className="flex items-center space-x-3">
-          <button className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+          <button 
+            className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+            aria-label="Export activity logs"
+          >
             <Download className="h-4 w-4 mr-2" />
             Export Logs
           </button>
@@ -266,6 +268,7 @@ export function ActivityLogManagement() {
               value={selectedAction}
               onChange={(e) => setSelectedAction(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              aria-label="Filter by action type"
             >
               <option value="all">All Actions</option>
               {getUniqueActions().map(action => (
@@ -276,6 +279,7 @@ export function ActivityLogManagement() {
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              aria-label="Filter by status"
             >
               <option value="all">All Status</option>
               <option value="Success">Success</option>
@@ -287,6 +291,7 @@ export function ActivityLogManagement() {
               value={selectedDevice}
               onChange={(e) => setSelectedDevice(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              aria-label="Filter by device type"
             >
               <option value="all">All Devices</option>
               {getUniqueDevices().map(device => (
@@ -297,6 +302,7 @@ export function ActivityLogManagement() {
               value={dateRange}
               onChange={(e) => setDateRange(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              aria-label="Filter by date range"
             >
               <option value="today">Today</option>
               <option value="week">This Week</option>
@@ -305,7 +311,10 @@ export function ActivityLogManagement() {
             </select>
           </div>
           <div className="flex items-center space-x-2">
-            <button className="flex items-center px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+            <button 
+              className="flex items-center px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50"
+              aria-label="Show more filter options"
+            >
               <Filter className="h-4 w-4 mr-2" />
               More Filters
             </button>
@@ -402,11 +411,15 @@ export function ActivityLogManagement() {
                       <button
                         onClick={() => console.log(`View details for log: ${log.id}`)}
                         className="text-gray-400 hover:text-gray-600"
+                        aria-label={`View details for ${log.user} activity`}
                         title="View Details"
                       >
                         <Eye className="h-4 w-4" />
                       </button>
-                      <button className="text-gray-400 hover:text-gray-600">
+                      <button 
+                        className="text-gray-400 hover:text-gray-600"
+                        aria-label={`More actions for ${log.user} activity`}
+                      >
                         <MoreVertical className="h-4 w-4" />
                       </button>
                     </div>
@@ -420,10 +433,16 @@ export function ActivityLogManagement() {
         {/* Pagination */}
         <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
           <div className="flex-1 flex justify-between sm:hidden">
-            <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            <button 
+              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              aria-label="Go to previous page"
+            >
               Previous
             </button>
-            <button className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+            <button 
+              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+              aria-label="Go to next page"
+            >
               Next
             </button>
           </div>
@@ -436,13 +455,23 @@ export function ActivityLogManagement() {
             </div>
             <div>
               <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                <button className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <button 
+                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                  aria-label="Go to previous page"
+                >
                   Previous
                 </button>
-                <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                <button 
+                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50"
+                  aria-label="Page 1"
+                  aria-current="page"
+                >
                   1
                 </button>
-                <button className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                <button 
+                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50"
+                  aria-label="Go to next page"
+                >
                   Next
                 </button>
               </nav>

@@ -8,7 +8,6 @@ import {
   Mail,
   Shield,
   UserCheck,
-  UserX,
   Loader2,
   Eye,
   EyeOff

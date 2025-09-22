@@ -10,6 +10,11 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  experimental: {
+    optimizePackageImports: ['lucide-react']
+  },
+  // Fix for multiple lockfiles warning
+  outputFileTracingRoot: __dirname,
 };
 
 export default nextConfig;
