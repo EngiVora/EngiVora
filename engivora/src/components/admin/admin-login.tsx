@@ -33,29 +33,31 @@ export function AdminLogin() {
     setSuccess("")
 
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500))
-      
-      // Mock authentication logic
-      if (formData.email === "admin@engivora.com" && formData.password === "admin123") {
-        setSuccess("Login successful! Redirecting...")
-        // Store auth token in localStorage (in real app, use secure storage)
-        localStorage.setItem("adminToken", "mock-admin-token")
-        localStorage.setItem("adminUser", JSON.stringify({
-          id: 1,
-          name: "Admin User",
-          email: formData.email,
-          role: "Super Admin"
-        }))
-        
-        setTimeout(() => {
-          router.push("/admin")
-        }, 1000)
-      } else {
-        setError("Invalid email or password")
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email, password: formData.password })
+      })
+
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data?.error || 'Invalid email or password')
+        return
       }
-    } catch (error) {
-      console.error('Admin login error:', error)
+
+      setSuccess("Login successful! Redirecting...")
+      if (formData.rememberMe) {
+        localStorage.setItem('adminToken', data.token)
+        localStorage.setItem('adminUser', JSON.stringify(data.user))
+      } else {
+        sessionStorage.setItem('adminToken', data.token)
+        sessionStorage.setItem('adminUser', JSON.stringify(data.user))
+      }
+
+      setTimeout(() => {
+        router.push('/admin')
+      }, 800)
+    } catch (err) {
       setError("Login failed. Please try again.")
     } finally {
       setLoading(false)

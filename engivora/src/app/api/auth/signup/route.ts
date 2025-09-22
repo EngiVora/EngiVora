@@ -1,14 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
-import { randomUUID } from 'crypto';
-import { 
-  findUserByEmail, 
-  addUser, 
-  verificationTokens, 
-  sendVerificationEmail,
-  type User 
-} from '@/lib/auth-db';
+import jwt, { Secret, SignOptions } from 'jsonwebtoken';
+import { connectToDatabase } from '@/lib/db';
+import { User } from '@/models/User';
 
 // Validation schema
 const signupSchema = z.object({
@@ -25,7 +20,7 @@ const signupSchema = z.object({
   path: ["confirmPassword"],
 });
 
-
+const JWT_SECRET = (process.env.JWT_SECRET || '') as Secret;
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,79 +28,54 @@ export async function POST(request: NextRequest) {
     
     // Validate input
     const validatedData = signupSchema.parse(body);
-    
-    // Check if user already exists
-    const existingUser = findUserByEmail(validatedData.email);
-    
+    if (!JWT_SECRET || JWT_SECRET === '') {
+      console.error('JWT_SECRET not configured');
+      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
+    }
+
+    await connectToDatabase();
+
+    const existingUser = await User.findOne({ email: validatedData.email });
     if (existingUser) {
-      if (!existingUser.emailVerified) {
-        return NextResponse.json(
-          { 
-            error: 'Email already registered but not verified. Please check your email for verification link.',
-            requiresVerification: true
-          },
-          { status: 409 }
-        );
-      }
       return NextResponse.json(
         { error: 'User with this email already exists' },
         { status: 409 }
       );
     }
-    
-    // Hash password
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(validatedData.password, saltRounds);
-    
-    // Generate email verification token
-    const verificationToken = randomUUID();
-    const verificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-    
-    // Create new user
-    const userId = randomUUID();
-    const newUser: User = {
-      id: userId,
+
+    const passwordHash = await bcrypt.hash(validatedData.password, 10);
+
+    const created = await User.create({
       name: validatedData.name,
       email: validatedData.email,
-      password: hashedPassword,
+      passwordHash,
+      role: 'student',
       department: validatedData.department,
       year: validatedData.year,
       rollNumber: validatedData.rollNumber,
-      role: 'student',
-      emailVerified: false,
-      emailVerificationToken: verificationToken,
-      emailVerificationExpires: verificationExpires.toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    
-    // Add to mock database
-    addUser(newUser);
-    
-    // Store verification token
-    verificationTokens.set(verificationToken, {
-      userId: newUser.id,
-      email: newUser.email,
-      expires: verificationExpires,
     });
-    
-    // Send verification email
-    try {
-      await sendVerificationEmail(newUser.email, verificationToken, newUser.name);
-    } catch (emailError) {
-      console.error('Failed to send verification email:', emailError);
-      // Don't fail registration if email fails
-    }
-    
-    // Create user session data (exclude sensitive fields)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _, emailVerificationToken: __, ...userWithoutSensitiveData } = newUser;
-    
+
+    const signOptions: SignOptions = {
+      expiresIn: Number(process.env.JWT_EXPIRES_IN ?? 604800),
+    };
+
+    const token = jwt.sign({ sub: created._id.toString(), role: created.role }, JWT_SECRET, signOptions);
+
     return NextResponse.json({
       success: true,
-      message: 'Account created successfully! Please check your email to verify your account.',
-      user: userWithoutSensitiveData,
-      requiresEmailVerification: true,
+      message: 'Account created successfully',
+      user: {
+        id: created._id.toString(),
+        name: created.name,
+        email: created.email,
+        role: created.role,
+        department: created.department,
+        year: created.year,
+        rollNumber: created.rollNumber,
+        createdAt: created.createdAt,
+        updatedAt: created.updatedAt,
+      },
+      token,
     }, { status: 201 });
     
   } catch (error) {

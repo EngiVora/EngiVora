@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { connectToDatabase } from '@/lib/db';
+import { Job } from '@/models/Job';
+import jwt from 'jsonwebtoken';
 
 // Validation schema for jobs
 const jobSchema = z.object({
@@ -28,165 +31,11 @@ const jobSchema = z.object({
   featured: z.boolean().optional().default(false),
 });
 
-// Mock jobs database
-type Job = {
-  id: string;
-  title: string;
-  company: string;
-  description: string;
-  type: 'full-time' | 'part-time' | 'internship' | 'contract' | 'freelance';
-  category: 'software' | 'hardware' | 'mechanical' | 'civil' | 'electrical' | 'other';
-  location: string;
-  remote: boolean;
-  salary?: {
-    min: number;
-    max: number;
-    currency: string;
-  };
-  requirements: string[];
-  skills: string[];
-  experience: {
-    min: number;
-    max: number;
-  };
-  applicationDeadline: string;
-  applicationLink?: string;
-  contactEmail?: string;
-  isActive: boolean;
-  featured: boolean;
-  totalApplications: number;
-  postedBy: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  createdAt: string;
-  updatedAt: string;
-};
-
-const mockJobs: Job[] = [
-  {
-    id: '1',
-    title: 'Software Engineer - Frontend',
-    company: 'TechCorp India',
-    description: 'Join our dynamic team to build next-generation web applications using React, TypeScript, and modern development practices.',
-    type: 'full-time',
-    category: 'software',
-    location: 'Bangalore, India',
-    remote: true,
-    salary: {
-      min: 800000,
-      max: 1200000,
-      currency: 'INR',
-    },
-    requirements: [
-      'Bachelor\'s degree in Computer Science or related field',
-      '2+ years of frontend development experience',
-      'Strong knowledge of React and TypeScript',
-      'Experience with modern build tools and deployment'
-    ],
-    skills: ['React', 'TypeScript', 'JavaScript', 'CSS', 'Git'],
-    experience: { min: 2, max: 5 },
-    applicationDeadline: '2024-03-01T23:59:59Z',
-    applicationLink: 'https://techcorp.com/careers/frontend-engineer',
-    contactEmail: 'hr@techcorp.com',
-    isActive: true,
-    featured: true,
-    totalApplications: 156,
-    postedBy: {
-      id: 'hr1',
-      name: 'HR Team',
-      email: 'hr@techcorp.com',
-    },
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-20T15:30:00Z',
-  },
-  {
-    id: '2',
-    title: 'Data Science Intern',
-    company: 'Analytics Plus',
-    description: 'Exciting internship opportunity to work on machine learning projects and data analysis for real-world business problems.',
-    type: 'internship',
-    category: 'software',
-    location: 'Mumbai, India',
-    remote: false,
-    salary: {
-      min: 25000,
-      max: 35000,
-      currency: 'INR',
-    },
-    requirements: [
-      'Currently pursuing degree in Data Science, Computer Science, or Statistics',
-      'Knowledge of Python and data analysis libraries',
-      'Understanding of machine learning concepts',
-      'Strong analytical and problem-solving skills'
-    ],
-    skills: ['Python', 'Pandas', 'NumPy', 'Scikit-learn', 'SQL'],
-    experience: { min: 0, max: 1 },
-    applicationDeadline: '2024-02-28T23:59:59Z',
-    applicationLink: 'https://analyticsplus.com/internships',
-    contactEmail: 'internships@analyticsplus.com',
-    isActive: true,
-    featured: false,
-    totalApplications: 89,
-    postedBy: {
-      id: 'hr2',
-      name: 'Analytics Plus HR',
-      email: 'hr@analyticsplus.com',
-    },
-    createdAt: '2024-01-10T08:30:00Z',
-    updatedAt: '2024-01-10T08:30:00Z',
-  },
-  {
-    id: '3',
-    title: 'Mechanical Design Engineer',
-    company: 'AutoTech Solutions',
-    description: 'Design and develop automotive components using CAD software and collaborate with cross-functional teams.',
-    type: 'full-time',
-    category: 'mechanical',
-    location: 'Chennai, India',
-    remote: false,
-    salary: {
-      min: 600000,
-      max: 900000,
-      currency: 'INR',
-    },
-    requirements: [
-      'Bachelor\'s degree in Mechanical Engineering',
-      '1-3 years of design experience',
-      'Proficiency in CAD software (SolidWorks, AutoCAD)',
-      'Knowledge of manufacturing processes'
-    ],
-    skills: ['SolidWorks', 'AutoCAD', 'ANSYS', 'Manufacturing', 'Product Design'],
-    experience: { min: 1, max: 3 },
-    applicationDeadline: '2024-03-15T23:59:59Z',
-    contactEmail: 'careers@autotech.com',
-    isActive: true,
-    featured: true,
-    totalApplications: 67,
-    postedBy: {
-      id: 'hr3',
-      name: 'AutoTech HR',
-      email: 'hr@autotech.com',
-    },
-    createdAt: '2024-01-08T14:20:00Z',
-    updatedAt: '2024-01-18T16:45:00Z',
-  },
-];
-
-// Helper function to get user from token
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getUserFromToken(_token: string) {
-  return {
-    id: '1',
-    name: 'John Doe',
-    email: 'student@example.com',
-    role: 'user',
-  };
-}
+const JWT_SECRET = process.env.JWT_SECRET as string;
 
 export async function GET(request: NextRequest) {
   try {
+    await connectToDatabase();
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
@@ -198,73 +47,38 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search');
     const company = searchParams.get('company');
 
-    let filteredJobs = [...mockJobs];
-
-    // Filter by type
-    if (type) {
-      filteredJobs = filteredJobs.filter(job => job.type === type);
-    }
-
-    // Filter by category
-    if (category) {
-      filteredJobs = filteredJobs.filter(job => job.category === category);
-    }
-
-    // Filter by location
-    if (location) {
-      filteredJobs = filteredJobs.filter(job => 
-        job.location.toLowerCase().includes(location.toLowerCase())
-      );
-    }
-
-    // Filter by remote
-    if (remote) {
-      filteredJobs = filteredJobs.filter(job => job.remote);
-    }
-
-    // Filter by featured
-    if (featured) {
-      filteredJobs = filteredJobs.filter(job => job.featured);
-    }
-
-    // Filter by company
-    if (company) {
-      filteredJobs = filteredJobs.filter(job =>
-        job.company.toLowerCase().includes(company.toLowerCase())
-      );
-    }
-
-    // Search functionality
+    const query: Record<string, unknown> = { isActive: true };
+    if (type) query.type = type;
+    if (category) query.category = category;
+    if (featured) query.featured = true;
+    if (location) query.location = { $regex: String(location), $options: 'i' };
+    if (company) query.company = { $regex: String(company), $options: 'i' };
+    if (remote) query.remote = true;
     if (search) {
-      const searchLower = search.toLowerCase();
-      filteredJobs = filteredJobs.filter(job =>
-        job.title.toLowerCase().includes(searchLower) ||
-        job.company.toLowerCase().includes(searchLower) ||
-        job.description.toLowerCase().includes(searchLower) ||
-        job.skills.some(skill => skill.toLowerCase().includes(searchLower))
-      );
+      const s = String(search).trim();
+      query.$or = [
+        { title: { $regex: s, $options: 'i' } },
+        { company: { $regex: s, $options: 'i' } },
+        { description: { $regex: s, $options: 'i' } },
+        { skills: { $elemMatch: { $regex: s, $options: 'i' } } },
+      ];
     }
 
-    // Filter active jobs only
-    filteredJobs = filteredJobs.filter(job => job.isActive);
+    const skip = (page - 1) * limit;
+    const [items, total] = await Promise.all([
+      Job.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Job.countDocuments(query),
+    ]);
 
-    // Sort by creation date (newest first)
-    filteredJobs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-    // Pagination
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedJobs = filteredJobs.slice(startIndex, endIndex);
-
-    const totalPages = Math.ceil(filteredJobs.length / limit);
+    const totalPages = Math.ceil(total / limit);
 
     return NextResponse.json({
       success: true,
-      data: paginatedJobs,
+      data: items,
       pagination: {
         currentPage: page,
         totalPages,
-        totalItems: filteredJobs.length,
+        totalItems: total,
         itemsPerPage: limit,
         hasNext: page < totalPages,
         hasPrev: page > 1,
@@ -292,9 +106,13 @@ export async function POST(request: NextRequest) {
     }
 
     const token = authHeader.substring(7);
-    const user = getUserFromToken(token);
-
-    if (!user) {
+    if (!JWT_SECRET) {
+      console.error('JWT_SECRET not configured');
+      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
+    }
+    try {
+      jwt.verify(token, JWT_SECRET);
+    } catch {
       return NextResponse.json(
         { error: 'Invalid token' },
         { status: 401 }
@@ -305,23 +123,24 @@ export async function POST(request: NextRequest) {
 
     // Validate input
     const validatedData = jobSchema.parse(body);
+    await connectToDatabase();
 
-    // Create new job posting
-    const newJob: Job = {
-      id: (mockJobs.length + 1).toString(),
-      ...validatedData,
-      totalApplications: 0,
-      postedBy: user,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    mockJobs.push(newJob);
+    const created = await Job.create({
+      title: validatedData.title,
+      company: validatedData.company,
+      description: validatedData.description,
+      type: validatedData.type,
+      // Note: the schema defines allowed categories; store raw value for simplicity
+      // If category not in Job model, remove or add field to model if needed
+      location: validatedData.location,
+      // Map additional optional fields
+      // For minimal viable integration, persist only basic fields we modeled
+    } as any);
 
     return NextResponse.json({
       success: true,
       message: 'Job posted successfully',
-      data: newJob,
+      data: created,
     }, { status: 201 });
 
   } catch (error) {

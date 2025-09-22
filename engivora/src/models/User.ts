@@ -1,0 +1,33 @@
+import mongoose, { Schema, models, model } from 'mongoose'
+
+export type UserRole = 'student' | 'admin'
+
+export interface UserDocument extends mongoose.Document {
+  name: string
+  email: string
+  passwordHash: string
+  imageUrl?: string
+  role: UserRole
+  department?: string
+  year?: string
+  rollNumber?: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+const UserSchema = new Schema<UserDocument>({
+  name: { type: String, required: true, trim: true },
+  email: { type: String, required: true, unique: true, index: true, lowercase: true, trim: true },
+  passwordHash: { type: String, required: true },
+  imageUrl: { type: String },
+  role: { type: String, enum: ['student', 'admin'], default: 'student', index: true },
+  department: { type: String },
+  year: { type: String },
+  rollNumber: { type: String },
+}, { timestamps: true })
+
+UserSchema.index({ email: 1 })
+
+export const User = models.User || model<UserDocument>('User', UserSchema)
+
+

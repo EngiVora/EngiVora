@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { 
   Search, 
   Filter, 
@@ -23,93 +23,33 @@ import {
   TrendingUp
 } from "lucide-react"
 
-const mockJobs = [
-  {
-    id: 1,
-    title: "Senior Software Engineer",
-    company: "TechCorp",
-    location: "San Francisco, CA",
-    type: "Full-time",
-    salary: "$120,000 - $150,000",
-    status: "Active",
-    postedDate: "2024-01-15",
-    applications: 45,
-    views: 320,
-    featured: true,
-    description: "We are looking for a senior software engineer to join our team...",
-    requirements: ["5+ years experience", "React", "Node.js", "AWS"],
-    category: "Engineering"
-  },
-  {
-    id: 2,
-    title: "Data Scientist Intern",
-    company: "DataFlow Inc",
-    location: "Remote",
-    type: "Internship",
-    salary: "$25 - $35/hour",
-    status: "Active",
-    postedDate: "2024-01-12",
-    applications: 78,
-    views: 450,
-    featured: false,
-    description: "Join our data science team as an intern and work on exciting projects...",
-    requirements: ["Python", "Machine Learning", "Statistics", "SQL"],
-    category: "Data Science"
-  },
-  {
-    id: 3,
-    title: "DevOps Engineer",
-    company: "CloudTech Solutions",
-    location: "Austin, TX",
-    type: "Full-time",
-    salary: "$100,000 - $130,000",
-    status: "Paused",
-    postedDate: "2024-01-10",
-    applications: 23,
-    views: 180,
-    featured: false,
-    description: "We need a DevOps engineer to help us scale our infrastructure...",
-    requirements: ["Docker", "Kubernetes", "AWS", "CI/CD"],
-    category: "DevOps"
-  },
-  {
-    id: 4,
-    title: "Frontend Developer",
-    company: "WebStudio",
-    location: "New York, NY",
-    type: "Contract",
-    salary: "$80 - $100/hour",
-    status: "Active",
-    postedDate: "2024-01-08",
-    applications: 67,
-    views: 290,
-    featured: true,
-    description: "Looking for a talented frontend developer to work on our client projects...",
-    requirements: ["React", "TypeScript", "CSS", "Figma"],
-    category: "Frontend"
-  }
-]
-
 export function JobManagement() {
-  const [jobs, setJobs] = useState(mockJobs)
+  const [jobs, setJobs] = useState<any[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [selectedStatus, setSelectedStatus] = useState("all")
   const [selectedType, setSelectedType] = useState("all")
-  const [selectedJobs, setSelectedJobs] = useState<number[]>([])
+  const [selectedJobs, setSelectedJobs] = useState<string[]>([])
 
-  const filteredJobs = jobs.filter(job => {
-    const matchesSearch = job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         job.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         job.location.toLowerCase().includes(searchQuery.toLowerCase())
+  useEffect(() => {
+    const fetchJobs = async () => {
+      const params = new URLSearchParams()
+      if (searchQuery) params.set('search', searchQuery)
+      const res = await fetch(`/api/jobs?${params.toString()}`)
+      const data = await res.json()
+      if (res.ok) setJobs(data.data || [])
+    }
+    fetchJobs()
+  }, [searchQuery])
+
+  const filteredJobs = jobs.filter((job: any) => {
     const matchesCategory = selectedCategory === "all" || job.category === selectedCategory
-    const matchesStatus = selectedStatus === "all" || job.status === selectedStatus
+    const matchesStatus = selectedStatus === "all" || (job.isActive ? "Active" : "Closed") === selectedStatus
     const matchesType = selectedType === "all" || job.type === selectedType
-    
-    return matchesSearch && matchesCategory && matchesStatus && matchesType
+    return matchesCategory && matchesStatus && matchesType
   })
 
-  const handleSelectJob = (jobId: number) => {
+  const handleSelectJob = (jobId: string) => {
     setSelectedJobs(prev => 
       prev.includes(jobId) 
         ? prev.filter(id => id !== jobId)
@@ -121,13 +61,12 @@ export function JobManagement() {
     setSelectedJobs(
       selectedJobs.length === filteredJobs.length 
         ? [] 
-        : filteredJobs.map(job => job.id)
+        : filteredJobs.map((job: any) => job._id)
     )
   }
 
-  const handleJobAction = (jobId: number, action: string) => {
+  const handleJobAction = (jobId: string, action: string) => {
     console.log(`Action: ${action} for job: ${jobId}`)
-    // Implement job actions here
   }
 
   const getStatusColor = (status: string) => {
@@ -150,11 +89,44 @@ export function JobManagement() {
 
   const getTypeColor = (type: string) => {
     switch (type) {
-      case "Full-time": return "bg-blue-100 text-blue-800"
-      case "Part-time": return "bg-purple-100 text-purple-800"
-      case "Contract": return "bg-orange-100 text-orange-800"
-      case "Internship": return "bg-green-100 text-green-800"
+      case "full-time": return "bg-blue-100 text-blue-800"
+      case "part-time": return "bg-purple-100 text-purple-800"
+      case "contract": return "bg-orange-100 text-orange-800"
+      case "internship": return "bg-green-100 text-green-800"
       default: return "bg-gray-100 text-gray-800"
+    }
+  }
+
+  const handleCreateJob = async () => {
+    const title = prompt('Enter job title:') || ''
+    if (!title.trim()) return
+    const company = prompt('Enter company:') || ''
+    if (!company.trim()) return
+    const description = (prompt('Enter description (min 50 chars):') || '').padEnd(50, ' .')
+    const type = (prompt('Type (full-time|part-time|internship|contract):') || 'full-time').toLowerCase()
+    const location = prompt('Location (optional):') || ''
+    const token = (typeof window !== 'undefined') ? (localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken')) : null
+    if (!token) {
+      alert('Not authenticated. Please login again.')
+      return
+    }
+    try {
+      const res = await fetch('/api/jobs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ title, company, description, type, location })
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data?.error || 'Failed to create job')
+        return
+      }
+      setJobs(prev => [data.data, ...prev])
+    } catch (e) {
+      alert('Network error creating job')
     }
   }
 
@@ -175,7 +147,7 @@ export function JobManagement() {
             <Upload className="h-4 w-4 mr-2" />
             Import
           </button>
-          <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+          <button onClick={handleCreateJob} className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
             <Plus className="h-4 w-4 mr-2" />
             Post Job
           </button>
@@ -203,7 +175,7 @@ export function JobManagement() {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Active Jobs</p>
               <p className="text-2xl font-bold text-gray-900">
-                {jobs.filter(j => j.status === "Active").length}
+                {jobs.filter((j: any) => j.isActive).length}
               </p>
             </div>
           </div>
@@ -216,7 +188,7 @@ export function JobManagement() {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Applications</p>
               <p className="text-2xl font-bold text-gray-900">
-                {jobs.reduce((sum, job) => sum + job.applications, 0)}
+                {jobs.reduce((sum: number) => sum + 0, 0)}
               </p>
             </div>
           </div>
@@ -229,7 +201,7 @@ export function JobManagement() {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Views</p>
               <p className="text-2xl font-bold text-gray-900">
-                {jobs.reduce((sum, job) => sum + job.views, 0).toLocaleString()}
+                {jobs.reduce((sum: number) => sum + 0, 0).toLocaleString()}
               </p>
             </div>
           </div>
@@ -256,10 +228,11 @@ export function JobManagement() {
               className="px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">All Categories</option>
-              <option value="Engineering">Engineering</option>
-              <option value="Data Science">Data Science</option>
-              <option value="DevOps">DevOps</option>
-              <option value="Frontend">Frontend</option>
+              <option value="software">Software</option>
+              <option value="hardware">Hardware</option>
+              <option value="mechanical">Mechanical</option>
+              <option value="civil">Civil</option>
+              <option value="electrical">Electrical</option>
             </select>
             <select
               value={selectedType}
@@ -267,10 +240,10 @@ export function JobManagement() {
               className="px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">All Types</option>
-              <option value="Full-time">Full-time</option>
-              <option value="Part-time">Part-time</option>
-              <option value="Contract">Contract</option>
-              <option value="Internship">Internship</option>
+              <option value="full-time">Full-time</option>
+              <option value="part-time">Part-time</option>
+              <option value="contract">Contract</option>
+              <option value="internship">Internship</option>
             </select>
             <select
               value={selectedStatus}
@@ -279,7 +252,6 @@ export function JobManagement() {
             >
               <option value="all">All Status</option>
               <option value="Active">Active</option>
-              <option value="Paused">Paused</option>
               <option value="Closed">Closed</option>
             </select>
           </div>
@@ -324,9 +296,6 @@ export function JobManagement() {
                   Status
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Stats
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Posted
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -335,13 +304,13 @@ export function JobManagement() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredJobs.map((job) => (
-                <tr key={job.id} className="hover:bg-gray-50">
+              {filteredJobs.map((job: any) => (
+                <tr key={job._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <input
                       type="checkbox"
-                      checked={selectedJobs.includes(job.id)}
-                      onChange={() => handleSelectJob(job.id)}
+                      checked={selectedJobs.includes(job._id)}
+                      onChange={() => handleSelectJob(job._id)}
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                   </td>
@@ -359,16 +328,11 @@ export function JobManagement() {
                         </div>
                         <div className="flex items-center mt-1 text-sm text-gray-500">
                           <MapPin className="h-4 w-4 mr-1" />
-                          {job.location}
+                          {job.location || 'N/A'}
                         </div>
                         <div className="flex items-center mt-1 text-sm text-gray-500">
                           <DollarSign className="h-4 w-4 mr-1" />
-                          {job.salary}
-                        </div>
-                        <div className="mt-2">
-                          <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
-                            {job.category}
-                          </span>
+                          {job.salary || '—'}
                         </div>
                       </div>
                     </div>
@@ -385,51 +349,33 @@ export function JobManagement() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(job.status)}`}>
-                      {getStatusIcon(job.status)}
-                      <span className="ml-1">{job.status}</span>
+                    <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(job.isActive ? 'Active' : 'Closed')}`}>
+                      {getStatusIcon(job.isActive ? 'Active' : 'Closed')}
+                      <span className="ml-1">{job.isActive ? 'Active' : 'Closed'}</span>
                     </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">
-                      <div className="flex items-center">
-                        <Users className="h-4 w-4 text-gray-400 mr-1" />
-                        {job.applications} applications
-                      </div>
-                      <div className="flex items-center mt-1">
-                        <Eye className="h-4 w-4 text-gray-400 mr-1" />
-                        {job.views} views
-                      </div>
-                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <div className="flex items-center">
                       <Calendar className="h-4 w-4 text-gray-400 mr-1" />
-                      {new Date(job.postedDate).toLocaleDateString()}
+                      {job.createdAt ? new Date(job.createdAt).toLocaleDateString() : '—'}
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end space-x-2">
                       <button
-                        onClick={() => handleJobAction(job.id, "view")}
+                        onClick={() => handleJobAction(job._id, "view")}
                         className="text-gray-400 hover:text-gray-600"
                       >
                         <Eye className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => handleJobAction(job.id, "edit")}
+                        onClick={() => handleJobAction(job._id, "edit")}
                         className="text-gray-400 hover:text-gray-600"
                       >
                         <Edit className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => handleJobAction(job.id, "applications")}
-                        className="text-gray-400 hover:text-gray-600"
-                      >
-                        <Users className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleJobAction(job.id, "delete")}
+                        onClick={() => handleJobAction(job._id, "delete")}
                         className="text-gray-400 hover:text-red-600"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -444,36 +390,13 @@ export function JobManagement() {
             </tbody>
           </table>
         </div>
-        
-        {/* Pagination */}
         <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-          <div className="flex-1 flex justify-between sm:hidden">
-            <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-              Previous
-            </button>
-            <button className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-              Next
-            </button>
-          </div>
           <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-gray-700">
-                Showing <span className="font-medium">1</span> to <span className="font-medium">{filteredJobs.length}</span> of{' '}
-                <span className="font-medium">{filteredJobs.length}</span> results
+                Showing <span className="font-medium">{filteredJobs.length}</span> of{' '}
+                <span className="font-medium">{jobs.length}</span> results
               </p>
-            </div>
-            <div>
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                <button className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                  Previous
-                </button>
-                <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                  1
-                </button>
-                <button className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                  Next
-                </button>
-              </nav>
             </div>
           </div>
         </div>

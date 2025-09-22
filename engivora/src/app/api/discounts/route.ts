@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { connectToDatabase } from '@/lib/db';
+import { Discount } from '@/models/Discount';
+import jwt from 'jsonwebtoken';
 
 // Validation schema for discounts
 const discountSchema = z.object({
@@ -23,159 +26,11 @@ const discountSchema = z.object({
   isActive: z.boolean().optional().default(true),
 });
 
-// Mock discounts database
-type Discount = {
-  id: string;
-  title: string;
-  description: string;
-  category: 'books' | 'software' | 'courses' | 'hardware' | 'services' | 'events';
-  discountType: 'percentage' | 'fixed' | 'bogo' | 'free';
-  discountValue: number;
-  originalPrice?: number;
-  discountedPrice?: number;
-  couponCode?: string;
-  provider: string;
-  websiteUrl: string;
-  imageUrl?: string;
-  validFrom: string;
-  validUntil: string;
-  termsAndConditions: string[];
-  eligibility: string[];
-  maxUsage?: number;
-  currentUsage: number;
-  featured: boolean;
-  isActive: boolean;
-  createdBy: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  createdAt: string;
-  updatedAt: string;
-};
-
-const mockDiscounts: Discount[] = [
-  {
-    id: '1',
-    title: '50% Off on Engineering Textbooks',
-    description: 'Get massive discounts on engineering textbooks from top publishers. Perfect for students preparing for exams.',
-    category: 'books',
-    discountType: 'percentage',
-    discountValue: 50,
-    originalPrice: 2000,
-    discountedPrice: 1000,
-    couponCode: 'STUDENT50',
-    provider: 'BookHub India',
-    websiteUrl: 'https://bookhub.com/engineering',
-    imageUrl: 'https://example.com/books-discount.jpg',
-    validFrom: '2024-01-01T00:00:00Z',
-    validUntil: '2024-03-31T23:59:59Z',
-    termsAndConditions: [
-      'Valid only for engineering textbooks',
-      'Minimum order value ₹500',
-      'Cannot be combined with other offers',
-      'Valid for first-time users only'
-    ],
-    eligibility: [
-      'Engineering students with valid ID',
-      'Age limit: 18-25 years'
-    ],
-    maxUsage: 1000,
-    currentUsage: 456,
-    featured: true,
-    isActive: true,
-    createdBy: {
-      id: 'admin1',
-      name: 'Admin User',
-      email: 'admin@engivora.com',
-    },
-    createdAt: '2024-01-01T10:00:00Z',
-    updatedAt: '2024-01-15T14:30:00Z',
-  },
-  {
-    id: '2',
-    title: 'Free JetBrains IDE License for Students',
-    description: 'Get free access to all JetBrains IDEs including IntelliJ IDEA, PyCharm, WebStorm, and more for students.',
-    category: 'software',
-    discountType: 'free',
-    discountValue: 100,
-    originalPrice: 15000,
-    discountedPrice: 0,
-    provider: 'JetBrains',
-    websiteUrl: 'https://jetbrains.com/student/',
-    imageUrl: 'https://example.com/jetbrains-student.jpg',
-    validFrom: '2024-01-01T00:00:00Z',
-    validUntil: '2024-12-31T23:59:59Z',
-    termsAndConditions: [
-      'Valid university email required',
-      'License valid for 1 year',
-      'Renewable annually with proof of enrollment'
-    ],
-    eligibility: [
-      'Currently enrolled students',
-      'Valid .edu email address required'
-    ],
-    currentUsage: 234,
-    featured: true,
-    isActive: true,
-    createdBy: {
-      id: 'admin1',
-      name: 'Admin User',
-      email: 'admin@engivora.com',
-    },
-    createdAt: '2024-01-01T10:00:00Z',
-    updatedAt: '2024-01-10T12:00:00Z',
-  },
-  {
-    id: '3',
-    title: '30% Off Online Coding Bootcamp',
-    description: 'Learn full-stack development with industry experts. Comprehensive course covering React, Node.js, and databases.',
-    category: 'courses',
-    discountType: 'percentage',
-    discountValue: 30,
-    originalPrice: 50000,
-    discountedPrice: 35000,
-    couponCode: 'ENGI30',
-    provider: 'CodeMaster Academy',
-    websiteUrl: 'https://codemaster.com/bootcamp',
-    validFrom: '2024-01-15T00:00:00Z',
-    validUntil: '2024-02-29T23:59:59Z',
-    termsAndConditions: [
-      'Valid for new enrollments only',
-      'Payment plan available',
-      'Job guarantee included'
-    ],
-    eligibility: [
-      'Basic programming knowledge required',
-      'Engineering students get priority'
-    ],
-    maxUsage: 100,
-    currentUsage: 67,
-    featured: false,
-    isActive: true,
-    createdBy: {
-      id: 'admin1',
-      name: 'Admin User',
-      email: 'admin@engivora.com',
-    },
-    createdAt: '2024-01-15T09:00:00Z',
-    updatedAt: '2024-01-15T09:00:00Z',
-  },
-];
-
-// Helper function to get user from token
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getUserFromToken(_token: string) {
-  return {
-    id: '1',
-    name: 'John Doe',
-    email: 'student@example.com',
-    role: 'admin',
-  };
-}
+const JWT_SECRET = process.env.JWT_SECRET as string;
 
 export async function GET(request: NextRequest) {
   try {
+    await connectToDatabase();
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
@@ -186,68 +41,40 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search');
     const provider = searchParams.get('provider');
 
-    let filteredDiscounts = [...mockDiscounts];
-
-    // Filter by category
-    if (category) {
-      filteredDiscounts = filteredDiscounts.filter(discount => discount.category === category);
-    }
-
-    // Filter by discount type
-    if (discountType) {
-      filteredDiscounts = filteredDiscounts.filter(discount => discount.discountType === discountType);
-    }
-
-    // Filter by featured
-    if (featured) {
-      filteredDiscounts = filteredDiscounts.filter(discount => discount.featured);
-    }
-
-    // Filter by active status
-    if (active) {
-      filteredDiscounts = filteredDiscounts.filter(discount => discount.isActive);
-    }
-
-    // Filter by provider
-    if (provider) {
-      filteredDiscounts = filteredDiscounts.filter(discount =>
-        discount.provider.toLowerCase().includes(provider.toLowerCase())
-      );
-    }
-
-    // Search functionality
+    const query: Record<string, unknown> = {};
+    if (category) query.category = category;
+    if (discountType) query.discountType = discountType;
+    if (featured) query.featured = true;
+    if (active) query.active = true;
+    if (provider) query.provider = { $regex: String(provider), $options: 'i' };
     if (search) {
-      const searchLower = search.toLowerCase();
-      filteredDiscounts = filteredDiscounts.filter(discount =>
-        discount.title.toLowerCase().includes(searchLower) ||
-        discount.description.toLowerCase().includes(searchLower) ||
-        discount.provider.toLowerCase().includes(searchLower)
-      );
+      const s = String(search).trim();
+      query.$or = [
+        { code: { $regex: s, $options: 'i' } },
+        { description: { $regex: s, $options: 'i' } },
+      ];
     }
 
-    // Filter out expired discounts
     const now = new Date();
-    filteredDiscounts = filteredDiscounts.filter(discount => 
-      new Date(discount.validUntil) > now && discount.isActive
-    );
+    query.$and = [
+      { $or: [{ expiresAt: null }, { expiresAt: { $gt: now } }] },
+    ];
 
-    // Sort by creation date (newest first)
-    filteredDiscounts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const skip = (page - 1) * limit;
+    const [items, total] = await Promise.all([
+      Discount.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Discount.countDocuments(query),
+    ]);
 
-    // Pagination
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedDiscounts = filteredDiscounts.slice(startIndex, endIndex);
-
-    const totalPages = Math.ceil(filteredDiscounts.length / limit);
+    const totalPages = Math.ceil(total / limit);
 
     return NextResponse.json({
       success: true,
-      data: paginatedDiscounts,
+      data: items,
       pagination: {
         currentPage: page,
         totalPages,
-        totalItems: filteredDiscounts.length,
+        totalItems: total,
         itemsPerPage: limit,
         hasNext: page < totalPages,
         hasPrev: page > 1,
@@ -275,12 +102,22 @@ export async function POST(request: NextRequest) {
     }
 
     const token = authHeader.substring(7);
-    const user = getUserFromToken(token);
-
-    if (!user || user.role !== 'admin') {
+    if (!JWT_SECRET) {
+      console.error('JWT_SECRET not configured');
+      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
+    }
+    try {
+      const payload = jwt.verify(token, JWT_SECRET) as { role?: string };
+      if (payload.role !== 'admin') {
+        return NextResponse.json(
+          { error: 'Admin access required' },
+          { status: 403 }
+        );
+      }
+    } catch {
       return NextResponse.json(
-        { error: 'Admin access required' },
-        { status: 403 }
+        { error: 'Invalid token' },
+        { status: 401 }
       );
     }
 
@@ -288,25 +125,20 @@ export async function POST(request: NextRequest) {
 
     // Validate input
     const validatedData = discountSchema.parse(body);
+    await connectToDatabase();
 
-    // Create new discount
-    const newDiscount: Discount = {
-      id: (mockDiscounts.length + 1).toString(),
-      ...validatedData,
-      termsAndConditions: validatedData.termsAndConditions || [],
-      eligibility: validatedData.eligibility || [],
-      currentUsage: 0,
-      createdBy: user,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    mockDiscounts.push(newDiscount);
+    const created = await Discount.create({
+      code: validatedData.couponCode || `DISC-${Date.now()}`,
+      description: validatedData.description,
+      percentage: validatedData.discountType === 'percentage' ? validatedData.discountValue : 0,
+      expiresAt: new Date(validatedData.validUntil),
+      active: validatedData.isActive ?? true,
+    } as any);
 
     return NextResponse.json({
       success: true,
       message: 'Discount created successfully',
-      data: newDiscount,
+      data: created,
     }, { status: 201 });
 
   } catch (error) {

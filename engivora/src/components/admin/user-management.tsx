@@ -192,29 +192,48 @@ export function UserManagement() {
     }
   }
 
-  // Add user functionality
-  const handleAddUser = async (userData: Omit<User, 'id'>) => {
+  // Add user functionality (persist to backend)
+  const handleAddUser = async (userData: Omit<User, 'id'> & { password?: string }) => {
     setIsAdding(true)
-    
+
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      // Add new user to the users list with generated ID
+      // Persist via API signup (maps minimal fields)
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: userData.name,
+          email: userData.email,
+          password: (userData as any).password ?? 'password123',
+          department: 'Administration',
+        }),
+      })
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}))
+        throw new Error(err?.error || 'Failed to create user')
+      }
+
+      const result = await response.json()
+
+      // Reflect in UI list
+      const newId = Math.max(...users.map(u => u.id)) + 1
       const newUser: User = {
-        ...userData,
-        id: Math.max(...users.map(u => u.id)) + 1
+        name: userData.name,
+        email: userData.email,
+        role: userData.role,
+        status: userData.status,
+        joinDate: new Date().toISOString(),
+        lastActive: 'Never',
+        avatar: userData.avatar,
+        id: Number.isFinite(newId) ? newId : 1,
       }
       setUsers(prev => [...prev, newUser])
-      
-      // Close modal after successful addition
+
       setIsAddUserModalOpen(false)
-      
-      // You could add a success notification here
-      console.log('Successfully added new user')
+      console.log('Successfully added new user (persisted)')
     } catch (error) {
       console.error('Add user failed:', error)
-      // You could add an error notification here
     } finally {
       setIsAdding(false)
     }

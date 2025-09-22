@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { 
   Search, 
   Filter, 
@@ -21,79 +21,31 @@ import {
   Clock
 } from "lucide-react"
 
-const mockBlogs = [
-  {
-    id: 1,
-    title: "The Future of AI in Engineering",
-    author: "Dr. Sarah Johnson",
-    category: "Technology",
-    status: "Published",
-    publishDate: "2024-01-15",
-    views: 1250,
-    comments: 23,
-    tags: ["AI", "Engineering", "Future"],
-    excerpt: "Exploring how artificial intelligence is revolutionizing the engineering field...",
-    featured: true
-  },
-  {
-    id: 2,
-    title: "Sustainable Engineering Practices",
-    author: "Prof. Michael Chen",
-    category: "Sustainability",
-    status: "Draft",
-    publishDate: null,
-    views: 0,
-    comments: 0,
-    tags: ["Sustainability", "Green Engineering"],
-    excerpt: "A comprehensive guide to implementing sustainable practices in engineering projects...",
-    featured: false
-  },
-  {
-    id: 3,
-    title: "Career Tips for Engineering Students",
-    author: "Jane Smith",
-    category: "Career",
-    status: "Published",
-    publishDate: "2024-01-10",
-    views: 890,
-    comments: 15,
-    tags: ["Career", "Students", "Tips"],
-    excerpt: "Essential advice for engineering students preparing for their professional journey...",
-    featured: false
-  },
-  {
-    id: 4,
-    title: "Robotics and Automation Trends 2024",
-    author: "Dr. Alex Rodriguez",
-    category: "Technology",
-    status: "Scheduled",
-    publishDate: "2024-01-20",
-    views: 0,
-    comments: 0,
-    tags: ["Robotics", "Automation", "2024"],
-    excerpt: "Latest trends and developments in robotics and automation for 2024...",
-    featured: true
-  }
-]
-
 export function BlogManagement() {
-  const [blogs, setBlogs] = useState(mockBlogs)
+  const [blogs, setBlogs] = useState<any[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("all")
   const [selectedStatus, setSelectedStatus] = useState("all")
-  const [selectedBlogs, setSelectedBlogs] = useState<number[]>([])
+  const [selectedBlogs, setSelectedBlogs] = useState<string[]>([])
 
-  const filteredBlogs = blogs.filter(blog => {
-    const matchesSearch = blog.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         blog.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         blog.excerpt.toLowerCase().includes(searchQuery.toLowerCase())
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      const params = new URLSearchParams()
+      if (searchQuery) params.set('search', searchQuery)
+      const res = await fetch(`/api/blogs?${params.toString()}`)
+      const data = await res.json()
+      if (res.ok) setBlogs(data.data || [])
+    }
+    fetchBlogs()
+  }, [searchQuery])
+
+  const filteredBlogs = blogs.filter((blog: any) => {
     const matchesCategory = selectedCategory === "all" || blog.category === selectedCategory
-    const matchesStatus = selectedStatus === "all" || blog.status === selectedStatus
-    
-    return matchesSearch && matchesCategory && matchesStatus
+    const matchesStatus = selectedStatus === "all" || (blog.published ? "Published" : "Draft") === selectedStatus
+    return matchesCategory && matchesStatus
   })
 
-  const handleSelectBlog = (blogId: number) => {
+  const handleSelectBlog = (blogId: string) => {
     setSelectedBlogs(prev => 
       prev.includes(blogId) 
         ? prev.filter(id => id !== blogId)
@@ -105,13 +57,12 @@ export function BlogManagement() {
     setSelectedBlogs(
       selectedBlogs.length === filteredBlogs.length 
         ? [] 
-        : filteredBlogs.map(blog => blog.id)
+        : filteredBlogs.map((blog: any) => blog._id)
     )
   }
 
-  const handleBlogAction = (blogId: number, action: string) => {
+  const handleBlogAction = (blogId: string, action: string) => {
     console.log(`Action: ${action} for blog: ${blogId}`)
-    // Implement blog actions here
   }
 
   const getStatusColor = (status: string) => {
@@ -132,6 +83,38 @@ export function BlogManagement() {
     }
   }
 
+  const handleCreatePost = async () => {
+    const title = prompt('Enter blog title:') || ''
+    if (!title.trim()) return
+    const summary = prompt('Enter a short summary (min 20 chars):') || ''
+    if (summary.trim().length < 20) return
+    const category = prompt('Enter category (technology|career|academic|lifestyle|news):') || 'technology'
+    const content = (prompt('Enter content (min 50 chars):') || '').padEnd(50, ' .')
+    const token = (typeof window !== 'undefined') ? (localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken')) : null
+    if (!token) {
+      alert('Not authenticated. Please login again.')
+      return
+    }
+    try {
+      const res = await fetch('/api/blogs', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ title, summary, content, category, tags: [] })
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        alert(data?.error || 'Failed to create post')
+        return
+      }
+      setBlogs(prev => [data.data, ...prev])
+    } catch (e) {
+      alert('Network error creating post')
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -149,7 +132,7 @@ export function BlogManagement() {
             <Upload className="h-4 w-4 mr-2" />
             Import
           </button>
-          <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+          <button onClick={handleCreatePost} className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
             <Plus className="h-4 w-4 mr-2" />
             New Post
           </button>
@@ -177,7 +160,7 @@ export function BlogManagement() {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Published</p>
               <p className="text-2xl font-bold text-gray-900">
-                {blogs.filter(b => b.status === "Published").length}
+                {blogs.filter((b: any) => b.published).length}
               </p>
             </div>
           </div>
@@ -190,7 +173,7 @@ export function BlogManagement() {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Drafts</p>
               <p className="text-2xl font-bold text-gray-900">
-                {blogs.filter(b => b.status === "Draft").length}
+                {blogs.filter((b: any) => !b.published).length}
               </p>
             </div>
           </div>
@@ -203,7 +186,7 @@ export function BlogManagement() {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Views</p>
               <p className="text-2xl font-bold text-gray-900">
-                {blogs.reduce((sum, blog) => sum + blog.views, 0).toLocaleString()}
+                {blogs.reduce((sum: number, blog: any) => sum + (blog.views || 0), 0).toLocaleString()}
               </p>
             </div>
           </div>
@@ -230,9 +213,11 @@ export function BlogManagement() {
               className="px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
             >
               <option value="all">All Categories</option>
-              <option value="Technology">Technology</option>
-              <option value="Career">Career</option>
-              <option value="Sustainability">Sustainability</option>
+              <option value="technology">Technology</option>
+              <option value="career">Career</option>
+              <option value="academic">Academic</option>
+              <option value="lifestyle">Lifestyle</option>
+              <option value="news">News</option>
             </select>
             <select
               value={selectedStatus}
@@ -242,7 +227,6 @@ export function BlogManagement() {
               <option value="all">All Status</option>
               <option value="Published">Published</option>
               <option value="Draft">Draft</option>
-              <option value="Scheduled">Scheduled</option>
             </select>
           </div>
           <div className="flex items-center space-x-2">
@@ -277,9 +261,6 @@ export function BlogManagement() {
                   Post
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Author
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Category
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -297,13 +278,13 @@ export function BlogManagement() {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {filteredBlogs.map((blog) => (
-                <tr key={blog.id} className="hover:bg-gray-50">
+              {filteredBlogs.map((blog: any) => (
+                <tr key={blog._id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <input
                       type="checkbox"
-                      checked={selectedBlogs.includes(blog.id)}
-                      onChange={() => handleSelectBlog(blog.id)}
+                      checked={selectedBlogs.includes(blog._id)}
+                      onChange={() => handleSelectBlog(blog._id)}
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                   </td>
@@ -318,9 +299,9 @@ export function BlogManagement() {
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">{blog.excerpt}</p>
+                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">{blog.summary}</p>
                         <div className="flex items-center mt-2 space-x-2">
-                          {blog.tags.map((tag, index) => (
+                          {(blog.tags || []).map((tag: string, index: number) => (
                             <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                               <Tag className="h-3 w-3 mr-1" />
                               {tag}
@@ -331,60 +312,50 @@ export function BlogManagement() {
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <User className="h-4 w-4 text-gray-400 mr-2" />
-                      <span className="text-sm text-gray-900">{blog.author}</span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
                     <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
                       {blog.category}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(blog.status)}`}>
-                      {getStatusIcon(blog.status)}
-                      <span className="ml-1">{blog.status}</span>
+                    <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(blog.published ? 'Published' : 'Draft')}`}>
+                      {getStatusIcon(blog.published ? 'Published' : 'Draft')}
+                      <span className="ml-1">{blog.published ? 'Published' : 'Draft'}</span>
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-gray-900">
                       <div className="flex items-center">
                         <Eye className="h-4 w-4 text-gray-400 mr-1" />
-                        {blog.views.toLocaleString()}
+                        {(blog.views || 0).toLocaleString()}
                       </div>
                       <div className="flex items-center mt-1">
                         <MessageSquare className="h-4 w-4 text-gray-400 mr-1" />
-                        {blog.comments}
+                        {0}
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {blog.publishDate ? (
-                      <div className="flex items-center">
-                        <Calendar className="h-4 w-4 text-gray-400 mr-1" />
-                        {new Date(blog.publishDate).toLocaleDateString()}
-                      </div>
-                    ) : (
-                      <span className="text-gray-400">Not published</span>
-                    )}
+                    <div className="flex items-center">
+                      <Calendar className="h-4 w-4 text-gray-400 mr-1" />
+                      {new Date(blog.createdAt).toLocaleDateString()}
+                    </div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <div className="flex items-center justify-end space-x-2">
                       <button
-                        onClick={() => handleBlogAction(blog.id, "view")}
+                        onClick={() => handleBlogAction(blog._id, "view")}
                         className="text-gray-400 hover:text-gray-600"
                       >
                         <Eye className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => handleBlogAction(blog.id, "edit")}
+                        onClick={() => handleBlogAction(blog._id, "edit")}
                         className="text-gray-400 hover:text-gray-600"
                       >
                         <Edit className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => handleBlogAction(blog.id, "delete")}
+                        onClick={() => handleBlogAction(blog._id, "delete")}
                         className="text-gray-400 hover:text-red-600"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -399,36 +370,14 @@ export function BlogManagement() {
             </tbody>
           </table>
         </div>
-        
-        {/* Pagination */}
+        {/* Pagination simplified to counts from API */}
         <div className="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
-          <div className="flex-1 flex justify-between sm:hidden">
-            <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-              Previous
-            </button>
-            <button className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
-              Next
-            </button>
-          </div>
           <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-gray-700">
-                Showing <span className="font-medium">1</span> to <span className="font-medium">{filteredBlogs.length}</span> of{' '}
-                <span className="font-medium">{filteredBlogs.length}</span> results
+                Showing <span className="font-medium">{filteredBlogs.length}</span> of{' '}
+                <span className="font-medium">{blogs.length}</span> results
               </p>
-            </div>
-            <div>
-              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-                <button className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                  Previous
-                </button>
-                <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                  1
-                </button>
-                <button className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                  Next
-                </button>
-              </nav>
             </div>
           </div>
         </div>

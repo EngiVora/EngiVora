@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { connectToDatabase } from '@/lib/db';
+import { Blog } from '@/models/Blog';
+import jwt from 'jsonwebtoken';
 
 // Validation schema for blog posts
 const blogSchema = z.object({
@@ -12,100 +15,11 @@ const blogSchema = z.object({
   published: z.boolean().optional().default(true),
 });
 
-// Mock blog database
-type BlogPost = {
-  id: string;
-  title: string;
-  summary: string;
-  content: string;
-  category: 'technology' | 'career' | 'academic' | 'lifestyle' | 'news';
-  tags: string[];
-  author: {
-    id: string;
-    name: string;
-    email: string;
-  };
-  featured: boolean;
-  published: boolean;
-  views: number;
-  likes: number;
-  createdAt: string;
-  updatedAt: string;
-};
-
-const mockBlogs: BlogPost[] = [
-  {
-    id: '1',
-    title: 'Getting Started with Machine Learning in Engineering',
-    summary: 'A comprehensive guide to understanding ML concepts for engineering students',
-    content: 'Machine Learning has become an integral part of modern engineering...',
-    category: 'technology' as const,
-    tags: ['machine-learning', 'engineering', 'ai'],
-    author: {
-      id: '1',
-      name: 'John Doe',
-      email: 'student@example.com',
-    },
-    featured: true,
-    published: true,
-    views: 1250,
-    likes: 89,
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-20T15:30:00Z',
-  },
-  {
-    id: '2',
-    title: 'Top 10 Programming Languages for Engineers in 2024',
-    summary: 'Discover the most in-demand programming languages for engineering careers',
-    content: 'As we move into 2024, certain programming languages continue to dominate...',
-    category: 'career' as const,
-    tags: ['programming', 'career', 'languages'],
-    author: {
-      id: '2',
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-    },
-    featured: false,
-    published: true,
-    views: 980,
-    likes: 67,
-    createdAt: '2024-01-10T08:30:00Z',
-    updatedAt: '2024-01-10T08:30:00Z',
-  },
-  {
-    id: '3',
-    title: 'How to Ace Your Engineering Interviews',
-    summary: 'Tips and strategies for succeeding in technical interviews',
-    content: 'Landing your dream engineering job requires more than just technical skills...',
-    category: 'career' as const,
-    tags: ['interviews', 'career', 'tips'],
-    author: {
-      id: '1',
-      name: 'John Doe',
-      email: 'student@example.com',
-    },
-    featured: true,
-    published: true,
-    views: 1560,
-    likes: 124,
-    createdAt: '2024-01-08T14:20:00Z',
-    updatedAt: '2024-01-08T14:20:00Z',
-  },
-];
-
-// Helper function to get user from token
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getUserFromToken(_token: string) {
-  // Mock user extraction from token
-  return {
-    id: '1',
-    name: 'John Doe',
-    email: 'student@example.com',
-  };
-}
+const JWT_SECRET = process.env.JWT_SECRET as string;
 
 export async function GET(request: NextRequest) {
   try {
+    await connectToDatabase();
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
@@ -113,45 +27,33 @@ export async function GET(request: NextRequest) {
     const featured = searchParams.get('featured') === 'true';
     const search = searchParams.get('search');
 
-    let filteredBlogs = [...mockBlogs];
-
-    // Filter by category
-    if (category) {
-      filteredBlogs = filteredBlogs.filter(blog => blog.category === category);
-    }
-
-    // Filter by featured
-    if (featured) {
-      filteredBlogs = filteredBlogs.filter(blog => blog.featured);
-    }
-
-    // Search functionality
+    const query: Record<string, unknown> = {};
+    if (category) query.category = category;
+    if (featured) query.featured = true;
     if (search) {
-      const searchLower = search.toLowerCase();
-      filteredBlogs = filteredBlogs.filter(blog =>
-        blog.title.toLowerCase().includes(searchLower) ||
-        blog.summary.toLowerCase().includes(searchLower) ||
-        blog.tags.some(tag => tag.toLowerCase().includes(searchLower))
-      );
+      const s = String(search).trim();
+      query.$or = [
+        { title: { $regex: s, $options: 'i' } },
+        { summary: { $regex: s, $options: 'i' } },
+        { tags: { $elemMatch: { $regex: s, $options: 'i' } } },
+      ];
     }
 
-    // Sort by creation date (newest first)
-    filteredBlogs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    const skip = (page - 1) * limit;
+    const [items, total] = await Promise.all([
+      Blog.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Blog.countDocuments(query),
+    ]);
 
-    // Pagination
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedBlogs = filteredBlogs.slice(startIndex, endIndex);
-
-    const totalPages = Math.ceil(filteredBlogs.length / limit);
+    const totalPages = Math.ceil(total / limit);
 
     return NextResponse.json({
       success: true,
-      data: paginatedBlogs,
+      data: items,
       pagination: {
         currentPage: page,
         totalPages,
-        totalItems: filteredBlogs.length,
+        totalItems: total,
         itemsPerPage: limit,
         hasNext: page < totalPages,
         hasPrev: page > 1,
@@ -179,9 +81,22 @@ export async function POST(request: NextRequest) {
     }
 
     const token = authHeader.substring(7);
-    const user = getUserFromToken(token);
+    if (!JWT_SECRET) {
+      console.error('JWT_SECRET not configured');
+      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
+    }
+    let userId = '';
+    try {
+      const payload = jwt.verify(token, JWT_SECRET) as { sub: string };
+      userId = payload.sub;
+    } catch {
+      return NextResponse.json(
+        { error: 'Invalid token' },
+        { status: 401 }
+      );
+    }
 
-    if (!user) {
+    if (!userId) {
       return NextResponse.json(
         { error: 'Invalid token' },
         { status: 401 }
@@ -192,25 +107,31 @@ export async function POST(request: NextRequest) {
 
     // Validate input
     const validatedData = blogSchema.parse(body);
+    await connectToDatabase();
 
-    // Create new blog post
-    const newBlog: BlogPost = {
-      id: (mockBlogs.length + 1).toString(),
-      ...validatedData,
+    const created = await Blog.create({
+      title: validatedData.title,
+      slug: validatedData.title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .substring(0, 80),
+      summary: validatedData.summary,
+      content: validatedData.content,
+      category: validatedData.category,
       tags: validatedData.tags || [],
-      author: user,
+      featured: validatedData.featured ?? false,
+      published: validatedData.published ?? true,
+      authorId: userId,
       views: 0,
       likes: 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    mockBlogs.push(newBlog);
+    });
 
     return NextResponse.json({
       success: true,
       message: 'Blog post created successfully',
-      data: newBlog,
+      data: created,
     }, { status: 201 });
 
   } catch (error) {

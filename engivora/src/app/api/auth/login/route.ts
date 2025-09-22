@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import { findUserByEmail } from '@/lib/auth-db';
+import jwt, { Secret, SignOptions } from 'jsonwebtoken';
+import { connectToDatabase } from '@/lib/db';
+import { User } from '@/models/User';
 
 // Validation schema
 const loginSchema = z.object({
@@ -10,7 +11,7 @@ const loginSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
 });
 
-
+const JWT_SECRET = (process.env.JWT_SECRET || '') as Secret;
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,58 +19,45 @@ export async function POST(request: NextRequest) {
     
     // Validate input
     const validatedData = loginSchema.parse(body);
-    
-    // Find user by email
-    const user = findUserByEmail(validatedData.email);
-    
-    if (!user) {
+    if (!JWT_SECRET || JWT_SECRET === '') {
+      console.error('JWT_SECRET not configured');
+      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
+    }
+
+    await connectToDatabase();
+
+    const userDoc = await User.findOne({ email: validatedData.email });
+    if (!userDoc) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
       );
     }
-    
-    // Check email verification
-    if (!user.emailVerified) {
-      return NextResponse.json(
-        { 
-          error: 'Please verify your email before logging in. Check your inbox for the verification link.',
-          requiresEmailVerification: true 
-        },
-        { status: 403 }
-      );
-    }
-    
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(validatedData.password, user.password);
-    
-    if (!isPasswordValid) {
+
+    const passwordMatch = await bcrypt.compare(validatedData.password, userDoc.passwordHash);
+    if (!passwordMatch) {
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
       );
     }
-    
-    // Create user session data (exclude password)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password: _, ...userWithoutPassword } = user;
-    
-    // Create JWT token
-    const jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
-    const token = jwt.sign(
-      { 
-        userId: user.id, 
-        email: user.email, 
-        role: user.role 
-      },
-      jwtSecret,
-      { expiresIn: '7d' }
-    );
-    
+
+    const signOptions: SignOptions = {
+      expiresIn: Number(process.env.JWT_EXPIRES_IN ?? 604800),
+    };
+
+    const token = jwt.sign({ sub: userDoc._id.toString(), role: userDoc.role }, JWT_SECRET, signOptions);
+
     return NextResponse.json({
       success: true,
       message: 'Login successful',
-      user: userWithoutPassword,
+      user: {
+        id: userDoc._id.toString(),
+        name: userDoc.name,
+        email: userDoc.email,
+        role: userDoc.role,
+        department: userDoc.department,
+      },
       token,
     });
     
