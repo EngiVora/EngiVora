@@ -1,21 +1,35 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server'
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
 // Define public routes that don't require authentication
 const isPublicRoute = createRouteMatcher([
   '/',
   '/blogs',
-  '/discounts', 
+  '/discounts',
   '/exams',
   '/jobs',
   '/work-hub',
+  '/admin/login',
+  // Public API routes
+  '/api/auth(.*)',
+  '/api/seed(.*)',
   '/api/blogs(.*)',
   '/api/discounts(.*)',
   '/api/exams(.*)',
   '/api/jobs(.*)',
   '/api/work-hub(.*)'
-]);
+])
 
-export default clerkMiddleware();
+// Gracefully disable Clerk middleware if not configured
+const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && !!process.env.CLERK_SECRET_KEY
+
+const middlewareWhenClerkDisabled = () => NextResponse.next()
+
+export default hasClerkKeys
+  ? clerkMiddleware((auth, req) => {
+      if (isPublicRoute(req)) return
+    })
+  : middlewareWhenClerkDisabled
 
 export const config = {
   matcher: [

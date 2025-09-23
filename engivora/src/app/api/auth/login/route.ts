@@ -4,6 +4,9 @@ import bcrypt from 'bcryptjs';
 import jwt, { Secret, SignOptions } from 'jsonwebtoken';
 import { connectToDatabase } from '@/lib/db';
 import { User } from '@/models/User';
+import { findUserByEmail } from '@/lib/auth-db';
+
+export const runtime = 'nodejs'
 
 // Validation schema
 const loginSchema = z.object({
@@ -23,43 +26,71 @@ export async function POST(request: NextRequest) {
       console.error('JWT_SECRET not configured');
       return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
     }
+    
+    // Try database-first authentication
+    try {
+      await connectToDatabase();
+      const userDoc = await User.findOne({ email: validatedData.email });
+      if (userDoc) {
+        const passwordMatch = await bcrypt.compare(validatedData.password, userDoc.passwordHash);
+        if (!passwordMatch) {
+          return NextResponse.json(
+            { error: 'Invalid email or password' },
+            { status: 401 }
+          );
+        }
 
-    await connectToDatabase();
+        const expiresInEnv = process.env.JWT_EXPIRES_IN;
+        const signOptions: SignOptions = {
+          expiresIn: expiresInEnv && expiresInEnv.trim() !== '' ? (isNaN(Number(expiresInEnv)) ? expiresInEnv : Number(expiresInEnv)) : 604800,
+        };
 
-    const userDoc = await User.findOne({ email: validatedData.email });
-    if (!userDoc) {
-      return NextResponse.json(
-        { error: 'Invalid email or password' },
-        { status: 401 }
-      );
+        const token = jwt.sign({ sub: userDoc._id.toString(), role: userDoc.role }, JWT_SECRET, signOptions);
+
+        return NextResponse.json({
+          success: true,
+          message: 'Login successful',
+          user: {
+            id: userDoc._id.toString(),
+            name: userDoc.name,
+            email: userDoc.email,
+            role: userDoc.role,
+            department: userDoc.department,
+          },
+          token,
+        });
+      }
+      // If DB is available but user not found, fall through to generic 401 (do not fallback to mock)
+      return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
+    } catch (dbError) {
+      // DB not available → fallback to mock users for local/dev resilience
+      const mockUser = findUserByEmail(validatedData.email);
+      if (!mockUser) {
+        return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
+      }
+      const passwordMatch = await bcrypt.compare(validatedData.password, mockUser.password);
+      if (!passwordMatch) {
+        return NextResponse.json({ error: 'Invalid email or password' }, { status: 401 });
+      }
+
+      const expiresInEnv = process.env.JWT_EXPIRES_IN;
+      const signOptions: SignOptions = {
+        expiresIn: expiresInEnv && expiresInEnv.trim() !== '' ? (isNaN(Number(expiresInEnv)) ? expiresInEnv : Number(expiresInEnv)) : 604800,
+      };
+      const token = jwt.sign({ sub: mockUser.id, role: mockUser.role }, JWT_SECRET, signOptions);
+      return NextResponse.json({
+        success: true,
+        message: 'Login successful (mock)',
+        user: {
+          id: mockUser.id,
+          name: mockUser.name,
+          email: mockUser.email,
+          role: mockUser.role,
+          department: mockUser.department,
+        },
+        token,
+      });
     }
-
-    const passwordMatch = await bcrypt.compare(validatedData.password, userDoc.passwordHash);
-    if (!passwordMatch) {
-      return NextResponse.json(
-        { error: 'Invalid email or password' },
-        { status: 401 }
-      );
-    }
-
-    const signOptions: SignOptions = {
-      expiresIn: Number(process.env.JWT_EXPIRES_IN ?? 604800),
-    };
-
-    const token = jwt.sign({ sub: userDoc._id.toString(), role: userDoc.role }, JWT_SECRET, signOptions);
-
-    return NextResponse.json({
-      success: true,
-      message: 'Login successful',
-      user: {
-        id: userDoc._id.toString(),
-        name: userDoc.name,
-        email: userDoc.email,
-        role: userDoc.role,
-        department: userDoc.department,
-      },
-      token,
-    });
     
   } catch (error) {
     if (error instanceof z.ZodError) {

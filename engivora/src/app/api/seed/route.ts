@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+export const runtime = 'nodejs'
 import { connectToDatabase } from '@/lib/db'
 import { User } from '@/models/User'
 import { Blog } from '@/models/Blog'
