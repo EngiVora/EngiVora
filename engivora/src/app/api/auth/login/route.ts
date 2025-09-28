@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
         const expiresInEnv = process.env.JWT_EXPIRES_IN;
         const signOptions: SignOptions = {
           expiresIn: expiresInEnv && expiresInEnv.trim() !== '' ? (isNaN(Number(expiresInEnv)) ? expiresInEnv : Number(expiresInEnv)) : 604800,
-        };
+        } as SignOptions;
 
         const token = jwt.sign({ sub: userDoc._id.toString(), role: userDoc.role }, JWT_SECRET, signOptions);
 
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
       const expiresInEnv = process.env.JWT_EXPIRES_IN;
       const signOptions: SignOptions = {
         expiresIn: expiresInEnv && expiresInEnv.trim() !== '' ? (isNaN(Number(expiresInEnv)) ? expiresInEnv : Number(expiresInEnv)) : 604800,
-      };
+      } as SignOptions;
       
       const token = jwt.sign({ sub: mockUser.id, role: mockUser.role }, JWT_SECRET, signOptions);
       
