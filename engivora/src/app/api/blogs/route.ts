@@ -83,13 +83,18 @@ export async function POST(request: NextRequest) {
     const token = authHeader.substring(7);
     if (!JWT_SECRET) {
       console.error('JWT_SECRET not configured');
-      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
+      return NextResponse.json({ 
+        error: 'Server configuration error',
+        details: 'JWT_SECRET is not properly configured'
+      }, { status: 500 });
     }
+    
     let userId = '';
     try {
       const payload = jwt.verify(token, JWT_SECRET) as { sub: string };
       userId = payload.sub;
-    } catch {
+    } catch (jwtError) {
+      console.error('JWT verification error:', jwtError);
       return NextResponse.json(
         { error: 'Invalid token' },
         { status: 401 }
@@ -109,14 +114,25 @@ export async function POST(request: NextRequest) {
     const validatedData = blogSchema.parse(body);
     await connectToDatabase();
 
+    // Generate unique slug
+    const baseSlug = validatedData.title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .substring(0, 80);
+
+    // Check if slug exists and make it unique
+    let slug = baseSlug;
+    let counter = 1;
+    while (await Blog.findOne({ slug })) {
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+
     const created = await Blog.create({
       title: validatedData.title,
-      slug: validatedData.title
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .trim()
-        .replace(/\s+/g, '-')
-        .substring(0, 80),
+      slug,
       summary: validatedData.summary,
       content: validatedData.content,
       category: validatedData.category,
