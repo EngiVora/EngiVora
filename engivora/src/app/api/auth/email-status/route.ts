@@ -1,5 +1,29 @@
 import { NextResponse } from 'next/server';
-import { getEmailServiceStatus } from '@/lib/email-service';
+
+// Function to check if real email service is configured
+function getEmailServiceStatus() {
+  const emailService = process.env.EMAIL_SERVICE;
+  const emailUser = process.env.EMAIL_USER;
+  const emailAppPassword = process.env.EMAIL_APP_PASSWORD;
+  
+  // Check if we have a valid email service configuration
+  const isConfigured = !!(emailService && emailUser && emailAppPassword) || 
+                      !!(emailService && process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+  
+  if (isConfigured) {
+    return {
+      configured: true,
+      service: emailService || 'smtp',
+      mode: 'production'
+    };
+  }
+  
+  return {
+    configured: false,
+    service: 'none',
+    mode: 'mock'
+  };
+}
 
 export async function GET() {
   try {
