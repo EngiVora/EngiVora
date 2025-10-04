@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
     const isActive = searchParams.get('active') === 'true';
     const search = searchParams.get('search');
     const upcoming = searchParams.get('upcoming') === 'true';
+    
     const query: Record<string, unknown> = {};
     if (type) query.type = type;
     if (category) query.category = category;
@@ -91,8 +92,12 @@ export async function POST(request: NextRequest) {
     const token = authHeader.substring(7);
     if (!JWT_SECRET) {
       console.error('JWT_SECRET not configured');
-      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
+      return NextResponse.json({ 
+        error: 'Server configuration error',
+        details: 'JWT_SECRET is not properly configured'
+      }, { status: 500 });
     }
+    
     try {
       const payload = jwt.verify(token, JWT_SECRET) as { role?: string };
       if (payload.role !== 'admin') {
@@ -101,7 +106,8 @@ export async function POST(request: NextRequest) {
           { status: 403 }
         );
       }
-    } catch {
+    } catch (jwtError) {
+      console.error('JWT verification error:', jwtError);
       return NextResponse.json(
         { error: 'Invalid token' },
         { status: 401 }
@@ -114,13 +120,14 @@ export async function POST(request: NextRequest) {
     const validatedData = examSchema.parse(body);
     await connectToDatabase();
 
+    // Create exam with proper field mapping
     const created = await Exam.create({
       title: validatedData.name,
       organization: 'Admin',
       date: new Date(validatedData.examDate),
       category: validatedData.category,
       description: validatedData.description,
-    } as any);
+    });
 
     return NextResponse.json({
       success: true,
