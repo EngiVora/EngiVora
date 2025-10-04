@@ -269,6 +269,7 @@ export function UserManagement() {
           <button 
             onClick={() => setIsExportModalOpen(true)}
             className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+            aria-label="Export users"
           >
             <Download className="h-4 w-4 mr-2" />
             Export
@@ -276,6 +277,7 @@ export function UserManagement() {
           <button 
             onClick={() => setIsImportModalOpen(true)}
             className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+            aria-label="Import users"
           >
             <Upload className="h-4 w-4 mr-2" />
             Import
@@ -283,6 +285,7 @@ export function UserManagement() {
           <button 
             onClick={() => setIsAddUserModalOpen(true)}
             className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            aria-label="Add new user"
           >
             <Plus className="h-4 w-4 mr-2" />
             Add User
@@ -356,12 +359,14 @@ export function UserManagement() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                aria-label="Search users"
               />
             </div>
             <select
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              aria-label="Filter by role"
             >
               <option value="all">All Roles</option>
               <option value="Admin">Admin</option>
@@ -372,6 +377,7 @@ export function UserManagement() {
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              aria-label="Filter by status"
             >
               <option value="all">All Status</option>
               <option value="Active">Active</option>
@@ -405,6 +411,7 @@ export function UserManagement() {
                     checked={selectedUsers.length === filteredUsers.length && filteredUsers.length > 0}
                     onChange={handleSelectAll}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    aria-label="Select all users"
                   />
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -436,6 +443,7 @@ export function UserManagement() {
                       checked={selectedUsers.includes(user.id)}
                       onChange={() => handleSelectUser(user.id)}
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      aria-label={`Select user ${user.name}`}
                     />
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -487,7 +495,7 @@ export function UserManagement() {
                       >
                         <Mail className="h-4 w-4" />
                       </button>
-                      <button className="text-gray-400 hover:text-gray-600">
+                      <button className="text-gray-400 hover:text-gray-600" aria-label="More options">
                         <MoreVertical className="h-4 w-4" />
                       </button>
                     </div>

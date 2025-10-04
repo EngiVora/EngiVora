@@ -139,15 +139,15 @@ export function JobManagement() {
           <p className="text-gray-600">Manage job postings, applications, and company partnerships</p>
         </div>
         <div className="flex items-center space-x-3">
-          <button className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+          <button className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50" aria-label="Export jobs">
             <Download className="h-4 w-4 mr-2" />
             Export
           </button>
-          <button className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+          <button className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50" aria-label="Import jobs">
             <Upload className="h-4 w-4 mr-2" />
             Import
           </button>
-          <button onClick={handleCreateJob} className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+          <button onClick={handleCreateJob} className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" aria-label="Post new job">
             <Plus className="h-4 w-4 mr-2" />
             Post Job
           </button>
@@ -220,12 +220,14 @@ export function JobManagement() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                aria-label="Search jobs, companies, locations"
               />
             </div>
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              aria-label="Filter by category"
             >
               <option value="all">All Categories</option>
               <option value="software">Software</option>
@@ -238,6 +240,7 @@ export function JobManagement() {
               value={selectedType}
               onChange={(e) => setSelectedType(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              aria-label="Filter by job type"
             >
               <option value="all">All Types</option>
               <option value="full-time">Full-time</option>
@@ -249,6 +252,7 @@ export function JobManagement() {
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              aria-label="Filter by status"
             >
               <option value="all">All Status</option>
               <option value="Active">Active</option>
@@ -281,6 +285,7 @@ export function JobManagement() {
                     checked={selectedJobs.length === filteredJobs.length && filteredJobs.length > 0}
                     onChange={handleSelectAll}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    aria-label="Select all jobs"
                   />
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -312,6 +317,7 @@ export function JobManagement() {
                       checked={selectedJobs.includes(job._id)}
                       onChange={() => handleSelectJob(job._id)}
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      aria-label={`Select job ${job.title}`}
                     />
                   </td>
                   <td className="px-6 py-4">

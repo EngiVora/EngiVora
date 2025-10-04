@@ -229,7 +229,7 @@ export function AdminDashboard() {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">User Growth</h3>
             <div className="flex items-center space-x-2">
-              <LineChart className="h-5 w-5 text-gray-400" />
+              <LineChart className="h-5 w-5 text-gray-400" aria-hidden="true" />
               <span className="text-sm text-gray-500">Last 30 days</span>
             </div>
           </div>
@@ -247,7 +247,7 @@ export function AdminDashboard() {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Content Distribution</h3>
             <div className="flex items-center space-x-2">
-              <PieChart className="h-5 w-5 text-gray-400" />
+              <PieChart className="h-5 w-5 text-gray-400" aria-hidden="true" />
               <span className="text-sm text-gray-500">This month</span>
             </div>
           </div>
@@ -322,7 +322,7 @@ export function AdminDashboard() {
               </div>
             ))}
           </div>
-          <button className="mt-4 text-sm text-blue-600 hover:text-blue-800">
+          <button className="mt-4 text-sm text-blue-600 hover:text-blue-800" aria-label="View all activity">
             View all activity →
           </button>
         </div>
@@ -332,29 +332,29 @@ export function AdminDashboard() {
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <button className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-            <Users className="h-6 w-6 text-blue-500 mr-3" />
+          <button className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors" aria-label="Add User - Create new user account">
+            <Users className="h-6 w-6 text-blue-500 mr-3" aria-hidden="true" />
             <div className="text-left">
               <p className="font-medium text-gray-900">Add User</p>
               <p className="text-sm text-gray-500">Create new user account</p>
             </div>
           </button>
-          <button className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-            <FileText className="h-6 w-6 text-purple-500 mr-3" />
+          <button className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors" aria-label="New Blog Post - Publish new content">
+            <FileText className="h-6 w-6 text-purple-500 mr-3" aria-hidden="true" />
             <div className="text-left">
               <p className="font-medium text-gray-900">New Blog Post</p>
               <p className="text-sm text-gray-500">Publish new content</p>
             </div>
           </button>
-          <button className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-            <Briefcase className="h-6 w-6 text-orange-500 mr-3" />
+          <button className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors" aria-label="Post Job - Add new job listing">
+            <Briefcase className="h-6 w-6 text-orange-500 mr-3" aria-hidden="true" />
             <div className="text-left">
               <p className="font-medium text-gray-900">Post Job</p>
               <p className="text-sm text-gray-500">Add new job listing</p>
             </div>
           </button>
-          <button className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-            <Calendar className="h-6 w-6 text-green-500 mr-3" />
+          <button className="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors" aria-label="Schedule Event - Create new event">
+            <Calendar className="h-6 w-6 text-green-500 mr-3" aria-hidden="true" />
             <div className="text-left">
               <p className="font-medium text-gray-900">Schedule Event</p>
               <p className="text-sm text-gray-500">Create new event</p>

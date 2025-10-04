@@ -129,6 +129,7 @@ export function AnalyticsDashboard() {
           <button 
             onClick={() => setIsExportModalOpen(true)}
             className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+            aria-label="Export analytics data"
           >
             <Download className="h-4 w-4 mr-2" />
             Export
@@ -242,7 +243,7 @@ export function AnalyticsDashboard() {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">User Growth</h3>
             <div className="flex items-center space-x-2">
-              <LineChart className="h-5 w-5 text-gray-400" />
+              <LineChart className="h-5 w-5 text-gray-400" aria-hidden="true" />
               <span className="text-sm text-gray-500">Last 6 months</span>
             </div>
           </div>
@@ -260,7 +261,7 @@ export function AnalyticsDashboard() {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Traffic Sources</h3>
             <div className="flex items-center space-x-2">
-              <PieChart className="h-5 w-5 text-gray-400" />
+              <PieChart className="h-5 w-5 text-gray-400" aria-hidden="true" />
               <span className="text-sm text-gray-500">This month</span>
             </div>
           </div>
@@ -291,7 +292,9 @@ export function AnalyticsDashboard() {
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Top Pages</h3>
-            <button className="text-sm text-blue-600 hover:text-blue-800">View All</button>
+            <button className="text-sm text-blue-600 hover:text-blue-800" aria-label="View all top pages">
+              View All
+            </button>
           </div>
           <div className="space-y-4">
             {analyticsData.topPages.map((page, index) => (
@@ -314,7 +317,7 @@ export function AnalyticsDashboard() {
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Device Breakdown</h3>
             <div className="flex items-center space-x-2">
-              <PieChart className="h-5 w-5 text-gray-400" />
+              <PieChart className="h-5 w-5 text-gray-400" aria-hidden="true" />
               <span className="text-sm text-gray-500">This month</span>
             </div>
           </div>

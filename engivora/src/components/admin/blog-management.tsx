@@ -205,12 +205,14 @@ export function BlogManagement() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                aria-label="Search blog posts"
               />
             </div>
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              aria-label="Filter by category"
             >
               <option value="all">All Categories</option>
               <option value="technology">Technology</option>
@@ -223,6 +225,7 @@ export function BlogManagement() {
               value={selectedStatus}
               onChange={(e) => setSelectedStatus(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+              aria-label="Filter by status"
             >
               <option value="all">All Status</option>
               <option value="Published">Published</option>
@@ -255,6 +258,7 @@ export function BlogManagement() {
                     checked={selectedBlogs.length === filteredBlogs.length && filteredBlogs.length > 0}
                     onChange={handleSelectAll}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    aria-label="Select all blog posts"
                   />
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -286,6 +290,7 @@ export function BlogManagement() {
                       checked={selectedBlogs.includes(blog._id)}
                       onChange={() => handleSelectBlog(blog._id)}
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      aria-label={`Select blog post ${blog.title}`}
                     />
                   </td>
                   <td className="px-6 py-4">
@@ -345,22 +350,28 @@ export function BlogManagement() {
                       <button
                         onClick={() => handleBlogAction(blog._id, "view")}
                         className="text-gray-400 hover:text-gray-600"
+                        aria-label="View blog post"
                       >
                         <Eye className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleBlogAction(blog._id, "edit")}
                         className="text-gray-400 hover:text-gray-600"
+                        aria-label="Edit blog post"
                       >
                         <Edit className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => handleBlogAction(blog._id, "delete")}
                         className="text-gray-400 hover:text-red-600"
+                        aria-label="Delete blog post"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
-                      <button className="text-gray-400 hover:text-gray-600">
+                      <button 
+                        className="text-gray-400 hover:text-gray-600"
+                        aria-label="More options"
+                      >
                         <MoreVertical className="h-4 w-4" />
                       </button>
                     </div>

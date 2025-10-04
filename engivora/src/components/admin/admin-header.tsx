@@ -48,13 +48,14 @@ export function AdminHeader() {
           <button
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
             className="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100"
+            aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
           >
             {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </button>
 
           {/* Notifications */}
           <div className="relative">
-            <button className="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100 relative">
+            <button className="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100 relative" aria-label="View notifications">
               <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
@@ -66,7 +67,7 @@ export function AdminHeader() {
 
           {/* Profile dropdown */}
           <div className="relative">
-            <button className="flex items-center space-x-3 p-2 text-gray-700 hover:bg-gray-100 rounded-md">
+            <button className="flex items-center space-x-3 p-2 text-gray-700 hover:bg-gray-100 rounded-md" aria-label="User profile menu">
               <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
                 <User className="h-5 w-5 text-white" />
               </div>
@@ -79,12 +80,13 @@ export function AdminHeader() {
 
           {/* Quick actions */}
           <div className="flex items-center space-x-2">
-            <button className="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100">
+            <button className="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100" aria-label="Settings">
               <Settings className="h-5 w-5" />
             </button>
             <button 
               onClick={handleLogout}
               className="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100"
+              aria-label="Sign out"
             >
               <LogOut className="h-5 w-5" />
             </button>

@@ -79,8 +79,9 @@ export function AdminSidebar() {
             <button
               onClick={() => setSidebarOpen(false)}
               className="text-gray-400 hover:text-gray-600"
+              aria-label="Close navigation menu"
             >
-              <X className="h-6 w-6" />
+              <X className="h-6 w-6" aria-hidden="true" />
             </button>
           </div>
           <nav className="flex-1 px-4 py-4 space-y-1">
@@ -177,8 +178,9 @@ export function AdminSidebar() {
         <button
           onClick={() => setSidebarOpen(true)}
           className="fixed top-4 left-4 z-40 p-2 rounded-md bg-white shadow-lg text-gray-400 hover:text-gray-600"
+          aria-label="Open navigation menu"
         >
-          <Menu className="h-6 w-6" />
+          <Menu className="h-6 w-6" aria-hidden="true" />
         </button>
       </div>
     </>
