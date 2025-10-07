@@ -1,8 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Bell, ExternalLink } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
 
 // Mock data - in real app this would come from server + admin seed
 const updates = [
@@ -51,16 +50,6 @@ const updates = [
 ]
 
 export function UpdateTicker() {
-  const [currentIndex, setCurrentIndex] = useState(0)
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % updates.length)
-    }, 4000) // Change update every 4 seconds
-
-    return () => clearInterval(interval)
-  }, [])
-
   const getTypeColor = (type: string) => {
     switch (type) {
       case "exam":
@@ -91,74 +80,64 @@ export function UpdateTicker() {
     }
   }
 
+  // Step-by-step circulation (carousel) with ping-pong direction
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [direction, setDirection] = useState<1 | -1>(1)
+  const [paused, setPaused] = useState(false)
+  const maxIndex = updates.length - 1
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
+
+  useEffect(() => {
+    if (paused) return
+    intervalRef.current = setInterval(() => {
+      setCurrentIndex((prev) => {
+        if (prev >= maxIndex && direction === 1) {
+          setDirection(-1)
+          return prev - 1
+        }
+        if (prev <= 0 && direction === -1) {
+          setDirection(1)
+          return prev + 1
+        }
+        return prev + direction
+      })
+    }, 3500)
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [direction, paused, maxIndex])
+
   return (
-    <section className="py-6 bg-background border-b">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <Card className="border-primary/20 bg-primary/5">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="flex items-center space-x-2">
-                  <Bell className="h-5 w-5 text-primary" />
-                  <span className="font-semibold text-primary">Latest Updates</span>
-                </div>
-                <div className="h-4 w-px bg-border"></div>
-              </div>
-              
-              <div className="flex items-center space-x-4">
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-muted-foreground">🔔</span>
-                  <span className="text-sm text-muted-foreground">Live Updates</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-3 relative overflow-hidden">
-                             <div 
-                 className={`flex transition-transform duration-500 ease-in-out update-slider-${currentIndex}`}
-               >
-                {updates.map((update) => (
-                  <div
-                    key={update.id}
-                    className="flex items-center justify-between min-w-full"
-                  >
-                    <div className="flex items-center space-x-3 flex-1">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getTypeColor(update.type)}`}>
-                        {getTypeLabel(update.type)}
-                      </span>
-                      <span className="text-sm font-medium">{update.message}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs text-muted-foreground">{update.timestamp}</span>
-                                             <a
-                         href={update.link}
-                         className="text-primary hover:text-primary/80 transition-colors"
-                         title="View details"
-                       >
-                         <ExternalLink className="h-4 w-4" />
-                         <span className="sr-only">View details</span>
-                       </a>
-                    </div>
+    <section className="relative border-b overflow-hidden" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+      <div className="pointer-events-none absolute inset-0 opacity-[0.15] grid-noise" />
+      <div className="relative mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center h-12 text-sm text-slate-300">
+          <div className="flex items-center gap-2 pr-4 mr-4 border-r border-white/10">
+            <Bell className="h-4 w-4 text-sky-400" />
+            <span className="font-semibold text-sky-300">Latest</span>
+          </div>
+          <div className="relative flex-1 overflow-hidden">
+            <div className={`flex transition-transform duration-500 ease-in-out update-slider-${currentIndex}`}>
+              {updates.map((u) => (
+                <div key={u.id} className="min-w-full flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${getTypeColor(u.type)} whitespace-nowrap`}>
+                      {getTypeLabel(u.type)}
+                    </span>
+                    <span className="text-slate-200/90 whitespace-nowrap">{u.message}</span>
                   </div>
-                ))}
-              </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-slate-400 hidden sm:inline">{u.timestamp}</span>
+                    <a href={u.link} className="text-sky-400 hover:text-sky-300" title="Open">
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      <span className="sr-only">Open</span>
+                    </a>
+                  </div>
+                </div>
+              ))}
             </div>
-
-            {/* Dots indicator */}
-                         <div className="flex justify-center space-x-1 mt-3">
-               {updates.map((_, index) => (
-                 <button
-                   key={index}
-                   onClick={() => setCurrentIndex(index)}
-                   className={`w-2 h-2 rounded-full transition-colors ${
-                     index === currentIndex ? "bg-primary" : "bg-muted"
-                   }`}
-                   title={`Go to update ${index + 1}`}
-                 />
-               ))}
-             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </section>
   )

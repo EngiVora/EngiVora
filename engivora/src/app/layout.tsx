@@ -5,6 +5,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { Toaster } from "react-hot-toast"
 import { ConditionalLayout } from "@/components/conditional-layout"
 import { ClerkProvider } from '@clerk/nextjs'
+import { ScrollToTop } from "@/components/ui/scroll-to-top"
+import { ParticleWaves } from "@/components/ui/particle-waves"
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -54,14 +56,18 @@ export default function RootLayout({
         <body className={`${inter.variable} ${poppins.variable} font-sans antialiased`}>
           <ThemeProvider
             attribute="class"
-            defaultTheme="light"
+            defaultTheme="dark"
             enableSystem
             disableTransitionOnChange
           >
+            <div className="relative z-10">
+              <ParticleWaves />
+            </div>
             <ConditionalLayout>
               {children}
             </ConditionalLayout>
             <Toaster position="top-right" />
+            <ScrollToTop />
           </ThemeProvider>
         </body>
       </html>
