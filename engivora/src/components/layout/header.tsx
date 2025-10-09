@@ -1,10 +1,9 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Search } from "lucide-react"
 import { Logo } from "@/components/ui/logo"
-import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs'
-import { isClerkConfigured, MockSignedIn, MockSignedOut, MockUserButton } from '@/lib/clerk-utils'
 import { ThemeToggle } from "@/components/ui/theme-toggle"
 
 const navigation = [
@@ -17,12 +16,73 @@ const navigation = [
 ]
 
 export function Header() {
-  const clerkEnabled = isClerkConfigured()
-  
-  // Use appropriate components based on Clerk configuration
-  const SignedInComponent = clerkEnabled ? SignedIn : MockSignedIn
-  const SignedOutComponent = clerkEnabled ? SignedOut : MockSignedOut
-  const UserButtonComponent = clerkEnabled ? UserButton : MockUserButton
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null)
+
+  // Check authentication status on component mount and when storage changes
+  useEffect(() => {
+    const checkAuthStatus = () => {
+      try {
+        // Check localStorage first
+        const token = localStorage.getItem('authToken')
+        const user = localStorage.getItem('user')
+        
+        if (token && user) {
+          setIsLoggedIn(true)
+          setUser(JSON.parse(user))
+          return
+        }
+        
+        // Check sessionStorage as fallback
+        const sessionToken = sessionStorage.getItem('authToken')
+        const sessionUser = sessionStorage.getItem('user')
+        
+        if (sessionToken && sessionUser) {
+          setIsLoggedIn(true)
+          setUser(JSON.parse(sessionUser))
+          return
+        }
+        
+        // If no auth data found
+        setIsLoggedIn(false)
+        setUser(null)
+      } catch (err) {
+        console.error("Error checking auth status:", err)
+        setIsLoggedIn(false)
+        setUser(null)
+      }
+    }
+    
+    // Check on mount
+    checkAuthStatus()
+    
+    // Listen for storage changes (in case user logs in/out in another tab)
+    const handleStorageChange = () => {
+      checkAuthStatus()
+    }
+    
+    window.addEventListener('storage', handleStorageChange)
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+    }
+  }, [])
+
+  const handleLogout = () => {
+    // Remove auth data from both localStorage and sessionStorage
+    localStorage.removeItem('authToken')
+    localStorage.removeItem('user')
+    sessionStorage.removeItem('authToken')
+    sessionStorage.removeItem('user')
+    
+    // Update state
+    setIsLoggedIn(false)
+    setUser(null)
+    
+    // Redirect to home page
+    window.location.href = '/'
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full glass-panel accent-border">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -42,28 +102,36 @@ export function Header() {
             ))}
           </nav>
 
-          {/* Right: Auth + Search + UserButton */}
+          {/* Right: Auth + Search + ThemeToggle */}
           <div className="flex items-center gap-4">
-            <SignedOutComponent>
-              <Link
-                href="/sign-up"
-                className="hidden sm:inline-flex h-9 items-center justify-center rounded-full px-4 bg-sky-600 text-white text-sm font-semibold hover:bg-sky-500 transition-colors neon-ring"
-              >
-                Sign Up
-              </Link>
-              <Link
-                href="/sign-in"
-                className="inline-flex h-9 items-center justify-center rounded-full px-4 bg-slate-800 text-slate-100 text-sm font-semibold ring-1 ring-inset ring-slate-700 hover:bg-slate-700 transition-colors"
-              >
-                Sign In
-              </Link>
-            </SignedOutComponent>
-            
-            <SignedInComponent>
-              <Link href="/profile" className="text-sm font-medium text-slate-300 hover:text-sky-400 transition-colors">
-                Profile
-              </Link>
-            </SignedInComponent>
+            {!isLoggedIn ? (
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/signup"
+                  className="hidden sm:inline-flex h-9 items-center justify-center rounded-full px-4 bg-sky-600 text-white text-sm font-semibold hover:bg-sky-500 transition-colors neon-ring"
+                >
+                  Sign Up
+                </Link>
+                <Link
+                  href="/login"
+                  className="inline-flex h-9 items-center justify-center rounded-full px-4 bg-slate-800 text-slate-100 text-sm font-semibold ring-1 ring-inset ring-slate-700 hover:bg-slate-700 transition-colors"
+                >
+                  Sign In
+                </Link>
+              </div>
+            ) : (
+              <>
+                <Link href="/profile" className="text-sm font-medium text-slate-300 hover:text-sky-400 transition-colors">
+                  Profile
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="text-sm font-medium text-slate-300 hover:text-sky-400 transition-colors"
+                >
+                  Logout
+                </button>
+              </>
+            )}
             
             <button
               type="button"
@@ -75,20 +143,6 @@ export function Header() {
             </button>
 
             <ThemeToggle />
-            
-            <SignedInComponent>
-              {clerkEnabled && (
-                <UserButtonComponent 
-                  appearance={{
-                    elements: {
-                      avatarBox: "h-9 w-9",
-                      userButtonPopoverCard: "shadow-lg border border-slate-800 bg-slate-900 text-slate-100",
-                    }
-                  }}
-                  afterSignOutUrl="/"
-                />
-              )}
-            </SignedInComponent>
           </div>
         </div>
       </div>

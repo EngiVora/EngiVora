@@ -22,6 +22,29 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Authentication
+
+This application uses a custom JWT-based authentication system for both regular users and administrators:
+
+### For Regular Users:
+- Visit `/signup` to create a new account with your name, email, password, department, year, and roll number
+- Visit `/login` to sign in to your existing account
+- Demo credentials: `student@example.com` / `password123`
+- After login, you can access your profile at `/profile`
+
+### For Administrators:
+- Visit `/admin/login` to sign in to the admin portal
+- Demo credentials: `admin@engivora.com` / `admin123`
+- After login, you'll be redirected to the admin dashboard
+
+### Environment Variables:
+Make sure to set the following environment variables in your `.env.local` file:
+```env
+JWT_SECRET=your-super-secret-jwt-key-here
+JWT_EXPIRES_IN=604800
+MONGODB_URI=your-mongodb-connection-string
+```
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

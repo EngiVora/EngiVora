@@ -1,8 +1,10 @@
 import { NextResponse } from 'next/server'
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+import { NextRequest } from 'next/server'
+import jwt from 'jsonwebtoken'
+import { findUserById } from '@/lib/auth-db'
 
 // Define public routes that don't require authentication
-const isPublicRoute = createRouteMatcher([
+const publicRoutes = [
   '/',
   '/blogs',
   '/discounts',
@@ -10,7 +12,8 @@ const isPublicRoute = createRouteMatcher([
   '/jobs',
   '/work-hub',
   '/admin/login',
-  // Public API routes
+  '/login',
+  '/signup',
   '/api/auth(.*)',
   '/api/seed(.*)',
   '/api/blogs(.*)',
@@ -18,18 +21,79 @@ const isPublicRoute = createRouteMatcher([
   '/api/exams(.*)',
   '/api/jobs(.*)',
   '/api/work-hub(.*)'
-])
+]
 
-// Gracefully disable Clerk middleware if not configured
-const hasClerkKeys = !!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY && !!process.env.CLERK_SECRET_KEY
+// Check if a route is public
+function isPublicRoute(pathname: string): boolean {
+  return publicRoutes.some(route => {
+    if (route.endsWith('(.*)')) {
+      const baseRoute = route.slice(0, -4) // Remove (.*)
+      return pathname.startsWith(baseRoute)
+    }
+    return pathname === route
+  })
+}
 
-const middlewareWhenClerkDisabled = () => NextResponse.next()
+// Get token from request
+function getTokenFromRequest(request: NextRequest): string | null {
+  const authHeader = request.headers.get('authorization')
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    return authHeader.substring(7)
+  }
+  
+  // Also check cookies as fallback
+  const tokenCookie = request.cookies.get('authToken')
+  return tokenCookie?.value || null
+}
 
-export default hasClerkKeys
-  ? clerkMiddleware((auth, req) => {
-      if (isPublicRoute(req)) return
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+  
+  // Allow public routes
+  if (isPublicRoute(pathname)) {
+    return NextResponse.next()
+  }
+  
+  // For protected routes, verify token
+  const token = getTokenFromRequest(request)
+  
+  if (!token) {
+    // Redirect to login for client-side routes
+    if (!pathname.startsWith('/api')) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+    // Return 401 for API routes
+    return NextResponse.json({ error: 'Authentication required' }, { status: 401 })
+  }
+  
+  try {
+    // Verify JWT token
+    const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key'
+    const decoded = jwt.verify(token, JWT_SECRET)
+    
+    // Add user info to headers for use in route handlers
+    const requestHeaders = new Headers(request.headers)
+    if (typeof decoded === 'object' && decoded !== null) {
+      requestHeaders.set('x-user-id', decoded.sub as string)
+      requestHeaders.set('x-user-role', decoded.role as string)
+    }
+    
+    return NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
     })
-  : middlewareWhenClerkDisabled
+  } catch (error) {
+    console.error('Token verification failed:', error)
+    
+    // Redirect to login for client-side routes
+    if (!pathname.startsWith('/api')) {
+      return NextResponse.redirect(new URL('/login', request.url))
+    }
+    // Return 401 for API routes
+    return NextResponse.json({ error: 'Invalid or expired token' }, { status: 401 })
+  }
+}
 
 export const config = {
   matcher: [
@@ -38,4 +102,4 @@ export const config = {
     // Always run for API routes
     '/(api|trpc)(.*)',
   ],
-};
+}
