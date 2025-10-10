@@ -51,13 +51,14 @@ export async function GET(request: NextRequest) {
     }
     
     if (startDate || endDate) {
-      query.timestamp = {};
+      const timestampQuery: { $gte?: Date; $lte?: Date } = {};
       if (startDate) {
-        query.timestamp.$gte = new Date(startDate);
+        timestampQuery.$gte = new Date(startDate);
       }
       if (endDate) {
-        query.timestamp.$lte = new Date(endDate);
+        timestampQuery.$lte = new Date(endDate);
       }
+      query.timestamp = timestampQuery;
     }
 
     const skip = (page - 1) * limit;
