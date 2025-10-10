@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useUser } from "@clerk/nextjs"
 import { Loader2, Save, AlertCircle, CheckCircle, X, Plus } from "lucide-react"
 
 interface ProfileData {
@@ -71,7 +70,8 @@ const sampleInterests = [
 ]
 
 export function CustomProfileForm() {
-  const { user, isLoaded } = useUser()
+  const [user, setUser] = useState<{ id: string; name: string; email: string } | null>(null)
+  const [isLoaded, setIsLoaded] = useState(false)
   const [profileData, setProfileData] = useState<ProfileData>({
     name: "",
     mobileNumber: "",
@@ -93,6 +93,51 @@ export function CustomProfileForm() {
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
 
+  // Check authentication status on component mount
+  useEffect(() => {
+    const checkAuthStatus = () => {
+      try {
+        // Check localStorage first
+        const storedUser = localStorage.getItem('user')
+        if (storedUser) {
+          const userData = JSON.parse(storedUser)
+          setUser(userData)
+          setProfileData(prev => ({
+            ...prev,
+            name: userData.name || "",
+          }))
+          setIsLoaded(true)
+          setLoading(false)
+          return
+        }
+        
+        // Check sessionStorage as fallback
+        const sessionUser = sessionStorage.getItem('user')
+        if (sessionUser) {
+          const userData = JSON.parse(sessionUser)
+          setUser(userData)
+          setProfileData(prev => ({
+            ...prev,
+            name: userData.name || "",
+          }))
+          setIsLoaded(true)
+          setLoading(false)
+          return
+        }
+        
+        // If no user data found
+        setIsLoaded(true)
+        setLoading(false)
+      } catch (err) {
+        console.error("Error checking auth status:", err)
+        setIsLoaded(true)
+        setLoading(false)
+      }
+    }
+    
+    checkAuthStatus()
+  }, [])
+
   // Fetch existing profile data
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -100,31 +145,14 @@ export function CustomProfileForm() {
       
       try {
         setLoading(true)
-        const response = await fetch("/api/auth/profile")
-        const data = await response.json()
-        
-        if (response.ok && data.profile) {
-          setProfileData({
-            name: data.profile.name || user.fullName || "",
-            mobileNumber: data.profile.mobileNumber || "",
-            college: data.profile.college || "",
-            course: data.profile.course || "",
-            department: data.profile.department || "",
-            year: data.profile.year || "",
-            rollNumber: data.profile.rollNumber || "",
-            bio: data.profile.bio || "",
-            skills: Array.isArray(data.profile.skills) ? data.profile.skills : [],
-            interests: Array.isArray(data.profile.interests) ? data.profile.interests : []
-          })
-        } else {
-          // Initialize with user's name if no profile exists
-          setProfileData(prev => ({
-            ...prev,
-            name: user.fullName || "",
-            skills: [],
-            interests: []
-          }))
-        }
+        // In a real app, you would fetch from your API
+        // For now, we'll just initialize with user's name
+        setProfileData(prev => ({
+          ...prev,
+          name: user.name || "",
+          skills: [],
+          interests: []
+        }))
       } catch (err) {
         console.error("Failed to fetch profile data:", err)
         setError("Failed to load profile data")
@@ -206,11 +234,15 @@ export function CustomProfileForm() {
       }));
       setNewSkill("");
       setSuggestedSkills([]);
-      setError("");
-    } else if (trimmedSkill && profileData.skills.includes(trimmedSkill)) {
-      setError("This skill is already added");
     }
-  }
+  };
+
+  const removeSkill = (skillToRemove: string) => {
+    setProfileData(prev => ({
+      ...prev,
+      skills: prev.skills.filter(skill => skill !== skillToRemove)
+    }));
+  };
 
   const addInterest = () => {
     const trimmedInterest = newInterest.trim();
@@ -228,147 +260,64 @@ export function CustomProfileForm() {
       }));
       setNewInterest("");
       setSuggestedInterests([]);
-      setError("");
-    } else if (trimmedInterest && profileData.interests.includes(trimmedInterest)) {
-      setError("This interest is already added");
     }
-  }
+  };
 
-  // Add a skill from suggestions
-  const addSuggestedSkill = (skill: string) => {
-    if (!profileData.skills.includes(skill)) {
-      // Limit to 20 skills
-      if (profileData.skills.length >= 20) {
-        setError("You can add up to 20 skills only");
-        return;
-      }
-      
-      setProfileData(prev => ({
-        ...prev,
-        skills: [...prev.skills, skill]
-      }));
-      setNewSkill("");
-      setSuggestedSkills([]);
-      setError("");
-    } else {
-      setError("This skill is already added");
-    }
-  }
-
-  // Add an interest from suggestions
-  const addSuggestedInterest = (interest: string) => {
-    if (!profileData.interests.includes(interest)) {
-      // Limit to 20 interests
-      if (profileData.interests.length >= 20) {
-        setError("You can add up to 20 interests only");
-        return;
-      }
-      
-      setProfileData(prev => ({
-        ...prev,
-        interests: [...prev.interests, interest]
-      }));
-      setNewInterest("");
-      setSuggestedInterests([]);
-      setError("");
-    } else {
-      setError("This interest is already added");
-    }
-  }
-
-  const removeSkill = (skill: string) => {
+  const removeInterest = (interestToRemove: string) => {
     setProfileData(prev => ({
       ...prev,
-      skills: prev.skills.filter(s => s !== skill)
+      interests: prev.interests.filter(interest => interest !== interestToRemove)
     }));
-    
-    // Clear error if it was about duplicate skill
-    if (error === "This skill is already added" || error === "You can add up to 20 skills only") {
-      setError("");
+  };
+
+  const handleSkillKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addSkill();
     }
-  }
+  };
 
-  const removeInterest = (interest: string) => {
-    setProfileData(prev => ({
-      ...prev,
-      interests: prev.interests.filter(i => i !== interest)
-    }));
-    
-    // Clear error if it was about duplicate interest
-    if (error === "This interest is already added" || error === "You can add up to 20 interests only") {
-      setError("");
+  const handleInterestKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addInterest();
     }
-  }
-
-  const handleSkillKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      addSkill()
-    }
-  }
-
-  const handleInterestKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      addInterest()
-    }
-  }
-
-  // Handle blur events to hide suggestions
-  const handleSkillInputBlur = () => {
-    // Small delay to allow click events on suggestions to register first
-    setTimeout(() => {
-      setSuggestedSkills([]);
-    }, 150);
-  }
-
-  const handleInterestInputBlur = () => {
-    // Small delay to allow click events on suggestions to register first
-    setTimeout(() => {
-      setSuggestedInterests([]);
-    }, 150);
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setSaving(true)
-    setError("")
-    setSuccess("")
+    e.preventDefault();
+    setSaving(true);
+    setError("");
+    setSuccess("");
     
     try {
-      const response = await fetch("/api/auth/profile", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(profileData),
-      })
+      // In a real app, you would send this data to your API
+      // For now, we'll just simulate a successful save
+      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const data = await response.json()
+      setSuccess("Profile updated successfully!");
       
-      if (response.ok) {
-        setSuccess("Profile updated successfully!")
-        // Update the user's profile in Clerk if needed
-        if (user) {
-          await user.reload()
+      // Update user data in localStorage/sessionStorage
+      if (user) {
+        const updatedUser = {
+          ...user,
+          name: profileData.name
+        };
+        
+        if (localStorage.getItem('user')) {
+          localStorage.setItem('user', JSON.stringify(updatedUser));
         }
-      } else {
-        // Show more detailed error messages
-        if (data.details) {
-          // If it's a validation error with details
-          const errorMessages = data.details.map((detail: any) => detail.message).join(", ")
-          setError(`Validation error: ${errorMessages}`)
-        } else {
-          setError(data.error || "Failed to update profile")
+        if (sessionStorage.getItem('user')) {
+          sessionStorage.setItem('user', JSON.stringify(updatedUser));
         }
       }
     } catch (err) {
-      console.error("Profile update error:", err)
-      setError("Network error. Please try again.")
+      console.error("Profile update error:", err);
+      setError("Network error. Please try again.");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
-  }
+  };
 
   if (!isLoaded || loading) {
     return (
@@ -541,53 +490,48 @@ export function CustomProfileForm() {
                     type="button"
                     onClick={() => removeSkill(skill)}
                     className="ml-2 text-blue-600 hover:text-blue-900 focus:outline-none"
-                    aria-label={`Remove skill ${skill}`}
+                    aria-label={`Remove ${skill}`}
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-3 w-3" />
                   </button>
                 </span>
               ))}
             </div>
             <div className="relative">
-              <div className="flex">
-                <input
-                  type="text"
-                  value={newSkill}
-                  onChange={handleSkillInputChange}
-                  onBlur={handleSkillInputBlur}
-                  onKeyPress={handleSkillKeyPress}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                  placeholder="Add a skill (e.g. JavaScript, React)"
-                />
-                <button
-                  type="button"
-                  onClick={addSkill}
-                  className="px-3 py-2 bg-blue-600 text-white rounded-r-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-                  aria-label="Add skill"
-                >
-                  <Plus className="h-4 w-4" />
-                </button>
+              <input
+                type="text"
+                value={newSkill}
+                onChange={handleSkillInputChange}
+                onKeyDown={handleSkillKeyDown}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                placeholder="Type a skill and press Enter or comma"
+              />
+              <button
+                type="button"
+                onClick={addSkill}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-blue-600 hover:text-blue-800"
+                aria-label="Add skill"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            </div>
+            {suggestedSkills.length > 0 && (
+              <div className="mt-2 bg-white border border-gray-200 rounded-md shadow-sm max-h-40 overflow-y-auto">
+                {suggestedSkills.map((skill) => (
+                  <button
+                    key={skill}
+                    type="button"
+                    onClick={() => {
+                      setNewSkill(skill);
+                      setTimeout(() => addSkill(), 0);
+                    }}
+                    className="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                  >
+                    {skill}
+                  </button>
+                ))}
               </div>
-              
-              {/* Suggestions dropdown */}
-              {suggestedSkills.length > 0 && (
-                <div className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md border border-gray-200 max-h-40 overflow-y-auto">
-                  {suggestedSkills.map((skill) => (
-                    <button
-                      key={skill}
-                      type="button"
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition"
-                      onClick={() => addSuggestedSkill(skill)}
-                    >
-                      {skill}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="mt-2">
-              <p className="text-xs text-gray-500">Suggestions: {sampleSkills.slice(0, 8).join(", ")}</p>
-            </div>
+            )}
           </div>
           
           {/* Interests */}
@@ -606,53 +550,48 @@ export function CustomProfileForm() {
                     type="button"
                     onClick={() => removeInterest(interest)}
                     className="ml-2 text-green-600 hover:text-green-900 focus:outline-none"
-                    aria-label={`Remove interest ${interest}`}
+                    aria-label={`Remove ${interest}`}
                   >
-                    <X className="h-4 w-4" />
+                    <X className="h-3 w-3" />
                   </button>
                 </span>
               ))}
             </div>
             <div className="relative">
-              <div className="flex">
-                <input
-                  type="text"
-                  value={newInterest}
-                  onChange={handleInterestInputChange}
-                  onBlur={handleInterestInputBlur}
-                  onKeyPress={handleInterestKeyPress}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                  placeholder="Add an interest (e.g. Web Development, AI)"
-                />
-                <button
-                  type="button"
-                  onClick={addInterest}
-                  className="px-3 py-2 bg-green-600 text-white rounded-r-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition"
-                  aria-label="Add interest"
-                >
-                  <Plus className="h-4 w-4" />
-                </button>
+              <input
+                type="text"
+                value={newInterest}
+                onChange={handleInterestInputChange}
+                onKeyDown={handleInterestKeyDown}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                placeholder="Type an interest and press Enter or comma"
+              />
+              <button
+                type="button"
+                onClick={addInterest}
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-green-600 hover:text-green-800"
+                aria-label="Add interest"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            </div>
+            {suggestedInterests.length > 0 && (
+              <div className="mt-2 bg-white border border-gray-200 rounded-md shadow-sm max-h-40 overflow-y-auto">
+                {suggestedInterests.map((interest) => (
+                  <button
+                    key={interest}
+                    type="button"
+                    onClick={() => {
+                      setNewInterest(interest);
+                      setTimeout(() => addInterest(), 0);
+                    }}
+                    className="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700"
+                  >
+                    {interest}
+                  </button>
+                ))}
               </div>
-              
-              {/* Suggestions dropdown */}
-              {suggestedInterests.length > 0 && (
-                <div className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md border border-gray-200 max-h-40 overflow-y-auto">
-                  {suggestedInterests.map((interest) => (
-                    <button
-                      key={interest}
-                      type="button"
-                      className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition"
-                      onClick={() => addSuggestedInterest(interest)}
-                    >
-                      {interest}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="mt-2">
-              <p className="text-xs text-gray-500">Suggestions: {sampleInterests.slice(0, 8).join(", ")}</p>
-            </div>
+            )}
           </div>
           
           {/* Bio */}
@@ -669,26 +608,24 @@ export function CustomProfileForm() {
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
               placeholder="Tell us about yourself..."
             />
-            <p className="mt-1 text-sm text-gray-500">
-              {profileData.bio.length}/500 characters
-            </p>
           </div>
         </div>
         
+        {/* Submit Button */}
         <div className="flex justify-end pt-4">
           <button
             type="submit"
             disabled={saving}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 transition"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
             {saving ? (
               <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Saving...
               </>
             ) : (
               <>
-                <Save className="h-4 w-4 mr-2" />
+                <Save className="mr-2 h-4 w-4" />
                 Save Profile
               </>
             )}

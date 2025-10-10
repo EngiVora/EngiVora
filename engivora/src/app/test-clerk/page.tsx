@@ -1,80 +1,113 @@
 "use client"
 
-import { useUser, SignInButton, SignOutButton } from '@clerk/nextjs'
-import { isClerkConfigured } from '@/lib/clerk-utils'
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 
 export default function TestClerkPage() {
-  const clerkEnabled = isClerkConfigured()
-  const { isLoaded, isSignedIn, user } = useUser()
+  const router = useRouter()
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [user, setUser] = useState<{ name: string; email: string } | null>(null)
 
-  if (!clerkEnabled) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="max-w-md w-full bg-white p-8 rounded-lg shadow">
-          <h1 className="text-2xl font-bold text-center mb-6">Clerk Test</h1>
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-            <p className="text-yellow-800">Clerk is not configured. Please set up your Clerk API keys in the .env.local file.</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  // Check authentication status on component mount
+  useEffect(() => {
+    const checkAuthStatus = () => {
+      try {
+        // Check localStorage first
+        const token = localStorage.getItem('authToken')
+        const user = localStorage.getItem('user')
+        
+        if (token && user) {
+          setIsLoggedIn(true)
+          setUser(JSON.parse(user))
+          return
+        }
+        
+        // Check sessionStorage as fallback
+        const sessionToken = sessionStorage.getItem('authToken')
+        const sessionUser = sessionStorage.getItem('user')
+        
+        if (sessionToken && sessionUser) {
+          setIsLoggedIn(true)
+          setUser(JSON.parse(sessionUser))
+          return
+        }
+        
+        // If no auth data found
+        setIsLoggedIn(false)
+        setUser(null)
+      } catch (err) {
+        console.error("Error checking auth status:", err)
+        setIsLoggedIn(false)
+        setUser(null)
+      }
+    }
+    
+    checkAuthStatus()
+  }, [])
 
-  if (!isLoaded) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="max-w-md w-full bg-white p-8 rounded-lg shadow">
-          <h1 className="text-2xl font-bold text-center mb-6">Clerk Test</h1>
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Loading...</p>
-          </div>
-        </div>
-      </div>
-    )
+  const handleLogout = () => {
+    // Remove auth data from both localStorage and sessionStorage
+    localStorage.removeItem('authToken')
+    localStorage.removeItem('user')
+    sessionStorage.removeItem('authToken')
+    sessionStorage.removeItem('user')
+    
+    // Update state
+    setIsLoggedIn(false)
+    setUser(null)
+    
+    // Redirect to home page
+    router.push('/')
   }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-3xl mx-auto px-4">
-        <h1 className="text-3xl font-bold text-center mb-8">Clerk Authentication Test</h1>
+        <h1 className="text-3xl font-bold text-center mb-8">Authentication Test</h1>
         
         <div className="bg-white rounded-lg shadow p-6 mb-6">
           <h2 className="text-xl font-semibold mb-4">Authentication Status</h2>
           
-          {isSignedIn ? (
+          {isLoggedIn && user ? (
             <div className="space-y-4">
               <div className="flex items-center space-x-4">
-                {user?.imageUrl && (
-                  <img 
-                    src={user.imageUrl} 
-                    alt={user.fullName || 'User'} 
-                    className="w-16 h-16 rounded-full"
-                  />
-                )}
+                <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center">
+                  <span className="text-2xl font-bold text-blue-600">
+                    {user.name.charAt(0).toUpperCase()}
+                  </span>
+                </div>
                 <div>
-                  <p className="text-lg font-medium">{user?.fullName}</p>
-                  <p className="text-gray-600">{user?.primaryEmailAddress?.emailAddress}</p>
-                  <p className="text-sm text-gray-500">User ID: {user?.id}</p>
+                  <p className="text-lg font-medium">{user.name}</p>
+                  <p className="text-gray-600">{user.email}</p>
                 </div>
               </div>
               
               <div className="pt-4">
-                <SignOutButton>
-                  <button className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
-                    Sign Out
-                  </button>
-                </SignOutButton>
+                <button 
+                  onClick={handleLogout}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                >
+                  Sign Out
+                </button>
               </div>
             </div>
           ) : (
             <div className="text-center py-8">
               <p className="text-gray-600 mb-6">You are not signed in</p>
-              <SignInButton mode="modal">
-                <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button 
+                  onClick={() => router.push('/login')}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
                   Sign In
                 </button>
-              </SignInButton>
+                <button 
+                  onClick={() => router.push('/signup')}
+                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                >
+                  Sign Up
+                </button>
+              </div>
             </div>
           )}
         </div>
