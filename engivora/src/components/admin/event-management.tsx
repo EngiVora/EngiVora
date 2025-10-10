@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { 
   Search, 
   Filter, 
@@ -463,10 +464,12 @@ export function EventManagement() {
                   <td className="px-6 py-4">
                     <div className="flex items-start">
                       <div className="flex-shrink-0 h-16 w-24">
-                        <img
+                        <Image
                           className="h-16 w-24 rounded-lg object-cover"
                           src={event.imageUrl}
                           alt={event.title}
+                          width={96}
+                          height={64}
                         />
                       </div>
                       <div className="ml-4 flex-1">

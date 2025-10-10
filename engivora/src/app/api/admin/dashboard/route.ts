@@ -53,7 +53,7 @@ export async function GET(request: NextRequest) {
         department: user.department,
         createdAt: user.createdAt,
       }));
-    } catch (dbError) {
+    } catch (_dbError) {
       console.warn('Database not available, using mock data');
       
       // Fallback to mock data

@@ -59,7 +59,7 @@ export default function LoginPage() {
       setTimeout(() => {
         router.push('/')
       }, 800)
-    } catch (err) {
+    } catch (_err) {
       setError("Login failed. Please try again.")
     } finally {
       setLoading(false)

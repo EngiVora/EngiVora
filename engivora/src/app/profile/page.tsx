@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import { 
   User, 
   Mail, 
@@ -89,8 +90,8 @@ export default function ProfilePage() {
         
         // If no user data found, redirect to login
         router.push('/login')
-      } catch (err) {
-        console.error("Error loading user data:", err)
+      } catch (_err) {
+        console.error("Error loading user data:", _err)
         setError("Failed to load profile data")
         setLoading(false)
       }
@@ -290,10 +291,12 @@ export default function ProfilePage() {
                   <div className="relative">
                     <div className="h-24 w-24 rounded-full bg-slate-800 flex items-center justify-center overflow-hidden">
                       {profilePicture ? (
-                        <img 
+                        <Image 
                           src={profilePicture} 
                           alt="Profile" 
                           className="h-full w-full object-cover"
+                          width={96}
+                          height={96}
                         />
                       ) : (
                         <UserCircle className="h-16 w-16 text-slate-500" />

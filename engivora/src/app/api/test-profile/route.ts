@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuth } from '@clerk/nextjs/server';
 import { z } from 'zod';
 
 // Define the profile type
@@ -22,7 +21,8 @@ const testProfileSchema = z.object({
 // GET /api/test-profile - Get test profile
 export async function GET(req: NextRequest) {
   try {
-    const { userId } = getAuth(req);
+    // Extract user ID from request headers (set by middleware)
+    const userId = req.headers.get('x-user-id');
     
     if (!userId) {
       return NextResponse.json(
@@ -49,7 +49,8 @@ export async function GET(req: NextRequest) {
 // PUT /api/test-profile - Update test profile
 export async function PUT(req: NextRequest) {
   try {
-    const { userId } = getAuth(req);
+    // Extract user ID from request headers (set by middleware)
+    const userId = req.headers.get('x-user-id');
     
     if (!userId) {
       return NextResponse.json(

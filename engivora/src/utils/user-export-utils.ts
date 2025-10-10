@@ -206,7 +206,7 @@ export class UserExportUtils {
    */
   static parseCSVToUsers(csvContent: string): UserExportData[] {
     const lines = csvContent.split('\n');
-    const header = lines[0].toLowerCase();
+    const _header = lines[0].toLowerCase();  // Unused variable, prefix with underscore
     const users: UserExportData[] = [];
 
     for (let i = 1; i < lines.length; i++) {

@@ -1,3 +1,5 @@
+import Image from "next/image"
+
 export function TrustedLogos() {
   const logos = [
     { name: "Next.js", src: "/next.svg" },
@@ -12,7 +14,7 @@ export function TrustedLogos() {
           <div className="grid grid-cols-2 md:grid-cols-4 items-center gap-6 opacity-80">
             {logos.map((l) => (
               <div key={l.name} className="flex justify-center">
-                <img src={l.src} alt={l.name} className="h-8" />
+                <Image src={l.src} alt={l.name} className="h-8" width={32} height={32} />
               </div>
             ))}
           </div>
@@ -21,5 +23,3 @@ export function TrustedLogos() {
     </section>
   )
 }
-
-

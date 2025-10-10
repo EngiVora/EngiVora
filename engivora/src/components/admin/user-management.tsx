@@ -232,8 +232,8 @@ export function UserManagement() {
 
       setIsAddUserModalOpen(false)
       console.log('Successfully added new user (persisted)')
-    } catch (error) {
-      console.error('Add user failed:', error)
+    } catch (_error) {
+      console.error('Add user failed:', _error)
     } finally {
       setIsAdding(false)
     }

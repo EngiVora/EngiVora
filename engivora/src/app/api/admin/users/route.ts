@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
         .limit(limit);
       
       totalUsers = await User.countDocuments({});
-    } catch (dbError) {
+    } catch (_dbError) {
       console.warn('Database not available, using mock data');
       
       // Fallback to mock data

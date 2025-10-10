@@ -134,11 +134,6 @@ JWT_EXPIRES_IN=604800
 - `src/components/admin/admin-dashboard.tsx` - Added authentication test functionality
 - `src/components/admin/admin-sidebar.tsx` - Added link to auth documentation
 
-### Removed Files
-- `src/app/sign-in/[[...sign-in]]/page.tsx` - Clerk sign-in page
-- `src/app/sign-up/[[...sign-up]]/page.tsx` - Clerk sign-up page
-- `src/lib/clerk-utils.ts` - Clerk utility functions
-
 ## Important Notes
 
 1. **Separation of Concerns**: The two authentication systems are completely independent

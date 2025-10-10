@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import Image from "next/image"
 
 export default function JobsPage() {
   return (
@@ -102,10 +103,12 @@ export default function JobsPage() {
               <div className="md:col-span-8 lg:col-span-9 space-y-6">
                 <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col sm:flex-row items-start gap-6 border-l-4 border-l-sky-600">
                   <div className="w-full sm:w-32 h-32 rounded-lg flex-shrink-0 overflow-hidden">
-                    <img
+                    <Image
                       src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZ6byUVckMqg6gmZhI9DsFjBLDSADsBBPdbK0f3saTH0PXJD9YJAs16HQ9MnxyasAzqznROviksz6opuPiyoJyisTxYAjpWCmFizrDCO6aURW1d-WdZFTaoyKNy2ZzalhBXRTNRmDdkxVVw41UdGHZy7rWhGsXLaHIeGt1oaekIAsRJ4uo0rM1zq4qrRpuFt7jfpDMYUj7fNrBkPGAJJoIs3i-5CHxbXbGsbotvV2xSoBN5Z5f6bGoPBuGE7oUOsyK-o8XaqQQOlk"
                       alt="Company logo"
                       className="h-full w-full object-cover"
+                      width={128}
+                      height={128}
                     />
                   </div>
                   <div className="flex-grow">
@@ -130,10 +133,12 @@ export default function JobsPage() {
                   <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col">
                     <div className="flex items-center gap-4 mb-4">
                       <div className="w-16 h-16 rounded-lg flex-shrink-0 overflow-hidden">
-                        <img
+                        <Image
                           src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1IU2jpeLS_hX69bOnAJKS0x5aYfdFUQTtSMCJzdFoyCMO-l2uzzxdAHbJ5GXn5Jdz4s5SfaBe_HopIr46pVcy67W2hx8LUPsJLKDXOvLX_AN7wqM4oUWCPfCqXwNSX4UN4lWtRW-FyF4Wej-YaF0JtTxME4YPIztBrHxqhjw6hsBxrAFytx2wa83Tq-YBBgRwBkCDTROeNIa8yU82fibAWQXA1WcvnSqpQfVREyUWS-qoJubyq2m-NUQkxp2zKmpJuqMbOmwLxzA"
                           alt="Innovate Systems logo"
                           className="h-full w-full object-cover"
+                          width={64}
+                          height={64}
                         />
                       </div>
                       <div>
@@ -153,10 +158,12 @@ export default function JobsPage() {
                   <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col">
                     <div className="flex items-center gap-4 mb-4">
                       <div className="w-16 h-16 rounded-lg flex-shrink-0 overflow-hidden">
-                        <img
+                        <Image
                           src="https://lh3.googleusercontent.com/aida-public/AB6AXuDux4P3_-rmP1G3tsHb2kbzpg44VRBZBwqlwfYovZXac4CLOml05b499gZ-DFWAB-I83A4du3_amUY_rSCVuL4VN13NFv7HzXizS13xko8zW2M0Bt46Pd1JpmNVGSN0Om7DE0UWXqqCiH3IvQZLwe04e2HOrYezmq-ZyD7z_EC0MiWlkLgyFgsx4C4-wEcIQhlsZsZyynIuFrn2EEwemNRMy1H0axAPet97__J6J6oHiKjQpWQjq-zXqE5WfKDc7CGnlMP5_D5dniI"
                           alt="Power Grid Corp logo"
                           className="h-full w-full object-cover"
+                          width={64}
+                          height={64}
                         />
                       </div>
                       <div>
@@ -176,10 +183,12 @@ export default function JobsPage() {
 
                 <div className="bg-slate-900 border border-slate-800 p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 flex flex-col sm:flex-row items-center gap-6 bg-gradient-to-r from-sky-900/20 to-slate-900">
                   <div className="w-full sm:w-48 h-32 rounded-lg flex-shrink-0 overflow-hidden">
-                    <img
+                    <Image
                       src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVRSGwOZxSZBU-lgbk1M4YGdR-mMhb6aVpW8VN_HhB8n9geDwBKPOl4TWSgkvAY352thjCQveODsddEBrbssBMuFxTO_eoXgSswWccg4NH2Dzas2eIC5oqK9ohN9GgkigAu-CTC6i-UjqbQVq-shrT-sNn98iMWM-cEevzxEUQ2RHS_bT4gHjs5SpHhk1w7HgbHfMAXD8s2DaWRbVqTiNeMRAomX1rlg9xOJuu3Pr4z6c7iPbKn4Yz3ZMa8yALrbTulU8CB8i7KyQ"
                       alt="BuildWell Construction graphic"
                       className="h-full w-full object-cover"
+                      width={192}
+                      height={128}
                     />
                   </div>
                   <div className="flex-grow text-center sm:text-left">

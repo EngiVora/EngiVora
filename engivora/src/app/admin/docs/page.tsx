@@ -3,7 +3,6 @@ import {
   Key, 
   Shield, 
   Lock, 
-  Users, 
   Code, 
   AlertTriangle,
   CheckCircle,
@@ -33,7 +32,7 @@ export default function AdminAuthDocsPage() {
             <div className="space-y-4">
               <p>
                 The admin portal uses a separate, hardcoded authentication system that is independent 
-                of the main Clerk authentication used by regular users.
+                of the main client authentication used by regular users.
               </p>
               <ul className="list-disc list-inside space-y-2 text-sm">
                 <li>Email/password authentication</li>
