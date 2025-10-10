@@ -1,16 +1,14 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { 
   Search, 
   Filter, 
   MoreVertical, 
   Edit, 
-  Trash2, 
   Eye, 
   Mail, 
-  Phone,
-  Calendar,
   Shield,
   UserCheck,
   UserX,
@@ -214,7 +212,7 @@ export function UserManagement() {
         throw new Error(err?.error || 'Failed to create user')
       }
 
-      const result = await response.json()
+      await response.json()
 
       // Reflect in UI list
       const newId = Math.max(...users.map(u => u.id)) + 1
@@ -448,10 +446,12 @@ export function UserManagement() {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
-                      <img
+                      <Image
                         className="h-10 w-10 rounded-full"
-                        src={user.avatar}
+                        src={user.avatar || '/default-avatar.png'}
                         alt={user.name}
+                        width={40}
+                        height={40}
                       />
                       <div className="ml-4">
                         <div className="text-sm font-medium text-gray-900">{user.name}</div>

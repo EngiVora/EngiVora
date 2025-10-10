@@ -17,8 +17,6 @@ import {
   Download,
   Upload,
   CheckCircle,
-  XCircle,
-  AlertTriangle,
   Lock,
   Unlock
 } from "lucide-react"

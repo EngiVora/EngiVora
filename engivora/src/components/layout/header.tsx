@@ -17,7 +17,6 @@ const navigation = [
 
 export function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const [user, setUser] = useState<{ name: string; email: string } | null>(null)
 
   // Check authentication status on component mount and when storage changes
   useEffect(() => {
@@ -25,11 +24,10 @@ export function Header() {
       try {
         // Check localStorage first
         const token = localStorage.getItem('authToken')
-        const user = localStorage.getItem('user')
+        const userStr = localStorage.getItem('user')
         
-        if (token && user) {
+        if (token && userStr) {
           setIsLoggedIn(true)
-          setUser(JSON.parse(user))
           return
         }
         
@@ -39,17 +37,14 @@ export function Header() {
         
         if (sessionToken && sessionUser) {
           setIsLoggedIn(true)
-          setUser(JSON.parse(sessionUser))
           return
         }
         
         // If no auth data found
         setIsLoggedIn(false)
-        setUser(null)
       } catch (err) {
         console.error("Error checking auth status:", err)
         setIsLoggedIn(false)
-        setUser(null)
       }
     }
     
@@ -77,7 +72,6 @@ export function Header() {
     
     // Update state
     setIsLoggedIn(false)
-    setUser(null)
     
     // Redirect to home page
     window.location.href = '/'
