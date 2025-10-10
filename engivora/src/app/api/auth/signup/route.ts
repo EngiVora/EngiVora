@@ -90,6 +90,7 @@ export async function POST(request: NextRequest) {
           department: savedUser.department,
           year: savedUser.year,
           rollNumber: savedUser.rollNumber,
+          profilePicture: savedUser.profilePicture,
         },
       });
     } catch (saveError) {

@@ -9,6 +9,7 @@ export interface User {
   department: string;
   year?: string;
   rollNumber?: string;
+  profilePicture?: string;
   emailVerified: boolean;
   emailVerificationToken?: string;
   emailVerificationExpires?: string;

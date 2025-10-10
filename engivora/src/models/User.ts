@@ -7,6 +7,7 @@ export interface UserDocument extends mongoose.Document {
   email: string
   passwordHash: string
   imageUrl?: string
+  profilePicture?: string
   role: UserRole
   department?: string
   year?: string
@@ -20,6 +21,7 @@ const UserSchema = new Schema<UserDocument>({
   email: { type: String, required: true, unique: true, index: true, lowercase: true, trim: true },
   passwordHash: { type: String, required: true },
   imageUrl: { type: String },
+  profilePicture: { type: String },
   role: { type: String, enum: ['student', 'admin'], default: 'student', index: true },
   department: { type: String },
   year: { type: String },
@@ -28,5 +30,3 @@ const UserSchema = new Schema<UserDocument>({
 
 
 export const User = models.User || model<UserDocument>('User', UserSchema)
-
-

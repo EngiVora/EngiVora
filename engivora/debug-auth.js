@@ -1,4 +1,7 @@
 // Debug script for authentication issues
+import dotenv from 'dotenv';
+dotenv.config();
+
 async function debugAuth() {
   try {
     console.log('Starting authentication debug...');
@@ -9,30 +12,31 @@ async function debugAuth() {
     console.log('JWT_SECRET:', process.env.JWT_SECRET ? 'SET' : 'NOT SET');
     
     if (!process.env.MONGODB_URI) {
-      console.log('❌ MONGODB_URI is not set. Please check your .env.local file');
+      console.log('❌ MONGODB_URI is not set. Please check your .env file');
       return;
     }
     
     if (!process.env.JWT_SECRET) {
-      console.log('❌ JWT_SECRET is not set. Please check your .env.local file');
+      console.log('❌ JWT_SECRET is not set. Please check your .env file');
       return;
     }
     
     // Test database connection
     console.log('\n2. Testing database connection...');
     try {
-      const { connectToDatabase } = await import('./src/lib/db');
+      const { connectToDatabase } = await import('./src/lib/db.js');
       await connectToDatabase();
       console.log('✅ Database connection successful');
     } catch (dbError) {
       console.log('❌ Database connection failed:', dbError.message);
+      console.log('Error details:', dbError);
       return;
     }
     
     // Test user model
     console.log('\n3. Testing user model...');
     try {
-      const { User } = await import('./src/models/User');
+      const { User } = await import('./src/models/User.js');
       console.log('✅ User model imported successfully');
       
       // Test creating a user (without saving)
@@ -60,4 +64,4 @@ async function debugAuth() {
 }
 
 // Run the debug
-debugAuth();
+debugAuth().catch(console.error);
