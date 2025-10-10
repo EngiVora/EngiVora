@@ -1,6 +1,9 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { MetricsStrip } from "@/components/home/metrics-strip"
 import { Testimonials } from "@/components/home/testimonials"
 import { FAQ } from "@/components/home/faq"
@@ -10,6 +13,99 @@ import { ProjectCard } from "@/components/ui/project-card"
 import { EventCard } from "@/components/ui/event-card"
 
 export default function HomePage() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [selectedPollOption, setSelectedPollOption] = useState('')
+  const [hasVoted, setHasVoted] = useState(false)
+  const [pollResults, setPollResults] = useState<Record<string, number>>({
+    "Time Management": 245,
+    "Tough Coursework": 189,
+    "Finding Internships": 312,
+    "Other": 94
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const router = useRouter()
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuthStatus = () => {
+      try {
+        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken')
+        setIsLoggedIn(!!token)
+      } catch (err) {
+        console.error("Error checking auth status:", err)
+        setIsLoggedIn(false)
+      }
+    }
+    
+    checkAuthStatus()
+    
+    // Check if user has already voted
+    const hasUserVoted = localStorage.getItem('hasVotedInPoll')
+    if (hasUserVoted === 'true') {
+      setHasVoted(true)
+    }
+    
+    const handleStorageChange = () => {
+      checkAuthStatus()
+    }
+    
+    window.addEventListener('storage', handleStorageChange)
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange)
+    }
+  }, [])
+
+  const handleGetStarted = () => {
+    if (isLoggedIn) {
+      router.push('/profile')
+    } else {
+      router.push('/signup')
+    }
+  }
+
+  const handleExploreFeatures = () => {
+    const featuresSection = document.getElementById('features-section')
+    if (featuresSection) {
+      featuresSection.scrollIntoView({ behavior: 'smooth' })
+    }
+  }
+
+  const handlePollSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!selectedPollOption) {
+      alert('Please select an option before voting!')
+      return
+    }
+
+    setIsSubmitting(true)
+    
+    // Simulate API call
+    setTimeout(() => {
+      // Update vote count
+      setPollResults(prev => ({
+        ...prev,
+        [selectedPollOption]: prev[selectedPollOption] + 1
+      }))
+      
+      // Mark as voted
+      setHasVoted(true)
+      localStorage.setItem('hasVotedInPoll', 'true')
+      
+      setIsSubmitting(false)
+      
+      // Show success message
+      alert('Thank you for voting! Your response has been recorded.')
+    }, 1000)
+  }
+
+  const totalVotes = Object.values(pollResults).reduce((sum, count) => sum + count, 0)
+
+  const getPercentage = (votes: number) => {
+    return totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0
+  }
+
   return (
     <div className="bg-slate-950 text-slate-100 aurora-bg">
       {/* Hero */}
@@ -43,8 +139,18 @@ export default function HomePage() {
             transition={{ duration: 0.6, ease: "easeOut", delay: 0.2 }}
             className="mt-12 flex justify-center gap-4"
           >
-            <a href="#" className="flex items-center justify-center rounded-full bg-sky-600 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-sky-500/20 transition-transform hover:scale-105 neon-ring">Get Started Now</a>
-            <a href="#" className="flex items-center justify-center rounded-full bg-slate-800 px-8 py-4 text-base font-semibold text-slate-100 ring-1 ring-inset ring-slate-700 hover:bg-slate-700 transition-transform hover:scale-105">Explore Features</a>
+            <button 
+              onClick={handleGetStarted}
+              className="flex items-center justify-center rounded-full bg-sky-600 px-8 py-4 text-base font-semibold text-white shadow-lg shadow-sky-500/20 transition-transform hover:scale-105 neon-ring"
+            >
+              {isLoggedIn ? 'Go to Profile' : 'Get Started Now'}
+            </button>
+            <button 
+              onClick={handleExploreFeatures}
+              className="flex items-center justify-center rounded-full bg-slate-800 px-8 py-4 text-base font-semibold text-slate-100 ring-1 ring-inset ring-slate-700 hover:bg-slate-700 transition-transform hover:scale-105"
+            >
+              Explore Features
+            </button>
           </motion.div>
         </div>
         <div className="absolute bottom-0 left-0 w-full bg-sky-700/90 py-4 overflow-hidden glass-panel border-0 rounded-none">
@@ -70,7 +176,7 @@ export default function HomePage() {
       <MetricsStrip />
 
       {/* Features */}
-      <section className="py-24">
+      <section id="features-section" className="py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h3 className="text-4xl font-extrabold tracking-tight">Explore Engivora&apos;s Features</h3>
@@ -81,6 +187,7 @@ export default function HomePage() {
               title="Exam Updates"
               description="Never miss a deadline. Get timely notifications for major exams."
               cta="See Updates →"
+              href="/exams"
               imageUrl="/vercel.svg"
               delay={0}
               icon={<svg className="h-10 w-10 text-sky-400" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 22h6a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v16m0 0h12"></path><path d="M12 18H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6v12Z"></path><path d="M9 14h.01"></path></svg>}
@@ -89,6 +196,7 @@ export default function HomePage() {
               title="Jobs & Internships"
               description="Curated job postings and internships from top companies."
               cta="Find Opportunities →"
+              href="/jobs"
               imageUrl="/globe.svg"
               delay={0.05}
               icon={<svg className="h-10 w-10 text-sky-400" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>}
@@ -97,6 +205,7 @@ export default function HomePage() {
               title="Blogs"
               description="Insights on cutting-edge tech, career advice, and student life."
               cta="Read Articles →"
+              href="/blogs"
               imageUrl="/file.svg"
               delay={0.1}
               icon={<svg className="h-10 w-10 text-sky-400" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>}
@@ -105,6 +214,7 @@ export default function HomePage() {
               title="Discounts"
               description="Exclusive deals on textbooks, software, and student tools."
               cta="Get Deals →"
+              href="/discounts"
               imageUrl="/window.svg"
               delay={0.15}
               icon={<svg className="h-10 w-10 text-sky-400" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>}
@@ -113,6 +223,7 @@ export default function HomePage() {
               title="Work Hub"
               description="Collaborate on projects and connect with fellow students."
               cta="Enter the Hub →"
+              href="/work-hub"
               imageUrl="/logo.png"
               delay={0.2}
               icon={<svg className="h-10 w-10 text-white" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3.19a2 2 0 0 1 1.74.85l.23.33a2 2 0 0 0 1.74.82h3.18a2 2 0 0 0 1.74-.85l.23-.33a2 2 0 0 1 1.74-.82H21a2 2 0 0 1 2 2v3Z"></path></svg>}
@@ -134,16 +245,19 @@ export default function HomePage() {
               description="A project focusing on last-mile delivery solutions using UAV technology."
               imageUrl="https://images.unsplash.com/photo-1523961131990-5ea7c61b2107?q=80&w=1600&auto=format&fit=crop"
               collaboratorsLabel="+2 collaborators"
+              href="/projects/autonomous-delivery-drone"
             />
             <ProjectCard
               title="Smart Water Management System"
               description="An IoT-based system for efficient water usage monitoring and control."
               imageUrl="https://images.unsplash.com/photo-1558478551-1a378f63328e?q=80&w=1600&auto=format&fit=crop"
+              href="/projects/smart-water-management"
             />
             <ProjectCard
               title="Submit Your Project"
               description="Get your work featured and recognized by the community."
               imageUrl="https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=1600&auto=format&fit=crop"
+              href="/projects/submit"
             />
           </div>
         </div>
@@ -157,14 +271,14 @@ export default function HomePage() {
               <div className="text-left">
                 <h3 className="text-4xl font-extrabold tracking-tight">Upcoming Events</h3>
                 <p className="mt-4 text-lg text-slate-400">Don&apos;t miss out on these workshops, webinars, and competitions.</p>
-                <a href="#" className="mt-8 inline-flex items-center justify-center rounded-full bg-slate-800 px-6 py-3 text-base font-semibold text-slate-100 ring-1 ring-inset ring-slate-700 hover:bg-slate-700 transition-transform hover:scale-105 neon-ring">View All Events</a>
+                <Link href="/events" className="mt-8 inline-flex items-center justify-center rounded-full bg-slate-800 px-6 py-3 text-base font-semibold text-slate-100 ring-1 ring-inset ring-slate-700 hover:bg-slate-700 transition-transform hover:scale-105 neon-ring">View All Events</Link>
               </div>
             </div>
             <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
-              <EventCard day="15" mon="JAN" tag="Webinar" title="Intro to Quantum Computing" tagColor="bg-green-100 text-green-800" />
-              <EventCard day="22" mon="JAN" tag="Workshop" title="Robotics & Automation" tagColor="bg-yellow-100 text-yellow-800" />
-              <EventCard day="05" mon="FEB" tag="Competition" title="National Hackathon 2025" tagColor="bg-red-100 text-red-800" />
-              <EventCard day="18" mon="FEB" tag="Meetup" title="Alumni Networking Night" tagColor="bg-purple-100 text-purple-800" />
+              <EventCard day="15" mon="JAN" tag="Webinar" title="Intro to Quantum Computing" tagColor="bg-green-100 text-green-800" href="/events/intro-quantum-computing" />
+              <EventCard day="22" mon="JAN" tag="Workshop" title="Robotics & Automation" tagColor="bg-yellow-100 text-yellow-800" href="/events/robotics-automation" />
+              <EventCard day="05" mon="FEB" tag="Competition" title="National Hackathon 2025" tagColor="bg-red-100 text-red-800" href="/events/national-hackathon-2025" />
+              <EventCard day="18" mon="FEB" tag="Meetup" title="Alumni Networking Night" tagColor="bg-purple-100 text-purple-800" href="/events/alumni-networking-night" />
             </div>
           </div>
         </div>
@@ -184,20 +298,94 @@ export default function HomePage() {
               </div>
               <div className="bg-white/10 p-8 rounded-lg backdrop-blur-sm glass-panel">
                 <h4 className="font-bold text-xl mb-4">What&apos;s your biggest challenge as an engineering student?</h4>
-                <form className="space-y-4">
-                  {[
-                    "Time Management",
-                    "Tough Coursework",
-                    "Finding Internships",
-                    "Other",
-                  ].map((label) => (
-                    <label key={label} className="flex items-center p-4 rounded-lg bg-white/20 hover:bg-white/30 cursor-pointer transition-colors">
-                      <input type="radio" name="poll" className="h-5 w-5 text-teal-400 border-transparent rounded-full focus:ring-2 focus:ring-teal-400" />
-                      <span className="ml-4 font-medium">{label}</span>
-                    </label>
-                  ))}
-                  <button type="submit" className="w-full flex items-center justify-center rounded-full bg-teal-500 px-6 py-3 text-base font-semibold text-white shadow-lg transition-transform hover:scale-105 mt-6 neon-ring">Vote</button>
-                </form>
+                
+                {!hasVoted ? (
+                  <form onSubmit={handlePollSubmit} className="space-y-4">
+                    {[
+                      "Time Management",
+                      "Tough Coursework",
+                      "Finding Internships",
+                      "Other",
+                    ].map((label) => (
+                      <label key={label} className={`flex items-center p-4 rounded-lg cursor-pointer transition-colors ${
+                        selectedPollOption === label 
+                          ? 'bg-teal-500/30 border-2 border-teal-400' 
+                          : 'bg-white/20 hover:bg-white/30 border-2 border-transparent'
+                      }`}>
+                        <input 
+                          type="radio" 
+                          name="poll" 
+                          value={label}
+                          checked={selectedPollOption === label}
+                          onChange={(e) => setSelectedPollOption(e.target.value)}
+                          className="h-5 w-5 text-teal-400 border-transparent rounded-full focus:ring-2 focus:ring-teal-400" 
+                        />
+                        <span className="ml-4 font-medium">{label}</span>
+                      </label>
+                    ))}
+                    <button 
+                      type="submit" 
+                      disabled={!selectedPollOption || isSubmitting}
+                      className={`w-full flex items-center justify-center rounded-full px-6 py-3 text-base font-semibold text-white shadow-lg transition-all mt-6 neon-ring ${
+                        !selectedPollOption || isSubmitting
+                          ? 'bg-gray-500 cursor-not-allowed'
+                          : 'bg-teal-500 hover:bg-teal-600 hover:scale-105'
+                      }`}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                          Voting...
+                        </>
+                      ) : (
+                        'Vote'
+                      )}
+                    </button>
+                  </form>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="text-center mb-6">
+                      <div className="text-green-400 text-lg font-semibold mb-2">✓ Thank you for voting!</div>
+                      <p className="text-sky-200 text-sm">Here are the current results:</p>
+                    </div>
+                    
+                    {Object.entries(pollResults).map(([option, votes]) => {
+                      const percentage = getPercentage(votes)
+                      return (
+                        <div key={option} className="space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium">{option}</span>
+                            <span className="text-sm text-sky-200">{percentage}% ({votes} votes)</span>
+                          </div>
+                          <div className="w-full bg-white/20 rounded-full h-3">
+                            <div 
+                              className="bg-gradient-to-r from-teal-400 to-sky-400 h-3 rounded-full transition-all duration-1000 ease-out"
+                              style={{ width: `${percentage}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      )
+                    })}
+                    
+                    <div className="text-center mt-6 pt-4 border-t border-white/20">
+                      <p className="text-sm text-sky-200">Total votes: {totalVotes.toLocaleString()}</p>
+                    </div>
+                    
+                    <button 
+                      onClick={() => {
+                        setHasVoted(false)
+                        setSelectedPollOption('')
+                        localStorage.removeItem('hasVotedInPoll')
+                      }}
+                      className="w-full mt-4 text-sm text-sky-300 hover:text-white transition-colors underline"
+                    >
+                      Vote again?
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>

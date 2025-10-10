@@ -1,6 +1,7 @@
 "use client"
 
 import { motion, useMotionValue, useTransform } from "framer-motion"
+import Link from "next/link"
 
 type EventCardProps = {
   day: string
@@ -8,9 +9,10 @@ type EventCardProps = {
   tag: string
   title: string
   tagColor?: string
+  href?: string
 }
 
-export function EventCard({ day, mon, tag, title, tagColor = "bg-green-100 text-green-800" }: EventCardProps) {
+export function EventCard({ day, mon, tag, title, tagColor = "bg-green-100 text-green-800", href = "#" }: EventCardProps) {
   const x = useMotionValue(0)
   const y = useMotionValue(0)
   const rotateX = useTransform(y, [-40, 40], [6, -6])
@@ -23,22 +25,24 @@ export function EventCard({ day, mon, tag, title, tagColor = "bg-green-100 text-
   }
 
   return (
-    <motion.div className="glass-panel overflow-hidden" style={{ perspective: 1000 }} onMouseMove={onMove} onMouseLeave={() => { x.set(0); y.set(0) }}>
-      <motion.div style={{ rotateX, rotateY }}>
-        <div className="p-6">
-          <div className="flex items-center gap-4">
-            <div className="flex-shrink-0 flex flex-col items-center justify-center w-16 h-16 bg-sky-900/50 text-sky-400 rounded-lg">
-              <span className="text-3xl font-bold text-sky-400">{day}</span>
-              <span className="text-xs font-semibold text-sky-300">{mon}</span>
-            </div>
-            <div>
-              <span className={`inline-block ${tagColor} text-xs font-semibold px-3 py-1 rounded-full mb-2`}>{tag}</span>
-              <h4 className="font-bold">{title}</h4>
+    <Link href={href}>
+      <motion.div className="glass-panel overflow-hidden cursor-pointer hover:bg-slate-800/50 transition-colors" style={{ perspective: 1000 }} onMouseMove={onMove} onMouseLeave={() => { x.set(0); y.set(0) }}>
+        <motion.div style={{ rotateX, rotateY }}>
+          <div className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="flex-shrink-0 flex flex-col items-center justify-center w-16 h-16 bg-sky-900/50 text-sky-400 rounded-lg">
+                <span className="text-3xl font-bold text-sky-400">{day}</span>
+                <span className="text-xs font-semibold text-sky-300">{mon}</span>
+              </div>
+              <div>
+                <span className={`inline-block ${tagColor} text-xs font-semibold px-3 py-1 rounded-full mb-2`}>{tag}</span>
+                <h4 className="font-bold hover:text-sky-400 transition-colors">{title}</h4>
+              </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </motion.div>
-    </motion.div>
+    </Link>
   )
 }
 

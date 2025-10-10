@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import Link from "next/link"
 import { Search } from "lucide-react"
 import { Logo } from "@/components/ui/logo"
-import { ThemeToggle } from "@/components/ui/theme-toggle"
+
 
 const navigation = [
   { name: "Home", href: "/" },
@@ -142,7 +142,7 @@ export function Header() {
               <Search className="h-5 w-5" />
             </button>
 
-            <ThemeToggle />
+
           </div>
         </div>
       </div>
