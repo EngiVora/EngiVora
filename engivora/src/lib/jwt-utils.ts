@@ -55,7 +55,7 @@ export async function verifyAdminToken(token: string): Promise<{
           }
         };
       }
-    } catch (error) {
+    } catch (_error) {
       console.warn('Database not available, using mock users');
     }
     

@@ -37,7 +37,7 @@ export function UserImportModal({
   isImporting = false 
 }: UserImportModalProps) {
   const [dragActive, setDragActive] = useState(false)
-  const [fileContent, setFileContent] = useState<string>("")
+  const [_fileContent, setFileContent] = useState<string>("")
   const [fileName, setFileName] = useState<string>("")
   const [validation, setValidation] = useState<{ isValid: boolean; errors: string[] } | null>(null)
   const [previewUsers, setPreviewUsers] = useState<User[]>([])

@@ -206,7 +206,7 @@ export class UserExportUtils {
    */
   static parseCSVToUsers(csvContent: string): UserExportData[] {
     const lines = csvContent.split('\n');
-    lines[0]; // Skip header line
+    // Skip header line - lines[0]
     const users: UserExportData[] = [];
 
     for (let i = 1; i < lines.length; i++) {

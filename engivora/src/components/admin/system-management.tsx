@@ -3,27 +3,17 @@
 import { useState } from "react"
 import { 
   Search, 
-  Filter, 
   MoreVertical, 
-  Eye, 
-  Settings,
   Server,
   Database,
   HardDrive,
-  Cpu,
-  MemoryStick,
-  Network,
   Monitor,
   Activity,
   AlertTriangle,
   CheckCircle,
   XCircle,
   RefreshCw,
-  Download,
-  Upload,
-  Plus,
-  Trash2,
-  Edit
+  Download
 } from "lucide-react"
 
 const mockSystemInfo = {
@@ -150,7 +140,7 @@ const mockLogs = [
 
 export function SystemManagement() {
   const [services, setServices] = useState(mockServices)
-  const [logs, setLogs] = useState(mockLogs)
+  const [logs, _setLogs] = useState(mockLogs)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedStatus, setSelectedStatus] = useState("all")
   const [selectedService, setSelectedService] = useState("all")

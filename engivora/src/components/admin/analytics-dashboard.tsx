@@ -11,9 +11,7 @@ import {
   BarChart3,
   PieChart,
   LineChart,
-  Calendar,
-  Download,
-  Filter
+  Download
 } from "lucide-react"
 import { AnalyticsExportModal } from "./analytics-export-modal"
 import { AnalyticsExportUtils } from "../../utils/analytics-export-utils"
@@ -56,8 +54,8 @@ const analyticsData = {
 }
 
 export function AnalyticsDashboard() {
-  const [selectedPeriod, setSelectedPeriod] = useState("30d")
-  const [selectedMetric, setSelectedMetric] = useState("users")
+  const [_selectedPeriod, setSelectedPeriod] = useState("30d")
+  const [_selectedMetric, _setSelectedMetric] = useState("users")
   const [isExportModalOpen, setIsExportModalOpen] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
 
@@ -380,7 +378,7 @@ export function AnalyticsDashboard() {
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
         onExport={handleExportAnalytics}
-        selectedPeriod={selectedPeriod}
+        selectedPeriod={_selectedPeriod}
         isExporting={isExporting}
       />
     </div>

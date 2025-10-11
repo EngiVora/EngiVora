@@ -160,7 +160,7 @@ export default function RoboticsAutomationEventPage() {
                     </ul>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-green-400 mb-3">What's Provided</h4>
+                    <h4 className="font-semibold text-green-400 mb-3">What&apos;s Provided</h4>
                     <ul className="space-y-2 text-slate-300">
                       <li>• Arduino Uno kit</li>
                       <li>• Sensors and actuators</li>

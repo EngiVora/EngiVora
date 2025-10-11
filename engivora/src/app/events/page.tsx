@@ -203,7 +203,7 @@ export default function EventsPage() {
           transition={{ duration: 0.6, delay: 0.8 }}
           className="text-center bg-slate-800/30 p-8 rounded-2xl"
         >
-          <h3 className="text-2xl font-bold mb-4">Don't Miss Out!</h3>
+          <h3 className="text-2xl font-bold mb-4">Don&apos;t Miss Out!</h3>
           <p className="text-slate-400 mb-6 max-w-2xl mx-auto">
             Subscribe to our newsletter to get notified about upcoming events and registration openings.
           </p>
