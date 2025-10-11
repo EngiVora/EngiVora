@@ -23,10 +23,16 @@ export const metadata: Metadata = {
   description: "Your comprehensive platform for exam updates, job opportunities, blogs, discounts, and career guidance for engineering students.",
   keywords: "engineering, exams, jobs, career, student hub, engineering students",
   authors: [{ name: "Engivora Team" }],
+  icons: {
+    icon: '/icon.png',
+    shortcut: '/icon.png',
+    apple: '/apple-icon.png',
+  },
   openGraph: {
     title: "Engivora - Engineering Student Hub",
     description: "One-stop hub for every engineering student",
     type: "website",
+    images: ['/logo.png'],
   },
 }
 
