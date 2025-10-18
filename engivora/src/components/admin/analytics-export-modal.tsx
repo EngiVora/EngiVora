@@ -1,0 +1,212 @@
+"use client"
+
+import { useState } from "react"
+import { 
+  Download, 
+  FileText, 
+  FileSpreadsheet, 
+  File, 
+  X,
+  Calendar,
+  Loader2,
+  BarChart3
+} from "lucide-react"
+
+interface AnalyticsExportModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onExport: (format: 'csv' | 'json' | 'pdf', period: string) => void
+  selectedPeriod: string
+  isExporting?: boolean
+}
+
+const exportFormats = [
+  {
+    id: 'csv' as const,
+    name: 'CSV',
+    description: 'Comma-separated values file',
+    icon: FileSpreadsheet,
+    color: 'text-green-600',
+    bgColor: 'bg-green-50',
+    borderColor: 'border-green-200'
+  },
+  {
+    id: 'json' as const,
+    name: 'JSON',
+    description: 'JavaScript Object Notation',
+    icon: FileText,
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50',
+    borderColor: 'border-blue-200'
+  },
+  {
+    id: 'pdf' as const,
+    name: 'PDF',
+    description: 'Portable Document Format (Text-based)',
+    icon: File,
+    color: 'text-red-600',
+    bgColor: 'bg-red-50',
+    borderColor: 'border-red-200'
+  }
+]
+
+const periodOptions = [
+  { value: '7d', label: 'Last 7 days' },
+  { value: '30d', label: 'Last 30 days' },
+  { value: '90d', label: 'Last 90 days' },
+  { value: '1y', label: 'Last year' }
+]
+
+export function AnalyticsExportModal({ 
+  isOpen, 
+  onClose, 
+  onExport, 
+  selectedPeriod,
+  isExporting = false 
+}: AnalyticsExportModalProps) {
+  const [selectedFormat, setSelectedFormat] = useState<'csv' | 'json' | 'pdf'>('csv')
+  const [exportPeriod, setExportPeriod] = useState(selectedPeriod)
+
+  const handleExport = () => {
+    onExport(selectedFormat, exportPeriod)
+  }
+
+  const handleClose = () => {
+    if (!isExporting) {
+      onClose()
+    }
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+        {/* Header */}
+        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center">
+            <BarChart3 className="h-6 w-6 text-purple-600 mr-3" />
+            <h2 className="text-xl font-semibold text-gray-900">Export Analytics</h2>
+          </div>
+          <button
+            onClick={handleClose}
+            disabled={isExporting}
+            className="text-gray-400 hover:text-gray-600 disabled:opacity-50"
+          >
+            <X className="h-6 w-6" />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="p-6 space-y-6">
+          {/* Period Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              <Calendar className="h-4 w-4 inline mr-2" />
+              Time Period
+            </label>
+            <select
+              value={exportPeriod}
+              onChange={(e) => setExportPeriod(e.target.value)}
+              disabled={isExporting}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 disabled:bg-gray-100"
+            >
+              {periodOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Format Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-3">
+              Export Format
+            </label>
+            <div className="space-y-3">
+              {exportFormats.map((format) => {
+                const Icon = format.icon
+                return (
+                  <div
+                    key={format.id}
+                    className={`relative border-2 rounded-lg p-4 cursor-pointer transition-all ${
+                      selectedFormat === format.id
+                        ? `${format.borderColor} ${format.bgColor}`
+                        : 'border-gray-200 hover:border-gray-300'
+                    } ${isExporting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    onClick={() => !isExporting && setSelectedFormat(format.id)}
+                  >
+                    <div className="flex items-center">
+                      <div className={`p-2 rounded-lg ${format.bgColor} mr-3`}>
+                        <Icon className={`h-5 w-5 ${format.color}`} />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-900">{format.name}</h3>
+                        <p className="text-sm text-gray-500">{format.description}</p>
+                      </div>
+                      <div className={`w-4 h-4 rounded-full border-2 ${
+                        selectedFormat === format.id
+                          ? `${format.borderColor} bg-current ${format.color}`
+                          : 'border-gray-300'
+                      }`}>
+                        {selectedFormat === format.id && (
+                          <div className="w-2 h-2 bg-white rounded-full m-0.5" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Analytics Info */}
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <BarChart3 className="h-5 w-5 text-purple-400" />
+              </div>
+              <div className="ml-3">
+                <p className="text-sm text-purple-800">
+                  The analytics report will include overview statistics, user growth data, top pages, traffic sources, device breakdown, and real-time activity for the selected period.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50">
+          <button
+            onClick={handleClose}
+            disabled={isExporting}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleExport}
+            disabled={isExporting}
+            className="flex items-center px-4 py-2 text-sm font-medium text-white bg-purple-600 border border-transparent rounded-md hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50"
+          >
+            {isExporting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Exporting...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4 mr-2" />
+                Export Analytics
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+
+
