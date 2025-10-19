@@ -60,6 +60,10 @@ export async function middleware(request: NextRequest) {
   if (!token) {
     // Redirect to login for client-side routes
     if (!pathname.startsWith('/api')) {
+      // Special handling for admin routes
+      if (pathname.startsWith('/admin')) {
+        return NextResponse.redirect(new URL('/admin/login', request.url))
+      }
       return NextResponse.redirect(new URL('/login', request.url))
     }
     // Return 401 for API routes
@@ -88,6 +92,10 @@ export async function middleware(request: NextRequest) {
     
     // Redirect to login for client-side routes
     if (!pathname.startsWith('/api')) {
+      // Special handling for admin routes
+      if (pathname.startsWith('/admin')) {
+        return NextResponse.redirect(new URL('/admin/login', request.url))
+      }
       return NextResponse.redirect(new URL('/login', request.url))
     }
     // Return 401 for API routes

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { connectToDatabase } from '@/lib/db';
 import { AdminBlog } from '@/models/AdminBlog';
 import { verifyAdminToken } from '@/lib/jwt-utils';
+import { syncSingleAdminBlog } from '@/utils/blog-sync';
 
 export const runtime = 'nodejs'
 
@@ -205,6 +206,11 @@ export async function PUT(
     // Save updated blog
     try {
       const updatedBlog = await blog.save();
+      
+      // Sync to main blog collection if published
+      if (updatedBlog.status === 'published') {
+        await syncSingleAdminBlog(updatedBlog.blog_id);
+      }
       
       return NextResponse.json({
         success: true,

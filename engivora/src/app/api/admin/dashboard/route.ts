@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import { User } from '@/models/User';
 import { findUserById } from '@/lib/auth-db';
+import jwt from 'jsonwebtoken';
 
 export const runtime = 'nodejs'
 
@@ -19,11 +20,21 @@ export async function GET(request: NextRequest) {
 
     const token = authHeader.substring(7); // Remove 'Bearer ' prefix
     
-    // In a real implementation, you would verify the JWT token here
-    // For now, we'll just check if the token exists
-    if (!token) {
+    // Verify JWT token
+    const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_key';
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as { sub: string; role: string };
+      
+      // Check if user has admin role
+      if (decoded.role !== 'admin') {
+        return NextResponse.json(
+          { error: 'Admin access required' },
+          { status: 403 }
+        );
+      }
+    } catch (jwtError) {
       return NextResponse.json(
-        { error: 'Invalid or missing token' },
+        { error: 'Invalid or expired token' },
         { status: 401 }
       );
     }

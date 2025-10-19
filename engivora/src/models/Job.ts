@@ -20,12 +20,10 @@ export interface JobDocument extends mongoose.Document {
     max: number
   }
   applicationDeadline?: Date
-  applyUrl?: string
   applicationLink?: string
   contactEmail?: string
   isActive: boolean
   featured?: boolean
-  deadline?: Date
   createdAt: Date
   updatedAt: Date
 }
@@ -36,7 +34,7 @@ const JobSchema = new Schema<JobDocument>({
   location: { type: String },
   type: { type: String, enum: ['full-time', 'part-time', 'internship', 'contract', 'freelance'], required: true },
   category: { type: String, enum: ['software', 'hardware', 'mechanical', 'civil', 'electrical', 'other'] },
-  description: { type: String },
+  description: { type: String, required: true },
   remote: { type: Boolean, default: false },
   salary: {
     min: { type: Number, default: 0 },
@@ -50,12 +48,10 @@ const JobSchema = new Schema<JobDocument>({
     max: { type: Number, default: 0 }
   },
   applicationDeadline: { type: Date },
-  applyUrl: { type: String },
   applicationLink: { type: String },
   contactEmail: { type: String },
   isActive: { type: Boolean, default: true },
   featured: { type: Boolean, default: false },
-  deadline: { type: Date },
 }, { timestamps: true })
 
 export const Job = models.Job || model<JobDocument>('Job', JobSchema)

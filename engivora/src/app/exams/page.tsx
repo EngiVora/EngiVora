@@ -15,75 +15,14 @@ type UpcomingItem = {
   category: string;
 };
 
-const upcoming: UpcomingItem[] = [
-  {
-    id: "thermo",
-    title: "Thermodynamics Exam",
-    institution: "City College",
-    date: "July 20, 2024",
-    category: "engineering",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDmT7ROMoMsK2UnyY2rmN_ZgFMw5JLlv_EC07--IxAafJogoTFfOqEsyv7ZfYiciCERmg91LicnHpSxAg6rDtuIi7B-NrbnsRgJ9IBBnNUJCqfsnvYjg0oL7-JA5Ey-a4yZsYiArFvIo1NHSrFeQpPLBiPEpFEd3xzUR64RTziA9unL3nNcynhhUhfZ5Jc7e9RkbXWGKhmgmEpIAiZOkDc4_QPLaB8I2Ys4rZoNf8DTR9RioyYkujhveKvfYmVKCQWibQSwx2llfqM",
-  },
-  {
-    id: "eee",
-    title: "Electrical Engineering Exam",
-    institution: "Technical Institute",
-    date: "July 25, 2024",
-    category: "engineering",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuB_C4QnsvaON6lEjCdyWTLsVtjpgZfpDF_wdwR4bMAfmIa-J75kddtqJdl7soXDPy-LtTU07V-dW6DAJ3czDnNGv5dxc-ZerstgxoshKqU2qiuQcSlH-L3HUrPpv0VFcI3-JSS0n6K6aJ48e9WduOKWogEAMBCporyhL-HRllZbsuNdq5HZicM_V3zDqqvz9sGYAGPmcVhdf82_1fe7aEBH0CN1UxgVPL-0lGKSaNuihQShGXe_g61iu5KQ958WET8OeaApu7RAnWU",
-  },
-  {
-    id: "mech",
-    title: "Mechanical Design Exam",
-    institution: "Polytechnic University",
-    date: "August 5, 2024",
-    category: "engineering",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuDXhXUW7R7ymVYcA1Wb-ygm-fRmkq1yZwQ19mHFAGdZWjTy95s90h9ujT6M0t2K9_wD7gwp4FNxzid3lpQarBmo4-r4y5fwlaeEy5oSLrn0BEUEt1apqBZDZG0do8vWJDcIXUgxBQiN6dIPbOh5S4TLGskkwxtX3DbHis__chgjuzSevM5FNFAgNWG9CIQ7mXWgfJBSI3Y5VTTlaKmOik015FOrqPnxMhGlltzKAck-attaxg7GZSTJdfD7xOTDsJCGO_zDHnUwv_A",
-  },
-  {
-    id: "fluid",
-    title: "Fluid Mechanics",
-    institution: "Global Tech",
-    date: "August 10, 2024",
-    category: "engineering",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCSF05e2HC9BPCELrCKYehau509GDr9g6BDNem9sqOTam1S4oKL8DUn5S1fZ8v8cR8eA2ip0MGUkHEUIYS_8zJAvWyDzD3FCNIPxlx4j_4IKmjQWqXqumyq6SzKd3eTQT_uiH9xXtphpxB10BN_VHR2el-P4Y2ZuEVJqM-S0fdp45FnFhduYnsAiukZgRbru8Nf_6XtMdTef6j0Vz7pBUoq0JMcTlTrxZwWaFFJbEDQWzmvjUhafDHoBgVavyhTsLq5zaFQQxNMFqw",
-  },
-];
-
-const allExams = [
-  {
-    id: "calculus",
-    title: "Calculus II Exam",
-    institution: "State University",
-    date: "July 15, 2024",
-    category: "mathematics",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCMfIFU4e0eEDP_Oo_ALTcq-djJpCW-2lTOExw9CAJJxPuP1wSUGf1RaoBWNz7eAMARc2B43MOWhfFa8OUMEG18OJutW2kyDJZQJCduBaDHN-dx5MYwsM90N0HH2rmI_tq2Ru19tHRqWWWIWz1_yAlm44Q-KOOQgUoPgvRxa2iWXlCAQvxo2fizm6cxo88yUUq9MsmJkf-X0qJgGMnRf4PjeKfpDDMuCHLrKy6AcqwYw5iSPToL5YHWcFaE8l4cGi1ljtlsXaJ4k74",
-  },
-  {
-    id: "materials",
-    title: "Materials Science",
-    institution: "University of Engineering",
-    date: "August 15, 2024",
-    category: "engineering",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuCSF05e2HC9BPCELrCKYehau509GDr9g6BDNem9sqOTam1S4oKL8DUn5S1fZ8v8cR8eA2ip0MGUkHEUIYS_8zJAvWyDzD3FCNIPxlx4j_4IKmjQWqXqumyq6SzKd3eTQT_uiH9xXtphpxB10BN_VHR2el-P4Y2ZuEVJqM-S0fdp45FnFhduYnsAiukZgRbru8Nf_6XtMdTef6j0Vz7pBUoq0JMcTlTrxZwWaFFJbEDQWzmvjUhafDHoBgVavyhTsLq5zaFQQxNMFqw",
-  },
-  {
-    id: "digital-logic",
-    title: "Digital Logic Design",
-    institution: "Tech Academy",
-    date: "August 22, 2024",
-    category: "computer science",
-    image:
-      "https://lh3.googleusercontent.com/aida-public/AB6AXuB_C4QnsvaON6lEjCdyWTLsVtjpgZfpDF_wdwR4bMAfmIa-J75kddtqJdl7soXDPy-LtTU07V-dW6DAJ3czDnNGv5dxc-ZerstgxoshKqU2qiuQcSlH-L3HUrPpv0VFcI3-JSS0n6K6aJ48e9WduOKWogEAMBCporyhL-HRllZbsuNdq5HZicM_V3zDqqvz9sGYAGPmcVhdf82_1fe7aEBH0CN1UxgVPL-0lGKSaNuihQShGXe_g61iu5KQ958WET8OeaApu7RAnWU",
-  },
-  ...upcoming,
-];
+type Exam = {
+  id: string;
+  title: string;
+  institution: string;
+  date: string;
+  image: string;
+  category: string;
+};
 
 function ExamsPageContent() {
   const router = useRouter();
@@ -93,6 +32,151 @@ function ExamsPageContent() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(6);
   const [isPageChanging, setIsPageChanging] = useState(false);
+  const [allExams, setAllExams] = useState<Exam[]>([]);
+  const [upcoming, setUpcoming] = useState<UpcomingItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch exams from API
+  useEffect(() => {
+    const fetchExams = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/exams');
+        const data = await response.json();
+        
+        if (data.success) {
+          // Transform API data to match existing structure
+          const transformedExams = data.data.map((exam: any) => ({
+            id: exam._id,
+            title: exam.title,
+            institution: exam.organization || "Unknown Institution",
+            date: exam.date ? new Date(exam.date).toLocaleDateString() : "TBD",
+            category: exam.category || "general",
+            image: "/images/exam-placeholder.svg" // Use placeholder image
+          }));
+          
+          setAllExams(transformedExams);
+          
+          // Set upcoming exams (next 4 exams)
+          const sortedExams = [...transformedExams].sort((a, b) => 
+            new Date(a.date).getTime() - new Date(b.date).getTime()
+          );
+          setUpcoming(sortedExams.slice(0, 4));
+        }
+      } catch (error) {
+        console.error('Failed to fetch exams:', error);
+        // Fallback to mock data if API fails
+        setAllExams([
+          {
+            id: "calculus",
+            title: "Calculus II Exam",
+            institution: "State University",
+            date: "July 15, 2024",
+            category: "mathematics",
+            image:
+              "https://lh3.googleusercontent.com/aida-public/AB6AXuCMfIFU4e0eEDP_Oo_ALTcq-djJpCW-2lTOExw9CAJJxPuP1wSUGf1RaoBWNz7eAMARc2B43MOWhfFa8OUMEG18OJutW2kyDJZQJCduBaDHN-dx5MYwsM90N0HH2rmI_tq2Ru19tHRqWWWIWz1_yAlm44Q-KOOQgUoPgvRxa2iWXlCAQvxo2fizm6cxo88yUUq9MsmJkf-X0qJgGMnRf4PjeKfpDDMuCHLrKy6AcqwYw5iSPToL5YHWcFaE8l4cGi1ljtlsXaJ4k74",
+          },
+          {
+            id: "materials",
+            title: "Materials Science",
+            institution: "University of Engineering",
+            date: "August 15, 2024",
+            category: "engineering",
+            image:
+              "https://lh3.googleusercontent.com/aida-public/AB6AXuCSF05e2HC9BPCELrCKYehau509GDr9g6BDNem9sqOTam1S4oKL8DUn5S1fZ8v8cR8eA2ip0MGUkHEUIYS_8zJAvWyDzD3FCNIPxlx4j_4IKmjQWqXqumyq6SzKd3eTQT_uiH9xXtphpxB10BN_VHR2el-P4Y2ZuEVJqM-S0fdp45FnFhduYnsAiukZgRbru8Nf_6XtMdTef6j0Vz7pBUoq0JMcTlTrxZwWaFFJbEDQWzmvjUhafDHoBgVavyhTsLq5zaFQQxNMFqw",
+          },
+          {
+            id: "digital-logic",
+            title: "Digital Logic Design",
+            institution: "Tech Academy",
+            date: "August 22, 2024",
+            category: "computer science",
+            image:
+              "https://lh3.googleusercontent.com/aida-public/AB6AXuB_C4QnsvaON6lEjCdyWTLsVtjpgZfpDF_wdwR4bMAfmIa-J75kddtqJdl7soXDPy-LtTU07V-dW6DAJ3czDnNGv5dxc-ZerstgxoshKqU2qiuQcSlH-L3HUrPpv0VFcI3-JSS0n6K6aJ48e9WduOKWogEAMBCporyhL-HRllZbsuNdq5HZicM_V3zDqqvz9sGYAGPmcVhdf82_1fe7aEBH0CN1UxgVPL-0lGKSaNuihQShGXe_g61iu5KQ958WET8OeaApu7RAnWU",
+          },
+          {
+            id: "thermo",
+            title: "Thermodynamics Exam",
+            institution: "City College",
+            date: "July 20, 2024",
+            category: "engineering",
+            image:
+              "https://lh3.googleusercontent.com/aida-public/AB6AXuDmT7ROMoMsK2UnyY2rmN_ZgFMw5JLlv_EC07--IxAafJogoTFfOqEsyv7ZfYiciCERmg91LicnHpSxAg6rDtuIi7B-NrbnsRgJ9IBBnNUJCqfsnvYjg0oL7-JA5Ey-a4yZsYiArFvIo1NHSrFeQpPLBiPEpFEd3xzUR64RTziA9unL3nNcynhhUhfZ5Jc7e9RkbXWGKhmgmEpIAiZOkDc4_QPLaB8I2Ys4rZoNf8DTR9RioyYkujhveKvfYmVKCQWibQSwx2llfqM",
+          },
+          {
+            id: "eee",
+            title: "Electrical Engineering Exam",
+            institution: "Technical Institute",
+            date: "July 25, 2024",
+            category: "engineering",
+            image:
+              "https://lh3.googleusercontent.com/aida-public/AB6AXuB_C4QnsvaON6lEjCdyWTLsVtjpgZfpDF_wdwR4bMAfmIa-J75kddtqJdl7soXDPy-LtTU07V-dW6DAJ3czDnNGv5dxc-ZerstgxoshKqU2qiuQcSlH-L3HUrPpv0VFcI3-JSS0n6K6aJ48e9WduOKWogEAMBCporyhL-HRllZbsuNdq5HZicM_V3zDqqvz9sGYAGPmcVhdf82_1fe7aEBH0CN1UxgVPL-0lGKSaNuihQShGXe_g61iu5KQ958WET8OeaApu7RAnWU",
+          },
+          {
+            id: "mech",
+            title: "Mechanical Design Exam",
+            institution: "Polytechnic University",
+            date: "August 5, 2024",
+            category: "engineering",
+            image:
+              "https://lh3.googleusercontent.com/aida-public/AB6AXuDXhXUW7R7ymVYcA1Wb-ygm-fRmkq1yZwQ19mHFAGdZWjTy95s90h9ujT6M0t2K9_wD7gwp4FNxzid3lpQarBmo4-r4y5fwlaeEy5oSLrn0BEUEt1apqBZDZG0do8vWJDcIXUgxBQiN6dIPbOh5S4TLGskkwxtX3DbHis__chgjuzSevM5FNFAgNWG9CIQ7mXWgfJBSI3Y5VTTlaKmOik015FOrqPnxMhGlltzKAck-attaxg7GZSTJdfD7xOTDsJCGO_zDHnUwv_A",
+          },
+          {
+            id: "fluid",
+            title: "Fluid Mechanics",
+            institution: "Global Tech",
+            date: "August 10, 2024",
+            category: "engineering",
+            image:
+              "https://lh3.googleusercontent.com/aida-public/AB6AXuCSF05e2HC9BPCELrCKYehau509GDr9g6BDNem9sqOTam1S4oKL8DUn5S1fZ8v8cR8eA2ip0MGUkHEUIYS_8zJAvWyDzD3FCNIPxlx4j_4IKmjQWqXqumyq6SzKd3eTQT_uiH9xXtphpxB10BN_VHR2el-P4Y2ZuEVJqM-S0fdp45FnFhduYnsAiukZgRbru8Nf_6XtMdTef6j0Vz7pBUoq0JMcTlTrxZwWaFFJbEDQWzmvjUhafDHoBgVavyhTsLq5zaFQQxNMFqw",
+          },
+        ]);
+        
+        setUpcoming([
+          {
+            id: "thermo",
+            title: "Thermodynamics Exam",
+            institution: "City College",
+            date: "July 20, 2024",
+            category: "engineering",
+            image:
+              "https://lh3.googleusercontent.com/aida-public/AB6AXuDmT7ROMoMsK2UnyY2rmN_ZgFMw5JLlv_EC07--IxAafJogoTFfOqEsyv7ZfYiciCERmg91LicnHpSxAg6rDtuIi7B-NrbnsRgJ9IBBnNUJCqfsnvYjg0oL7-JA5Ey-a4yZsYiArFvIo1NHSrFeQpPLBiPEpFEd3xzUR64RTziA9unL3nNcynhhUhfZ5Jc7e9RkbXWGKhmgmEpIAiZOkDc4_QPLaB8I2Ys4rZoNf8DTR9RioyYkujhveKvfYmVKCQWibQSwx2llfqM",
+          },
+          {
+            id: "eee",
+            title: "Electrical Engineering Exam",
+            institution: "Technical Institute",
+            date: "July 25, 2024",
+            category: "engineering",
+            image:
+              "https://lh3.googleusercontent.com/aida-public/AB6AXuB_C4QnsvaON6lEjCdyWTLsVtjpgZfpDF_wdwR4bMAfmIa-J75kddtqJdl7soXDPy-LtTU07V-dW6DAJ3czDnNGv5dxc-ZerstgxoshKqU2qiuQcSlH-L3HUrPpv0VFcI3-JSS0n6K6aJ48e9WduOKWogEAMBCporyhL-HRllZbsuNdq5HZicM_V3zDqqvz9sGYAGPmcVhdf82_1fe7aEBH0CN1UxgVPL-0lGKSaNuihQShGXe_g61iu5KQ958WET8OeaApu7RAnWU",
+          },
+          {
+            id: "mech",
+            title: "Mechanical Design Exam",
+            institution: "Polytechnic University",
+            date: "August 5, 2024",
+            category: "engineering",
+            image:
+              "https://lh3.googleusercontent.com/aida-public/AB6AXuDXhXUW7R7ymVYcA1Wb-ygm-fRmkq1yZwQ19mHFAGdZWjTy95s90h9ujT6M0t2K9_wD7gwp4FNxzid3lpQarBmo4-r4y5fwlaeEy5oSLrn0BEUEt1apqBZDZG0do8vWJDcIXUgxBQiN6dIPbOh5S4TLGskkwxtX3DbHis__chgjuzSevM5FNFAgNWG9CIQ7mXWgfJBSI3Y5VTTlaKmOik015FOrqPnxMhGlltzKAck-attaxg7GZSTJdfD7xOTDsJCGO_zDHnUwv_A",
+          },
+          {
+            id: "fluid",
+            title: "Fluid Mechanics",
+            institution: "Global Tech",
+            date: "August 10, 2024",
+            category: "engineering",
+            image:
+              "https://lh3.googleusercontent.com/aida-public/AB6AXuCSF05e2HC9BPCELrCKYehau509GDr9g6BDNem9sqOTam1S4oKL8DUn5S1fZ8v8cR8eA2ip0MGUkHEUIYS_8zJAvWyDzD3FCNIPxlx4j_4IKmjQWqXqumyq6SzKd3eTQT_uiH9xXtphpxB10BN_VHR2el-P4Y2ZuEVJqM-S0fdp45FnFhduYnsAiukZgRbru8Nf_6XtMdTef6j0Vz7pBUoq0JMcTlTrxZwWaFFJbEDQWzmvjUhafDHoBgVavyhTsLq5zaFQQxNMFqw",
+          },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExams();
+  }, []);
 
   // Initialize state from URL parameters
   useEffect(() => {
@@ -162,7 +246,7 @@ function ExamsPageContent() {
     }
 
     return filtered;
-  }, [searchQuery, activeFilter]);
+  }, [searchQuery, activeFilter, allExams]);
 
   // Pagination logic
   const totalPages = Math.ceil(filteredExams.length / itemsPerPage);
@@ -349,7 +433,7 @@ function ExamsPageContent() {
   };
 
   return (
-    <main className="flex-1 bg-slate-950 px-4 sm:px-6 lg:px-20 py-10 text-slate-100">
+    <main className="flex-1 bg-slate-950 px-4 sm:px-6 lg:px-20 py-10 text-slate-100 min-h-screen">
       <div className="mx-auto max-w-7xl" id="exam-content">
         {/* Heading */}
         <div className="mb-8 text-center">
@@ -417,181 +501,193 @@ function ExamsPageContent() {
           ))}
         </div>
 
-        {/* Main grid */}
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {/* Left big card */}
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="flex flex-col rounded-lg border border-slate-800 bg-slate-900 shadow-md transition-shadow hover:shadow-sky-500/20 overflow-hidden"
-          >
-            <div
-              className="h-40 w-full bg-cover bg-center"
-              style={{
-                backgroundImage:
-                  'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCMfIFU4e0eEDP_Oo_ALTcq-djJpCW-2lTOExw9CAJJxPuP1wSUGf1RaoBWNz7eAMARc2B43MOWhfFa8OUMEG18OJutW2kyDJZQJCduBaDHN-dx5MYwsM90N0HH2rmI_tq2Ru19tHRqWWWIWz1_yAlm44Q-KOOQgUoPgvRxa2iWXlCAQvxo2fizm6cxo88yUUq9MsmJkf-X0qJgGMnRf4PjeKfpDDMuCHLrKy6AcqwYw5iSPToL5YHWcFaE8l4cGi1ljtlsXaJ4k74")',
-              }}
-            />
-            <div className="p-6 flex-1 flex flex-col">
-              <h3 className="text-lg font-bold">Calculus II Exam</h3>
-              <p className="mt-1 text-sm text-slate-400">
-                Institution: State University
-              </p>
-              <p className="mt-1 text-sm text-slate-400">Date: July 15, 2024</p>
-              <button
-                onClick={() => handleViewDetails("calculus")}
-                className="mt-4 w-full rounded-md bg-teal-500 px-4 py-2 text-sm font-medium text-white hover:bg-teal-400"
+        {/* Show loading indicator within the main content area to avoid hydration mismatch */}
+        {loading ? (
+          <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-sky-500"></div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+            {/* Left big card */}
+            {allExams.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
+                className="flex flex-col rounded-lg border border-slate-800 bg-slate-900 shadow-md transition-shadow hover:shadow-sky-500/20 overflow-hidden"
               >
-                View Details
-              </button>
-            </div>
-          </motion.div>
+                <div
+                  className="h-40 w-full bg-cover bg-center"
+                  style={{
+                    backgroundImage: `url("${allExams[0].image}")`,
+                  }}
+                />
+                <div className="p-6 flex-1 flex flex-col">
+                  <h3 className="text-lg font-bold">{allExams[0].title}</h3>
+                  <p className="mt-1 text-sm text-slate-400">
+                    Institution: {allExams[0].institution}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-400">Date: {allExams[0].date}</p>
+                  <button
+                    onClick={() => handleViewDetails(allExams[0].id)}
+                    className="mt-4 w-full rounded-md bg-teal-500 px-4 py-2 text-sm font-medium text-white hover:bg-teal-400"
+                  >
+                    View Details
+                  </button>
+                </div>
+              </motion.div>
+            )}
 
-          {/* Middle: Upcoming list */}
-          <div className="col-span-1 lg:col-span-2">
-            <div className="rounded-lg border border-slate-800 bg-slate-900 shadow-md transition-shadow hover:shadow-sky-500/20 p-6">
-              <h3 className="text-xl font-bold mb-4">
-                {searchQuery ? "Search Results" : "Upcoming Exams"}
-                {searchQuery && (
-                  <span className="text-sm font-normal text-slate-400 ml-2">
-                    ({filteredExams.length} found)
-                  </span>
-                )}
-                {!searchQuery && totalPages > 1 && (
-                  <span className="text-sm font-normal text-slate-400 ml-2">
-                    (Page {currentPage} of {totalPages})
-                  </span>
-                )}
-              </h3>
-              <div className="max-h-96 overflow-y-auto pr-2">
-                {isPageChanging ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500"></div>
-                  </div>
-                ) : currentExams.length > 0 ? (
-                  currentExams.map((u) => (
-                    <motion.div
-                      key={u.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="flex items-center gap-6 rounded-md p-4 mb-4 last:mb-0 hover:bg-slate-800"
-                    >
-                      <div
-                        className="h-20 w-28 shrink-0 rounded-md bg-cover bg-center"
-                        style={{ backgroundImage: `url("${u.image}")` }}
-                      />
-                      <div className="flex-1">
-                        <h4 className="font-bold">{u.title}</h4>
-                        <p className="text-sm text-slate-400">
-                          Institution: {u.institution}, Date: {u.date}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => handleViewDetails(u.id)}
-                        className="text-sky-400 hover:underline text-sm font-medium"
+            {/* Middle: Upcoming list */}
+            <div className="col-span-1 lg:col-span-2">
+              <div className="rounded-lg border border-slate-800 bg-slate-900 shadow-md transition-shadow hover:shadow-sky-500/20 p-6">
+                <h3 className="text-xl font-bold mb-4">
+                  {searchQuery ? "Search Results" : "Upcoming Exams"}
+                  {searchQuery && (
+                    <span className="text-sm font-normal text-slate-400 ml-2">
+                      ({filteredExams.length} found)
+                    </span>
+                  )}
+                  {!searchQuery && totalPages > 1 && (
+                    <span className="text-sm font-normal text-slate-400 ml-2">
+                      (Page {currentPage} of {totalPages})
+                    </span>
+                  )}
+                </h3>
+                <div className="max-h-96 overflow-y-auto pr-2">
+                  {isPageChanging ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500"></div>
+                    </div>
+                  ) : currentExams.length > 0 ? (
+                    currentExams.map((u) => (
+                      <motion.div
+                        key={u.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                        className="flex items-center gap-6 rounded-md p-4 mb-4 last:mb-0 hover:bg-slate-800"
                       >
-                        Details
-                      </button>
-                    </motion.div>
-                  ))
-                ) : (
-                  <div className="text-center py-8">
-                    <p className="text-slate-400">
-                      {filteredExams.length === 0
-                        ? "No exams found matching your search."
-                        : "No exams on this page."}
-                    </p>
-                    {filteredExams.length === 0 && (
-                      <button
-                        onClick={() => {
-                          setSearchQuery("");
-                          setActiveFilter("All");
-                          setCurrentPage(1);
-                          router.replace("/exams", { scroll: false });
-                        }}
-                        className="mt-2 text-sky-400 hover:underline"
-                      >
-                        Clear filters
-                      </button>
-                    )}
-                  </div>
-                )}
+                        <div
+                          className="h-20 w-28 shrink-0 rounded-md bg-cover bg-center"
+                          style={{ backgroundImage: `url("${u.image}")` }}
+                        />
+                        <div className="flex-1">
+                          <h4 className="font-bold">{u.title}</h4>
+                          <p className="text-sm text-slate-400">
+                            Institution: {u.institution}, Date: {u.date}
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => handleViewDetails(u.id)}
+                          className="text-sky-400 hover:underline text-sm font-medium"
+                        >
+                          Details
+                        </button>
+                      </motion.div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-slate-400">
+                        {filteredExams.length === 0
+                          ? "No exams found matching your search."
+                          : "No exams on this page."}
+                      </p>
+                      {filteredExams.length === 0 && (
+                        <button
+                          onClick={() => {
+                            setSearchQuery("");
+                            setActiveFilter("All");
+                            setCurrentPage(1);
+                            router.replace("/exams", { scroll: false });
+                          }}
+                          className="mt-2 text-sky-400 hover:underline"
+                        >
+                          Clear filters
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Overlay image card */}
-          <div className="relative flex flex-col rounded-lg border border-slate-800 bg-slate-900 shadow-md transition-shadow hover:shadow-sky-500/20 overflow-hidden group">
-            <div
-              className="absolute inset-0 bg-cover bg-center z-0"
-              style={{
-                backgroundImage:
-                  'url("https://lh3.googleusercontent.com/aida-public/AB6AXuCSF05e2HC9BPCELrCKYehau509GDr9g6BDNem9sqOTam1S4oKL8DUn5S1fZ8v8cR8eA2ip0MGUkHEUIYS_8zJAvWyDzD3FCNIPxlx4j_4IKmjQWqXqumyq6SzKd3eTQT_uiH9xXtphpxB10BN_VHR2el-P4Y2ZuEVJqM-S0fdp45FnFhduYnsAiukZgRbru8Nf_6XtMdTef6j0Vz7pBUoq0JMcTlTrxZwWaFFJbEDQWzmvjUhafDHoBgVavyhTsLq5zaFQQxNMFqw")',
-              }}
-            />
-            <div className="absolute inset-0 bg-black opacity-50 group-hover:opacity-60 transition-opacity z-10" />
-            <div className="p-6 flex-1 flex flex-col justify-end z-20 text-white">
-              <h3 className="text-lg font-bold">Materials Science</h3>
-              <p className="mt-1 text-sm">
-                Institution: University of Engineering, Date: August 15, 2024
-              </p>
-              <button
-                onClick={() => handleViewDetails("materials")}
-                className="mt-4 w-full rounded-md bg-white/20 backdrop-blur-sm px-4 py-2 text-sm font-medium text-white hover:bg-white/30 border border-white/30"
-              >
-                View Details
-              </button>
-            </div>
-          </div>
+            {/* Overlay image card */}
+            {allExams.length > 1 && (
+              <div className="relative flex flex-col rounded-lg border border-slate-800 bg-slate-900 shadow-md transition-shadow hover:shadow-sky-500/20 overflow-hidden group">
+                <div
+                  className="absolute inset-0 bg-cover bg-center z-0"
+                  style={{
+                    backgroundImage: `url("${allExams[1].image}")`,
+                  }}
+                />
+                <div className="absolute inset-0 bg-black opacity-50 group-hover:opacity-60 transition-opacity z-10" />
+                <div className="p-6 flex-1 flex flex-col justify-end z-20 text-white">
+                  <h3 className="text-lg font-bold">{allExams[1].title}</h3>
+                  <p className="mt-1 text-sm">
+                    Institution: {allExams[1].institution}, Date: {allExams[1].date}
+                  </p>
+                  <button
+                    onClick={() => handleViewDetails(allExams[1].id)}
+                    className="mt-4 w-full rounded-md bg-white/20 backdrop-blur-sm px-4 py-2 text-sm font-medium text-white hover:bg-white/30 border border-white/30"
+                  >
+                    View Details
+                  </button>
+                </div>
+              </div>
+            )}
 
-          {/* Structural analysis card */}
-          <div className="flex flex-col rounded-lg border border-slate-800 bg-slate-900 shadow-md transition-shadow hover:shadow-sky-500/20 overflow-hidden">
-            <div className="p-6">
-              <h3 className="text-lg font-bold">Structural Analysis</h3>
-              <p className="mt-1 text-sm text-slate-400">
-                Institution: National Institute, Date: August 20, 2024
-              </p>
-              <p className="mt-4 text-sm text-slate-300">
-                Prepare for a comprehensive exam covering key concepts in
-                structural analysis. Key topics include trusses, beams, and
-                frames.
-              </p>
-            </div>
-            <div className="bg-slate-900 p-4 border-t border-slate-800 mt-auto">
-              <button
-                onClick={() => handleSyllabusDownload("structural-analysis")}
-                className="text-sm font-medium text-sky-400 hover:underline"
-              >
-                Download Syllabus
-              </button>
-            </div>
-          </div>
+            {/* Structural analysis card */}
+            {allExams.length > 2 && (
+              <div className="flex flex-col rounded-lg border border-slate-800 bg-slate-900 shadow-md transition-shadow hover:shadow-sky-500/20 overflow-hidden">
+                <div className="p-6">
+                  <h3 className="text-lg font-bold">{allExams[2].title}</h3>
+                  <p className="mt-1 text-sm text-slate-400">
+                    Institution: {allExams[2].institution}, Date: {allExams[2].date}
+                  </p>
+                  <p className="mt-4 text-sm text-slate-300">
+                    Prepare for a comprehensive exam covering key concepts in
+                    structural analysis. Key topics include trusses, beams, and
+                    frames.
+                  </p>
+                </div>
+                <div className="bg-slate-900 p-4 border-t border-slate-800 mt-auto">
+                  <button
+                    onClick={() => handleSyllabusDownload(allExams[2].id)}
+                    className="text-sm font-medium text-sky-400 hover:underline"
+                  >
+                    Download Syllabus
+                  </button>
+                </div>
+              </div>
+            )}
 
-          {/* Promo card */}
-          <div className="flex flex-col rounded-lg border border-slate-800 bg-slate-900 shadow-md transition-shadow hover:shadow-sky-500/20 overflow-hidden items-center text-center p-6">
-            <div className="h-24 w-24 rounded-full bg-sky-900/40 text-sky-300 flex items-center justify-center mb-4">
-              📘
-            </div>
-            <h3 className="text-lg font-bold">Digital Logic Design</h3>
-            <p className="mt-1 text-sm text-slate-400">
-              Institution: Tech Academy, Date: August 22, 2024
-            </p>
-            <button
-              onClick={() =>
-                handleRegister("digital-logic", "Digital Logic Design")
-              }
-              className="mt-4 rounded-full bg-teal-500 px-6 py-2 text-sm font-medium text-white hover:bg-teal-400"
-            >
-              Register Now
-            </button>
+            {/* Promo card */}
+            {allExams.length > 3 && (
+              <div className="flex flex-col rounded-lg border border-slate-800 bg-slate-900 shadow-md transition-shadow hover:shadow-sky-500/20 overflow-hidden items-center text-center p-6">
+                <div className="h-24 w-24 rounded-full bg-sky-900/40 text-sky-300 flex items-center justify-center mb-4">
+                  📘
+                </div>
+                <h3 className="text-lg font-bold">{allExams[3].title}</h3>
+                <p className="mt-1 text-sm text-slate-400">
+                  Institution: {allExams[3].institution}, Date: {allExams[3].date}
+                </p>
+                <button
+                  onClick={() =>
+                    handleRegister(allExams[3].id, allExams[3].title)
+                  }
+                  className="mt-4 rounded-full bg-teal-500 px-6 py-2 text-sm font-medium text-white hover:bg-teal-400"
+                >
+                  Register Now
+                </button>
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
         {/* Pagination */}
-        {totalPages > 1 && (
+        {!loading && totalPages > 1 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

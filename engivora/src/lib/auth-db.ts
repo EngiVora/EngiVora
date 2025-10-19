@@ -41,7 +41,7 @@ export const mockUsers: User[] = [
   {
     id: '2',
     email: 'admin@engivora.com',
-    password: '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // hashed 'EngivoraAdmin@5678'
+    password: '$2b$10$Lf7tXXgYcPccwKTspN3nceK/AgwH7y1Tp8JF8VFEKJGSuVQwhAzue', // hashed 'admin123'
     name: 'Engivora Admin',
     role: 'admin',
     department: 'Administration',

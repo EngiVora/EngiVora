@@ -49,7 +49,10 @@ export function JobManagement() {
         }
       }, 300000) // 5 minutes cache
       
-      const data = await res.json()
+      // Clone the response to avoid "body stream already read" errors
+      const clonedRes = res.clone()
+      const data = await clonedRes.json()
+      
       if (res.ok) {
         setJobs(data.data || [])
         setTotalPages(data.pagination?.totalPages || 1)
@@ -691,10 +694,53 @@ function JobModal({ isOpen, onClose, onSubmit, job, isLoading }: {
     isActive: job?.isActive ?? true,
     featured: job?.featured || false
   })
+  
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {}
+    
+    if (!formData.title.trim()) {
+      newErrors.title = 'Job title is required'
+    } else if (formData.title.trim().length < 3) {
+      newErrors.title = 'Job title must be at least 3 characters'
+    }
+    
+    if (!formData.company.trim()) {
+      newErrors.company = 'Company name is required'
+    } else if (formData.company.trim().length < 2) {
+      newErrors.company = 'Company name must be at least 2 characters'
+    }
+    
+    if (!formData.description.trim()) {
+      newErrors.description = 'Description is required'
+    } else if (formData.description.trim().length < 50) {
+      newErrors.description = 'Description must be at least 50 characters'
+    }
+    
+    if (!formData.location.trim()) {
+      newErrors.location = 'Location is required'
+    } else if (formData.location.trim().length < 2) {
+      newErrors.location = 'Location must be at least 2 characters'
+    }
+    
+    if (formData.contactEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contactEmail)) {
+      newErrors.contactEmail = 'Invalid email format'
+    }
+    
+    if (formData.applicationLink && !/^https?:\/\/.+$/.test(formData.applicationLink)) {
+      newErrors.applicationLink = 'Invalid URL format'
+    }
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSubmit(formData)
+    if (validateForm()) {
+      onSubmit(formData)
+    }
   }
 
   if (!isOpen) return null
@@ -711,10 +757,14 @@ function JobModal({ isOpen, onClose, onSubmit, job, isLoading }: {
                 type="text"
                 required
                 value={formData.title}
-                onChange={(e) => setFormData({...formData, title: e.target.value})}
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
-                placeholder="Enter job title"
+                onChange={(e) => {
+                  setFormData({...formData, title: e.target.value})
+                  if (errors.title) setErrors({...errors, title: ''})
+                }}
+                className={`mt-1 block w-full border ${errors.title ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2`}
+                placeholder="Enter job title (min 3 characters)"
               />
+              {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Company *</label>
@@ -722,10 +772,14 @@ function JobModal({ isOpen, onClose, onSubmit, job, isLoading }: {
                 type="text"
                 required
                 value={formData.company}
-                onChange={(e) => setFormData({...formData, company: e.target.value})}
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
-                placeholder="Enter company name"
+                onChange={(e) => {
+                  setFormData({...formData, company: e.target.value})
+                  if (errors.company) setErrors({...errors, company: ''})
+                }}
+                className={`mt-1 block w-full border ${errors.company ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2`}
+                placeholder="Enter company name (min 2 characters)"
               />
+              {errors.company && <p className="mt-1 text-sm text-red-600">{errors.company}</p>}
             </div>
           </div>
 
@@ -733,12 +787,19 @@ function JobModal({ isOpen, onClose, onSubmit, job, isLoading }: {
             <label className="block text-sm font-medium text-gray-700">Description *</label>
             <textarea
               required
-              rows={4}
+              rows={6}
               value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
-              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
-              placeholder="Enter job description"
+              onChange={(e) => {
+                setFormData({...formData, description: e.target.value})
+                if (errors.description) setErrors({...errors, description: ''})
+              }}
+              className={`mt-1 block w-full border ${errors.description ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2`}
+              placeholder="Enter detailed job description (min 50 characters)"
             />
+            <div className="flex justify-between mt-1">
+              <span className="text-sm text-gray-500">Characters: {formData.description.length}/50 minimum</span>
+              {errors.description && <p className="text-sm text-red-600">{errors.description}</p>}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -774,14 +835,50 @@ function JobModal({ isOpen, onClose, onSubmit, job, isLoading }: {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Location</label>
+              <label className="block text-sm font-medium text-gray-700">Location *</label>
               <input
                 type="text"
+                required
                 value={formData.location}
-                onChange={(e) => setFormData({...formData, location: e.target.value})}
-                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
-                placeholder="Enter job location"
+                onChange={(e) => {
+                  setFormData({...formData, location: e.target.value})
+                  if (errors.location) setErrors({...errors, location: ''})
+                }}
+                className={`mt-1 block w-full border ${errors.location ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2`}
+                placeholder="Enter job location (min 2 characters)"
               />
+              {errors.location && <p className="mt-1 text-sm text-red-600">{errors.location}</p>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Contact Email</label>
+              <input
+                type="email"
+                value={formData.contactEmail}
+                onChange={(e) => {
+                  setFormData({...formData, contactEmail: e.target.value})
+                  if (errors.contactEmail) setErrors({...errors, contactEmail: ''})
+                }}
+                className={`mt-1 block w-full border ${errors.contactEmail ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2`}
+                placeholder="contact@company.com"
+              />
+              {errors.contactEmail && <p className="mt-1 text-sm text-red-600">{errors.contactEmail}</p>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Application Link</label>
+              <input
+                type="url"
+                value={formData.applicationLink}
+                onChange={(e) => {
+                  setFormData({...formData, applicationLink: e.target.value})
+                  if (errors.applicationLink) setErrors({...errors, applicationLink: ''})
+                }}
+                className={`mt-1 block w-full border ${errors.applicationLink ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2`}
+                placeholder="https://company.com/apply"
+              />
+              {errors.applicationLink && <p className="mt-1 text-sm text-red-600">{errors.applicationLink}</p>}
             </div>
           </div>
 

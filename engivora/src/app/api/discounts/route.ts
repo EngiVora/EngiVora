@@ -1,32 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
 import { connectToDatabase } from '@/lib/db';
 import { Discount } from '@/models/Discount';
-import jwt from 'jsonwebtoken';
-
-// Validation schema for discounts
-const discountSchema = z.object({
-  title: z.string().min(3, 'Title must be at least 3 characters'),
-  description: z.string().min(10, 'Description must be at least 10 characters'),
-  category: z.enum(['books', 'software', 'courses', 'hardware', 'services', 'events']),
-  discountType: z.enum(['percentage', 'fixed', 'bogo', 'free']),
-  discountValue: z.number().min(0, 'Discount value cannot be negative'),
-  originalPrice: z.number().min(0, 'Original price cannot be negative').optional(),
-  discountedPrice: z.number().min(0, 'Discounted price cannot be negative').optional(),
-  couponCode: z.string().optional(),
-  provider: z.string().min(2, 'Provider name is required'),
-  websiteUrl: z.string().url('Invalid URL'),
-  imageUrl: z.string().url('Invalid image URL').optional(),
-  validFrom: z.string().datetime('Invalid date format'),
-  validUntil: z.string().datetime('Invalid date format'),
-  termsAndConditions: z.array(z.string()).optional(),
-  eligibility: z.array(z.string()).optional(),
-  maxUsage: z.number().min(1, 'Max usage must be at least 1').optional(),
-  featured: z.boolean().optional().default(false),
-  isActive: z.boolean().optional().default(true),
-});
-
-const JWT_SECRET = process.env.JWT_SECRET as string;
 
 export async function GET(request: NextRequest) {
   try {
@@ -41,7 +15,7 @@ export async function GET(request: NextRequest) {
     const search = searchParams.get('search');
     const provider = searchParams.get('provider');
 
-    const query: Record<string, unknown> = {};
+    const query: Record<string, unknown> = { active: true };
     if (category) query.category = category;
     if (discountType) query.discountType = discountType;
     if (featured) query.featured = true;
@@ -92,48 +66,35 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization');
-
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return NextResponse.json(
-        { error: 'Authorization token required' },
-        { status: 401 }
-      );
-    }
-
-    const token = authHeader.substring(7);
-    if (!JWT_SECRET) {
-      console.error('JWT_SECRET not configured');
-      return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 });
-    }
+    // Remove authentication check to allow public access
+    let body;
     try {
-      const payload = jwt.verify(token, JWT_SECRET) as { role?: string };
-      if (payload.role !== 'admin') {
-        return NextResponse.json(
-          { error: 'Admin access required' },
-          { status: 403 }
-        );
-      }
-    } catch {
+      body = await request.json();
+    } catch (parseError) {
       return NextResponse.json(
-        { error: 'Invalid token' },
-        { status: 401 }
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
       );
     }
 
-    const body = await request.json();
-
-    // Validate input
-    const validatedData = discountSchema.parse(body);
     await connectToDatabase();
 
-    const created = await Discount.create({
-      code: validatedData.couponCode || `DISC-${Date.now()}`,
-      description: validatedData.description,
-      percentage: validatedData.discountType === 'percentage' ? validatedData.discountValue : 0,
-      expiresAt: new Date(validatedData.validUntil),
-      active: validatedData.isActive ?? true,
-    } as any);
+    // Ensure required fields are present
+    const now = new Date();
+    const thirtyDaysFromNow = new Date();
+    thirtyDaysFromNow.setDate(now.getDate() + 30);
+    
+    const discountData = {
+      ...body,
+      active: body.active !== undefined ? body.active : true, // Default to active
+      validFrom: body.validFrom || now,
+      validUntil: body.validUntil || thirtyDaysFromNow,
+      percentage: body.percentage || body.discountValue || 0,
+      expiresAt: body.expiresAt || thirtyDaysFromNow,
+    };
+
+    // Create discount with any data provided (no validation)
+    const created = await Discount.create(discountData);
 
     return NextResponse.json({
       success: true,
@@ -142,13 +103,6 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
 
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
-        { status: 400 }
-      );
-    }
-
     console.error('Discount creation error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },

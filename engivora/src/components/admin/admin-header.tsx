@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Bell, Search, User, Settings, LogOut, Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
+import { useAdminAuth } from "@/hooks/use-admin-auth"
 
 export function AdminHeader() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -12,8 +13,7 @@ export function AdminHeader() {
     { id: 3, message: "System backup completed", time: "3 hours ago", unread: false },
   ])
   const { theme, setTheme } = useTheme()
-
-  // No authentication needed - admin panel is open access
+  const { user, logout } = useAdminAuth()
 
   const unreadCount = notifications.filter(n => n.unread).length
 
@@ -66,8 +66,8 @@ export function AdminHeader() {
                 <User className="h-5 w-5 text-white" />
               </div>
               <div className="hidden md:block text-left">
-                <p className="text-sm font-medium">Admin User</p>
-                <p className="text-xs text-gray-500">admin@engivora.com</p>
+                <p className="text-sm font-medium">{user?.name || "Admin User"}</p>
+                <p className="text-xs text-gray-500">{user?.email || "admin@engivora.com"}</p>
               </div>
             </button>
           </div>
@@ -78,8 +78,9 @@ export function AdminHeader() {
               <Settings className="h-5 w-5" />
             </button>
             <button 
+              onClick={logout}
               className="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100"
-              aria-label="Admin panel - open access"
+              aria-label="Logout"
             >
               <LogOut className="h-5 w-5" />
             </button>

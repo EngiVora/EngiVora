@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
+// Remove all authentication checks to allow public access
 export function middleware(request: NextRequest) {
-  // No authentication required - admin panel is open access
+  // Allow access to all routes without authentication
   return NextResponse.next()
 }
 

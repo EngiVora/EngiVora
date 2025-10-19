@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { connectToDatabase } from '@/lib/db';
+import { Blog } from '@/models/Blog';
 
 // Blog update schema
 const blogUpdateSchema = z.object({
@@ -11,48 +13,6 @@ const blogUpdateSchema = z.object({
   featured: z.boolean().optional(),
   published: z.boolean().optional(),
 });
-
-// Mock blog database (same as in route.ts - in production, use shared database)
-const mockBlogs = [
-  {
-    id: '1',
-    title: 'Getting Started with Machine Learning in Engineering',
-    summary: 'A comprehensive guide to understanding ML concepts for engineering students',
-    content: 'Machine Learning has become an integral part of modern engineering. From predictive maintenance in manufacturing to optimizing energy consumption in smart grids, ML applications are everywhere. This guide will help you understand the fundamental concepts and how to apply them in your engineering projects.',
-    category: 'technology' as const,
-    tags: ['machine-learning', 'engineering', 'ai'],
-    author: {
-      id: '1',
-      name: 'John Doe',
-      email: 'student@example.com',
-    },
-    featured: true,
-    published: true,
-    views: 1250,
-    likes: 89,
-    createdAt: '2024-01-15T10:00:00Z',
-    updatedAt: '2024-01-20T15:30:00Z',
-  },
-  {
-    id: '2',
-    title: 'Top 10 Programming Languages for Engineers in 2024',
-    summary: 'Discover the most in-demand programming languages for engineering careers',
-    content: 'As we move into 2024, certain programming languages continue to dominate the engineering landscape. Python leads for data science and AI, JavaScript for web applications, and C++ for system programming. Understanding these languages can significantly boost your career prospects.',
-    category: 'career' as const,
-    tags: ['programming', 'career', 'languages'],
-    author: {
-      id: '2',
-      name: 'Jane Smith',
-      email: 'jane@example.com',
-    },
-    featured: false,
-    published: true,
-    views: 980,
-    likes: 67,
-    createdAt: '2024-01-10T08:30:00Z',
-    updatedAt: '2024-01-10T08:30:00Z',
-  },
-];
 
 // Helper function to get user from token
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -69,8 +29,10 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await connectToDatabase();
     const { id } = await params;
-    const blog = mockBlogs.find(b => b.id === id);
+    
+    const blog = await Blog.findById(id);
 
     if (!blog) {
       return NextResponse.json(
@@ -81,6 +43,7 @@ export async function GET(
 
     // Increment view count
     blog.views++;
+    await blog.save();
 
     return NextResponse.json({
       success: true,
@@ -120,8 +83,10 @@ export async function PUT(
       );
     }
 
+    await connectToDatabase();
     const { id } = await params;
-    const blog = mockBlogs.find(b => b.id === id);
+    
+    const blog = await Blog.findById(id);
 
     if (!blog) {
       return NextResponse.json(
@@ -131,7 +96,7 @@ export async function PUT(
     }
 
     // Check if user is the author or admin
-    if (blog.author.id !== user.id) {
+    if (blog.authorId !== user.id) {
       return NextResponse.json(
         { error: 'You can only edit your own blog posts' },
         { status: 403 }
@@ -146,13 +111,15 @@ export async function PUT(
     // Update blog post
     Object.assign(blog, {
       ...validatedData,
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date(),
     });
+    
+    const updatedBlog = await blog.save();
 
     return NextResponse.json({
       success: true,
       message: 'Blog post updated successfully',
-      data: blog,
+      data: updatedBlog,
     });
 
   } catch (error) {
@@ -195,20 +162,20 @@ export async function DELETE(
       );
     }
 
+    await connectToDatabase();
     const { id } = await params;
-    const blogIndex = mockBlogs.findIndex(b => b.id === id);
+    
+    const blog = await Blog.findById(id);
 
-    if (blogIndex === -1) {
+    if (!blog) {
       return NextResponse.json(
         { error: 'Blog post not found' },
         { status: 404 }
       );
     }
 
-    const blog = mockBlogs[blogIndex];
-
     // Check if user is the author or admin
-    if (blog.author.id !== user.id) {
+    if (blog.authorId !== user.id) {
       return NextResponse.json(
         { error: 'You can only delete your own blog posts' },
         { status: 403 }
@@ -216,7 +183,7 @@ export async function DELETE(
     }
 
     // Remove blog post
-    mockBlogs.splice(blogIndex, 1);
+    await Blog.findByIdAndDelete(id);
 
     return NextResponse.json({
       success: true,

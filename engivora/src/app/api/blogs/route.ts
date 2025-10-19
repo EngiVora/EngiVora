@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     const featured = searchParams.get('featured') === 'true';
     const search = searchParams.get('search');
 
-    const query: Record<string, unknown> = {};
+    const query: Record<string, unknown> = { published: true };
     if (category) query.category = category;
     if (featured) query.featured = true;
     if (search) {

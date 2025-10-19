@@ -31,7 +31,6 @@ export const metadata: Metadata = {
     apple: '/apple-icon.png',
   },
   manifest: '/manifest.json',
-  themeColor: '#3b82f6',
   robots: 'index, follow',
   openGraph: {
     title: "Engivora - Engineering Student Hub",
@@ -47,12 +46,14 @@ export const metadata: Metadata = {
     description: 'One-stop hub for every engineering student',
     images: ['/logo.png'],
   },
+  metadataBase: new URL('https://engivora.com'), // Add metadataBase for Open Graph/Twitter images
 }
 
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 5,
+  themeColor: '#3b82f6', // Move themeColor to viewport export
 }
 
 export default function RootLayout({

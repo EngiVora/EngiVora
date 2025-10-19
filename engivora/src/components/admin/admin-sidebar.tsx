@@ -82,6 +82,7 @@ export function AdminSidebar() {
           <nav className="flex-1 px-4 py-4 space-y-1">
             {navigation.map((item) => {
               const isActive = pathname === item.href
+              const IconComponent = item.icon
               return (
                 <Link
                   key={item.name}
@@ -93,7 +94,7 @@ export function AdminSidebar() {
                       : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   )}
                 >
-                  <item.icon
+                  <IconComponent
                     className={cn(
                       "mr-3 h-5 w-5 flex-shrink-0",
                       isActive ? "text-blue-500" : "text-gray-400 group-hover:text-gray-500"
@@ -134,6 +135,7 @@ export function AdminSidebar() {
           <nav className="mt-8 flex-1 px-4 space-y-1">
             {navigation.map((item) => {
               const isActive = pathname === item.href
+              const IconComponent = item.icon
               return (
                 <Link
                   key={item.name}
@@ -145,7 +147,7 @@ export function AdminSidebar() {
                       : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
                   )}
                 >
-                  <item.icon
+                  <IconComponent
                     className={cn(
                       "mr-3 h-5 w-5 flex-shrink-0",
                       isActive ? "text-blue-500" : "text-gray-400 group-hover:text-gray-500"

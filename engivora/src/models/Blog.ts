@@ -29,8 +29,10 @@ const BlogSchema = new Schema<BlogDocument>({
   views: { type: Number, default: 0 },
   likes: { type: Number, default: 0 },
 }, { timestamps: true })
-BlogSchema.index({ title: 'text', summary: 'text', content: 'text', tags: 1 })
+
+// Fix the text index - don't include tags in text index since it's an array
+BlogSchema.index({ title: 'text', summary: 'text', content: 'text' })
+// Create a separate index for tags
+BlogSchema.index({ tags: 1 })
 
 export const Blog = models.Blog || model<BlogDocument>('Blog', BlogSchema)
-
-

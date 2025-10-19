@@ -84,16 +84,19 @@ export async function cachedFetch(
   // Check cache first
   const cachedData = apiCache.get(cacheKey)
   if (cachedData) {
+    // Return cached data as a resolved response
     return new Response(JSON.stringify(cachedData), {
       status: 200,
-      headers: { 'Content-Type': 'application/json' }
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' }
     })
   }
 
   // Fetch from API
   const response = await fetch(url, options)
   if (response.ok) {
-    const data = await response.json()
+    // Clone the response before reading the body to avoid "body stream already read" errors
+    const clonedResponse = response.clone()
+    const data = await clonedResponse.json()
     apiCache.set(cacheKey, data, ttl)
   }
 

@@ -51,9 +51,9 @@ export async function POST(request: NextRequest) {
           expiresIn: expiresInEnv && expiresInEnv.trim() !== '' ? (isNaN(Number(expiresInEnv)) ? expiresInEnv : Number(expiresInEnv)) : 604800,
         } as SignOptions;
 
-        const token = jwt.sign({ sub: userDoc._id.toString(), role: userDoc.role }, JWT_SECRET, signOptions);
+        const token = jwt.sign({ sub: userDoc._id.toString(), name: userDoc.name, email: userDoc.email, role: userDoc.role }, JWT_SECRET, signOptions);
 
-        return NextResponse.json({
+        const response = NextResponse.json({
           success: true,
           message: 'Login successful',
           user: {
@@ -65,6 +65,16 @@ export async function POST(request: NextRequest) {
           },
           token,
         });
+        
+        // Set cookie for middleware authentication
+        response.cookies.set('adminToken', token, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          maxAge: 60 * 60 * 24 * 7, // 1 week
+          path: '/',
+        });
+        
+        return response;
       }
       
       // If DB is available but user not found, fall through to generic 401
@@ -89,9 +99,9 @@ export async function POST(request: NextRequest) {
         expiresIn: expiresInEnv && expiresInEnv.trim() !== '' ? (isNaN(Number(expiresInEnv)) ? expiresInEnv : Number(expiresInEnv)) : 604800,
       } as SignOptions;
       
-      const token = jwt.sign({ sub: mockUser.id, role: mockUser.role }, JWT_SECRET, signOptions);
+      const token = jwt.sign({ sub: mockUser.id, name: mockUser.name, email: mockUser.email, role: mockUser.role }, JWT_SECRET, signOptions);
       
-      return NextResponse.json({
+      const response = NextResponse.json({
         success: true,
         message: 'Login successful (mock)',
         user: {
@@ -103,6 +113,16 @@ export async function POST(request: NextRequest) {
         },
         token,
       });
+      
+      // Set cookie for middleware authentication
+      response.cookies.set('adminToken', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 60 * 60 * 24 * 7, // 1 week
+        path: '/',
+      });
+      
+      return response;
     }
     
   } catch (error) {
