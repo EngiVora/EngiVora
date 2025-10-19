@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import { useEffect, useState, useMemo, useCallback } from "react"
-import { 
-  Search, 
-  Filter, 
-  MoreVertical, 
-  Edit, 
-  Trash2, 
-  Eye, 
+import { useEffect, useState, useMemo, useCallback } from "react";
+import {
+  Search,
+  Filter,
+  MoreVertical,
+  Edit,
+  Trash2,
+  Eye,
   Calendar,
   User,
   Tag,
@@ -18,199 +18,229 @@ import {
   Upload,
   Globe,
   Lock,
-  Clock
-} from "lucide-react"
+  Clock,
+} from "lucide-react";
 
 export function BlogManagement() {
-  const [blogs, setBlogs] = useState<any[]>([])
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("all")
-  const [selectedStatus, setSelectedStatus] = useState("all")
-  const [selectedBlogs, setSelectedBlogs] = useState<string[]>([])
+  const [blogs, setBlogs] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedBlogs, setSelectedBlogs] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchBlogs = async () => {
-      setIsLoading(true)
+      setIsLoading(true);
       try {
-        const params = new URLSearchParams()
-        if (searchQuery) params.set('search', searchQuery)
-        params.set('limit', '20') // Limit results for better performance
-        
-        const res = await fetch(`/api/blogs?${params.toString()}`)
-        const data = await res.json()
-        if (res.ok) setBlogs(data.data || [])
+        const params = new URLSearchParams();
+        if (searchQuery) params.set("search", searchQuery);
+        params.set("limit", "20"); // Limit results for better performance
+
+        const res = await fetch(`/api/blogs?${params.toString()}`);
+        const data = await res.json();
+        if (res.ok) setBlogs(data.data || []);
       } catch (error) {
-        console.error('Failed to fetch blogs:', error)
+        console.error("Failed to fetch blogs:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
-    
+    };
+
     // Debounce search
-    const timeoutId = setTimeout(fetchBlogs, 300)
-    return () => clearTimeout(timeoutId)
-  }, [searchQuery])
+    const timeoutId = setTimeout(fetchBlogs, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery]);
 
   const filteredBlogs = useMemo(() => {
     return blogs.filter((blog: any) => {
-      const matchesCategory = selectedCategory === "all" || blog.category === selectedCategory
-      const matchesStatus = selectedStatus === "all" || (blog.published ? "Published" : "Draft") === selectedStatus
-      return matchesCategory && matchesStatus
-    })
-  }, [blogs, selectedCategory, selectedStatus])
+      const matchesCategory =
+        selectedCategory === "all" || blog.category === selectedCategory;
+      const matchesStatus =
+        selectedStatus === "all" ||
+        (blog.published ? "Published" : "Draft") === selectedStatus;
+      return matchesCategory && matchesStatus;
+    });
+  }, [blogs, selectedCategory, selectedStatus]);
 
   const handleSelectBlog = (blogId: string) => {
-    setSelectedBlogs(prev => 
-      prev.includes(blogId) 
-        ? prev.filter(id => id !== blogId)
-        : [...prev, blogId]
-    )
-  }
+    setSelectedBlogs((prev) =>
+      prev.includes(blogId)
+        ? prev.filter((id) => id !== blogId)
+        : [...prev, blogId],
+    );
+  };
 
   const handleSelectAll = () => {
     setSelectedBlogs(
-      selectedBlogs.length === filteredBlogs.length 
-        ? [] 
-        : filteredBlogs.map((blog: any) => blog._id)
-    )
-  }
+      selectedBlogs.length === filteredBlogs.length
+        ? []
+        : filteredBlogs.map((blog: any) => blog._id),
+    );
+  };
 
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [showEditModal, setShowEditModal] = useState(false)
-  const [editingBlog, setEditingBlog] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(false)
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingBlog, setEditingBlog] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleBlogAction = (blogId: string, action: string) => {
-    const blog = blogs.find(b => b._id === blogId)
+    const blog = blogs.find((b) => b._id === blogId);
     switch (action) {
-      case 'view':
-        window.open(`/blogs/${blogId}`, '_blank')
-        break
-      case 'edit':
-        setEditingBlog(blog)
-        setShowEditModal(true)
-        break
-      case 'delete':
-        handleDeleteBlog(blogId)
-        break
-      case 'publish':
-        handleTogglePublish(blogId, true)
-        break
-      case 'unpublish':
-        handleTogglePublish(blogId, false)
-        break
+      case "view":
+        window.open(`/blogs/${blogId}`, "_blank");
+        break;
+      case "edit":
+        setEditingBlog(blog);
+        setShowEditModal(true);
+        break;
+      case "delete":
+        handleDeleteBlog(blogId);
+        break;
+      case "publish":
+        handleTogglePublish(blogId, true);
+        break;
+      case "unpublish":
+        handleTogglePublish(blogId, false);
+        break;
       default:
-        console.log(`Action: ${action} for blog: ${blogId}`)
+        console.log(`Action: ${action} for blog: ${blogId}`);
     }
-  }
+  };
 
   const handleDeleteBlog = async (blogId: string) => {
-    if (!confirm('Are you sure you want to delete this blog post?')) return
-    
-    const token = (typeof window !== 'undefined') ? (localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken')) : null
+    if (!confirm("Are you sure you want to delete this blog post?")) return;
+
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("adminToken") ||
+          sessionStorage.getItem("adminToken")
+        : null;
     if (!token) {
-      alert('Not authenticated. Please login again.')
-      return
+      alert("Not authenticated. Please login again.");
+      return;
     }
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const res = await fetch(`/api/blogs/${blogId}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          'Authorization': `Bearer ${token}`,
-        }
-      })
+          Authorization: `Bearer ${token}`,
+        },
+      });
       if (!res.ok) {
-        const data = await res.json()
-        alert(data?.error || 'Failed to delete blog')
-        return
+        const data = await res.json();
+        alert(data?.error || "Failed to delete blog");
+        return;
       }
-      setBlogs(prev => prev.filter(blog => blog._id !== blogId))
+      setBlogs((prev) => prev.filter((blog) => blog._id !== blogId));
     } catch (e) {
-      alert('Network error deleting blog')
+      alert("Network error deleting blog");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleTogglePublish = async (blogId: string, published: boolean) => {
-    const token = (typeof window !== 'undefined') ? (localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken')) : null
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("adminToken") ||
+          sessionStorage.getItem("adminToken")
+        : null;
     if (!token) {
-      alert('Not authenticated. Please login again.')
-      return
+      alert("Not authenticated. Please login again.");
+      return;
     }
-    setIsLoading(true)
+    setIsLoading(true);
     try {
       const res = await fetch(`/api/blogs/${blogId}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ published })
-      })
-      const data = await res.json()
+        body: JSON.stringify({ published }),
+      });
+      const data = await res.json();
       if (!res.ok) {
-        alert(data?.error || 'Failed to update blog')
-        return
+        alert(data?.error || "Failed to update blog");
+        return;
       }
-      setBlogs(prev => prev.map(blog => blog._id === blogId ? data.data : blog))
+      setBlogs((prev) =>
+        prev.map((blog) => (blog._id === blogId ? data.data : blog)),
+      );
     } catch (e) {
-      alert('Network error updating blog')
+      alert("Network error updating blog");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "Published": return "bg-green-100 text-green-800"
-      case "Draft": return "bg-yellow-100 text-yellow-800"
-      case "Scheduled": return "bg-blue-100 text-blue-800"
-      default: return "bg-gray-100 text-gray-800"
+      case "Published":
+        return "bg-green-100 text-green-800";
+      case "Draft":
+        return "bg-yellow-100 text-yellow-800";
+      case "Scheduled":
+        return "bg-blue-100 text-blue-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
-  }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "Published": return <Globe className="h-4 w-4" />
-      case "Draft": return <Lock className="h-4 w-4" />
-      case "Scheduled": return <Clock className="h-4 w-4" />
-      default: return <Lock className="h-4 w-4" />
+      case "Published":
+        return <Globe className="h-4 w-4" />;
+      case "Draft":
+        return <Lock className="h-4 w-4" />;
+      case "Scheduled":
+        return <Clock className="h-4 w-4" />;
+      default:
+        return <Lock className="h-4 w-4" />;
     }
-  }
+  };
 
   const handleCreatePost = async () => {
-    const title = prompt('Enter blog title:') || ''
-    if (!title.trim()) return
-    const summary = prompt('Enter a short summary (min 20 chars):') || ''
-    if (summary.trim().length < 20) return
-    const category = prompt('Enter category (technology|career|academic|lifestyle|news):') || 'technology'
-    const content = (prompt('Enter content (min 50 chars):') || '').padEnd(50, ' .')
-    const token = (typeof window !== 'undefined') ? (localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken')) : null
+    const title = prompt("Enter blog title:") || "";
+    if (!title.trim()) return;
+    const summary = prompt("Enter a short summary (min 20 chars):") || "";
+    if (summary.trim().length < 20) return;
+    const category =
+      prompt("Enter category (technology|career|academic|lifestyle|news):") ||
+      "technology";
+    const content = (prompt("Enter content (min 50 chars):") || "").padEnd(
+      50,
+      " .",
+    );
+    const token =
+      typeof window !== "undefined"
+        ? localStorage.getItem("adminToken") ||
+          sessionStorage.getItem("adminToken")
+        : null;
     if (!token) {
-      alert('Not authenticated. Please login again.')
-      return
+      alert("Not authenticated. Please login again.");
+      return;
     }
     try {
-      const res = await fetch('/api/blogs', {
-        method: 'POST',
+      const res = await fetch("/api/blogs", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ title, summary, content, category, tags: [] })
-      })
-      const data = await res.json()
+        body: JSON.stringify({ title, summary, content, category, tags: [] }),
+      });
+      const data = await res.json();
       if (!res.ok) {
-        alert(data?.error || 'Failed to create post')
-        return
+        alert(data?.error || "Failed to create post");
+        return;
       }
-      setBlogs(prev => [data.data, ...prev])
+      setBlogs((prev) => [data.data, ...prev]);
     } catch (e) {
-      alert('Network error creating post')
+      alert("Network error creating post");
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -218,7 +248,9 @@ export function BlogManagement() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Blog Management</h1>
-          <p className="text-gray-600">Manage blog posts, categories, and content</p>
+          <p className="text-gray-600">
+            Manage blog posts, categories, and content
+          </p>
         </div>
         <div className="flex items-center space-x-3">
           <button className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
@@ -229,8 +261,8 @@ export function BlogManagement() {
             <Upload className="h-4 w-4 mr-2" />
             Import
           </button>
-          <button 
-            onClick={() => setShowCreateModal(true)} 
+          <button
+            onClick={() => setShowCreateModal(true)}
             className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -286,7 +318,12 @@ export function BlogManagement() {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Views</p>
               <p className="text-2xl font-bold text-gray-900">
-                {blogs.reduce((sum: number, blog: any) => sum + (blog.views || 0), 0).toLocaleString()}
+                {blogs
+                  .reduce(
+                    (sum: number, blog: any) => sum + (blog.views || 0),
+                    0,
+                  )
+                  .toLocaleString()}
               </p>
             </div>
           </div>
@@ -355,7 +392,10 @@ export function BlogManagement() {
                 <th className="px-6 py-3 text-left">
                   <input
                     type="checkbox"
-                    checked={selectedBlogs.length === filteredBlogs.length && filteredBlogs.length > 0}
+                    checked={
+                      selectedBlogs.length === filteredBlogs.length &&
+                      filteredBlogs.length > 0
+                    }
                     onChange={handleSelectAll}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     aria-label="Select all blog posts"
@@ -397,21 +437,30 @@ export function BlogManagement() {
                     <div className="flex items-start">
                       <div className="flex-1">
                         <div className="flex items-center">
-                          <h3 className="text-sm font-medium text-gray-900">{blog.title}</h3>
+                          <h3 className="text-sm font-medium text-gray-900">
+                            {blog.title}
+                          </h3>
                           {blog.featured && (
                             <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                               Featured
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">{blog.summary}</p>
+                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                          {blog.summary}
+                        </p>
                         <div className="flex items-center mt-2 space-x-2">
-                          {(blog.tags || []).map((tag: string, index: number) => (
-                            <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                              <Tag className="h-3 w-3 mr-1" />
-                              {tag}
-                            </span>
-                          ))}
+                          {(blog.tags || []).map(
+                            (tag: string, index: number) => (
+                              <span
+                                key={index}
+                                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                              >
+                                <Tag className="h-3 w-3 mr-1" />
+                                {tag}
+                              </span>
+                            ),
+                          )}
                         </div>
                       </div>
                     </div>
@@ -422,9 +471,13 @@ export function BlogManagement() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(blog.published ? 'Published' : 'Draft')}`}>
-                      {getStatusIcon(blog.published ? 'Published' : 'Draft')}
-                      <span className="ml-1">{blog.published ? 'Published' : 'Draft'}</span>
+                    <span
+                      className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(blog.published ? "Published" : "Draft")}`}
+                    >
+                      {getStatusIcon(blog.published ? "Published" : "Draft")}
+                      <span className="ml-1">
+                        {blog.published ? "Published" : "Draft"}
+                      </span>
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
@@ -468,7 +521,7 @@ export function BlogManagement() {
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
-                      <button 
+                      <button
                         className="text-gray-400 hover:text-gray-600"
                         aria-label="More options"
                       >
@@ -486,7 +539,8 @@ export function BlogManagement() {
           <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-gray-700">
-                Showing <span className="font-medium">{filteredBlogs.length}</span> of{' '}
+                Showing{" "}
+                <span className="font-medium">{filteredBlogs.length}</span> of{" "}
                 <span className="font-medium">{blogs.length}</span> results
               </p>
             </div>
@@ -494,5 +548,7 @@ export function BlogManagement() {
         </div>
       </div>
     </div>
-  )
+  );
 }
+
+export default BlogManagement;
