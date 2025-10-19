@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useEffect, useState, useMemo } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { 
   Search, 
   Filter, 
@@ -21,31 +21,31 @@ import {
   Lock,
   Clock,
   X
-} from "lucide-react"
+} from "lucide-react";
 
 export function BlogManagement() {
-  const [blogs, setBlogs] = useState<any[]>([])
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("all")
-  const [selectedStatus, setSelectedStatus] = useState("all")
-  const [selectedBlogs, setSelectedBlogs] = useState<string[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [showEditModal, setShowEditModal] = useState(false)
-  const [editingBlog, setEditingBlog] = useState<any>(null)
-  const router = useRouter()
+  const [blogs, setBlogs] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedBlogs, setSelectedBlogs] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingBlog, setEditingBlog] = useState<any>(null);
+  const router = useRouter();
 
   // Form states
-  const [title, setTitle] = useState("")
-  const [content, setContent] = useState("")
-  const [summary, setSummary] = useState("")
-  const [category, setCategory] = useState("technology")
-  const [tags, setTags] = useState("")
-  const [status, setStatus] = useState("draft")
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [summary, setSummary] = useState("");
+  const [category, setCategory] = useState("technology");
+  const [tags, setTags] = useState("");
+  const [status, setStatus] = useState("draft");
 
   useEffect(() => {
     const fetchBlogs = async () => {
-      setIsLoading(true)
+      setIsLoading(true);
       try {
         // Get admin token from localStorage or sessionStorage
         const token = typeof window !== 'undefined' 
@@ -92,12 +92,12 @@ export function BlogManagement() {
           }
         }
       } catch (error) {
-        console.error('Failed to fetch blogs:', error)
+        console.error("Failed to fetch blogs:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
-    
+    };
+
     // Debounce search
     const timeoutId = setTimeout(fetchBlogs, 300)
     return () => clearTimeout(timeoutId)
@@ -105,30 +105,33 @@ export function BlogManagement() {
 
   const filteredBlogs = useMemo(() => {
     return blogs.filter((blog: any) => {
-      const matchesCategory = selectedCategory === "all" || blog.category === selectedCategory
-      const matchesStatus = selectedStatus === "all" || (blog.published ? "Published" : "Draft") === selectedStatus
-      return matchesCategory && matchesStatus
-    })
-  }, [blogs, selectedCategory, selectedStatus])
+      const matchesCategory =
+        selectedCategory === "all" || blog.category === selectedCategory;
+      const matchesStatus =
+        selectedStatus === "all" ||
+        (blog.published ? "Published" : "Draft") === selectedStatus;
+      return matchesCategory && matchesStatus;
+    });
+  }, [blogs, selectedCategory, selectedStatus]);
 
   const handleSelectBlog = (blogId: string) => {
-    setSelectedBlogs(prev => 
-      prev.includes(blogId) 
-        ? prev.filter(id => id !== blogId)
-        : [...prev, blogId]
-    )
-  }
+    setSelectedBlogs((prev) =>
+      prev.includes(blogId)
+        ? prev.filter((id) => id !== blogId)
+        : [...prev, blogId],
+    );
+  };
 
   const handleSelectAll = () => {
     setSelectedBlogs(
-      selectedBlogs.length === filteredBlogs.length 
-        ? [] 
-        : filteredBlogs.map((blog: any) => blog._id)
-    )
-  }
+      selectedBlogs.length === filteredBlogs.length
+        ? []
+        : filteredBlogs.map((blog: any) => blog._id),
+    );
+  };
 
   const handleBlogAction = (blogId: string, action: string) => {
-    const blog = blogs.find(b => b._id === blogId)
+    const blog = blogs.find((b) => b._id === blogId);
     switch (action) {
       case 'view':
         // For now, we'll just log since there's no public view for admin blogs
@@ -155,9 +158,9 @@ export function BlogManagement() {
         handleTogglePublish(blogId, false)
         break
       default:
-        console.log(`Action: ${action} for blog: ${blogId}`)
+        console.log(`Action: ${action} for blog: ${blogId}`);
     }
-  }
+  };
 
   const handleDeleteBlog = async (blogId: string) => {
     if (!confirm('Are you sure you want to delete this blog post?')) return
@@ -196,9 +199,9 @@ export function BlogManagement() {
       console.error('Error deleting blog:', e)
       alert('Network error deleting blog')
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleTogglePublish = async (blogId: string, shouldPublish: boolean) => {
     const token = typeof window !== 'undefined' 
@@ -250,9 +253,9 @@ export function BlogManagement() {
       console.error('Error updating blog:', e)
       alert('Network error updating blog')
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleCreateBlog = async () => {
     const token = typeof window !== 'undefined' 
@@ -416,19 +419,17 @@ export function BlogManagement() {
   }
 
   const getStatusColor = (status: string) => {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case "published": 
-      case "Published": 
         return "bg-green-100 text-green-800"
       case "draft": 
-      case "Draft": 
         return "bg-yellow-100 text-yellow-800"
       case "archived":
         return "bg-gray-100 text-gray-800"
       default: 
         return "bg-gray-100 text-gray-800"
     }
-  }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
@@ -441,7 +442,7 @@ export function BlogManagement() {
       default: 
         return <Lock className="h-4 w-4" />
     }
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -449,7 +450,9 @@ export function BlogManagement() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Blog Management</h1>
-          <p className="text-gray-600">Manage blog posts, categories, and content</p>
+          <p className="text-gray-600">
+            Manage blog posts, categories, and content
+          </p>
         </div>
         <div className="flex items-center space-x-3">
           <button className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
@@ -460,8 +463,8 @@ export function BlogManagement() {
             <Upload className="h-4 w-4 mr-2" />
             Import
           </button>
-          <button 
-            onClick={() => setShowCreateModal(true)} 
+          <button
+            onClick={() => setShowCreateModal(true)}
             className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -517,7 +520,12 @@ export function BlogManagement() {
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Views</p>
               <p className="text-2xl font-bold text-gray-900">
-                {blogs.reduce((sum: number, blog: any) => sum + (blog.views || 0), 0).toLocaleString()}
+                {blogs
+                  .reduce(
+                    (sum: number, blog: any) => sum + (blog.views || 0),
+                    0,
+                  )
+                  .toLocaleString()}
               </p>
             </div>
           </div>
@@ -587,7 +595,10 @@ export function BlogManagement() {
                 <th className="px-6 py-3 text-left">
                   <input
                     type="checkbox"
-                    checked={selectedBlogs.length === filteredBlogs.length && filteredBlogs.length > 0}
+                    checked={
+                      selectedBlogs.length === filteredBlogs.length &&
+                      filteredBlogs.length > 0
+                    }
                     onChange={handleSelectAll}
                     className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     aria-label="Select all blog posts"
@@ -629,21 +640,30 @@ export function BlogManagement() {
                     <div className="flex items-start">
                       <div className="flex-1">
                         <div className="flex items-center">
-                          <h3 className="text-sm font-medium text-gray-900">{blog.title}</h3>
+                          <h3 className="text-sm font-medium text-gray-900">
+                            {blog.title}
+                          </h3>
                           {blog.featured && (
                             <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                               Featured
                             </span>
                           )}
                         </div>
-                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">{blog.summary}</p>
+                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                          {blog.summary}
+                        </p>
                         <div className="flex items-center mt-2 space-x-2">
-                          {(blog.tags || []).map((tag: string, index: number) => (
-                            <span key={index} className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                              <Tag className="h-3 w-3 mr-1" />
-                              {tag}
-                            </span>
-                          ))}
+                          {(blog.tags || []).map(
+                            (tag: string, index: number) => (
+                              <span
+                                key={index}
+                                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                              >
+                                <Tag className="h-3 w-3 mr-1" />
+                                {tag}
+                              </span>
+                            ),
+                          )}
                         </div>
                       </div>
                     </div>
@@ -700,7 +720,7 @@ export function BlogManagement() {
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
-                      <button 
+                      <button
                         className="text-gray-400 hover:text-gray-600"
                         aria-label="More options"
                       >
@@ -734,7 +754,8 @@ export function BlogManagement() {
           <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-gray-700">
-                Showing <span className="font-medium">{filteredBlogs.length}</span> of{' '}
+                Showing{" "}
+                <span className="font-medium">{filteredBlogs.length}</span> of{" "}
                 <span className="font-medium">{blogs.length}</span> results
               </p>
             </div>
@@ -780,47 +801,70 @@ export function BlogManagement() {
                 />
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Tags (comma separated)</label>
-                  <input
-                    type="text"
-                    value={tags}
-                    onChange={(e) => setTags(e.target.value)}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                    placeholder="tag1, tag2, tag3"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Status</label>
-                  <select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                  >
-                    <option value="draft">Draft</option>
-                    <option value="published">Published</option>
-                    <option value="archived">Archived</option>
-                  </select>
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Summary</label>
+                <input
+                  type="text"
+                  value={summary}
+                  onChange={(e) => setSummary(e.target.value)}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  placeholder="Enter a brief summary"
+                />
               </div>
-            </div>
-            <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
-              <button
-                onClick={() => setShowCreateModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                disabled={isLoading}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreateBlog}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Creating...' : 'Create Post'}
-              </button>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Category</label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                >
+                  <option value="technology">Technology</option>
+                  <option value="career">Career</option>
+                  <option value="academic">Academic</option>
+                  <option value="lifestyle">Lifestyle</option>
+                  <option value="news">News</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Tags</label>
+                <input
+                  type="text"
+                  value={tags}
+                  onChange={(e) => setTags(e.target.value)}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  placeholder="Enter tags separated by commas"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Status</label>
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                >
+                  <option value="draft">Draft</option>
+                  <option value="published">Published</option>
+                </select>
+              </div>
+              
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  onClick={() => setShowCreateModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateBlog}
+                  disabled={isLoading}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {isLoading ? "Creating..." : "Create Post"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -864,51 +908,74 @@ export function BlogManagement() {
                 />
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Tags (comma separated)</label>
-                  <input
-                    type="text"
-                    value={tags}
-                    onChange={(e) => setTags(e.target.value)}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                    placeholder="tag1, tag2, tag3"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Status</label>
-                  <select
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value)}
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-                  >
-                    <option value="draft">Draft</option>
-                    <option value="published">Published</option>
-                    <option value="archived">Archived</option>
-                  </select>
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Summary</label>
+                <input
+                  type="text"
+                  value={summary}
+                  onChange={(e) => setSummary(e.target.value)}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  placeholder="Enter a brief summary"
+                />
               </div>
-            </div>
-            <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
-              <button
-                onClick={() => setShowEditModal(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                disabled={isLoading}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleUpdateBlog}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
-                disabled={isLoading}
-              >
-                {isLoading ? 'Updating...' : 'Update Post'}
-              </button>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Category</label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                >
+                  <option value="technology">Technology</option>
+                  <option value="career">Career</option>
+                  <option value="academic">Academic</option>
+                  <option value="lifestyle">Lifestyle</option>
+                  <option value="news">News</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Tags</label>
+                <input
+                  type="text"
+                  value={tags}
+                  onChange={(e) => setTags(e.target.value)}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                  placeholder="Enter tags separated by commas"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Status</label>
+                <select
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value)}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                >
+                  <option value="draft">Draft</option>
+                  <option value="published">Published</option>
+                </select>
+              </div>
+              
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  onClick={() => setShowEditModal(false)}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleUpdateBlog}
+                  disabled={isLoading}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {isLoading ? "Updating..." : "Update Post"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }

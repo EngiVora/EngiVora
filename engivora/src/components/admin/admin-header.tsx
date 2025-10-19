@@ -1,21 +1,34 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Bell, Search, User, Settings, LogOut, Moon, Sun } from "lucide-react"
-import { useTheme } from "next-themes"
-import { useAdminAuth } from "@/hooks/use-admin-auth"
+import { useState } from "react";
+import { Bell, Search, User, Settings, LogOut } from "lucide-react";
+import { AdminThemeToggle } from "./admin-theme-toggle";
 
 export function AdminHeader() {
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchQuery, setSearchQuery] = useState("");
   const [notifications] = useState([
-    { id: 1, message: "New user registration", time: "2 min ago", unread: true },
-    { id: 2, message: "Blog post published", time: "1 hour ago", unread: true },
-    { id: 3, message: "System backup completed", time: "3 hours ago", unread: false },
-  ])
-  const { theme, setTheme } = useTheme()
-  const { user, logout } = useAdminAuth()
+    {
+      id: 1,
+      message: "New user registration",
+      time: "2 min ago",
+      unread: true,
+    },
+    { 
+      id: 2, 
+      message: "Blog post published", 
+      time: "1 hour ago", 
+      unread: true 
+    },
+    {
+      id: 3,
+      message: "System backup completed",
+      time: "3 hours ago",
+      unread: false,
+    },
+  ]);
 
-  const unreadCount = notifications.filter(n => n.unread).length
+  // No authentication needed - admin panel is open access
+  const unreadCount = notifications.filter((n) => n.unread).length;
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
@@ -39,17 +52,14 @@ export function AdminHeader() {
         {/* Right side */}
         <div className="flex items-center space-x-4">
           {/* Theme toggle */}
-          <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100"
-            aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-          >
-            {theme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-          </button>
+          <AdminThemeToggle />
 
           {/* Notifications */}
           <div className="relative">
-            <button className="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100 relative" aria-label="View notifications">
+            <button
+              className="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100 relative"
+              aria-label="View notifications"
+            >
               <Bell className="h-5 w-5" />
               {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
@@ -61,24 +71,29 @@ export function AdminHeader() {
 
           {/* Profile dropdown */}
           <div className="relative">
-            <button className="flex items-center space-x-3 p-2 text-gray-700 hover:bg-gray-100 rounded-md" aria-label="User profile menu">
+            <button
+              className="flex items-center space-x-3 p-2 text-gray-700 hover:bg-gray-100 rounded-md"
+              aria-label="User profile menu"
+            >
               <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
                 <User className="h-5 w-5 text-white" />
               </div>
               <div className="hidden md:block text-left">
-                <p className="text-sm font-medium">{user?.name || "Admin User"}</p>
-                <p className="text-xs text-gray-500">{user?.email || "admin@engivora.com"}</p>
+                <p className="text-sm font-medium">Admin User</p>
+                <p className="text-xs text-gray-500">admin@engivora.com</p>
               </div>
             </button>
           </div>
 
           {/* Quick actions */}
           <div className="flex items-center space-x-2">
-            <button className="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100" aria-label="Settings">
+            <button
+              className="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100"
+              aria-label="Settings"
+            >
               <Settings className="h-5 w-5" />
             </button>
-            <button 
-              onClick={logout}
+            <button
               className="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100"
               aria-label="Logout"
             >
@@ -88,5 +103,5 @@ export function AdminHeader() {
         </div>
       </div>
     </header>
-  )
+  );
 }

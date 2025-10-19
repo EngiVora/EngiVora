@@ -106,55 +106,59 @@ export function UserManagement() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken')
-        if (!token) return
+        const token =
+          localStorage.getItem("adminToken") ||
+          sessionStorage.getItem("adminToken");
+        if (!token) return;
 
         // Check cache first
-        const cacheKey = 'users-data'
-        const cachedData = localStorage.getItem(cacheKey)
-        const cacheTime = localStorage.getItem(`${cacheKey}-time`)
-        const now = Date.now()
-        
+        const cacheKey = "users-data";
+        const cachedData = localStorage.getItem(cacheKey);
+        const cacheTime = localStorage.getItem(`${cacheKey}-time`);
+        const now = Date.now();
+
         // Use cached data if less than 10 minutes old
-        if (cachedData && cacheTime && (now - parseInt(cacheTime)) < 600000) {
-          setUsers(JSON.parse(cachedData))
-          setIsLoading(false)
-          return
+        if (cachedData && cacheTime && now - parseInt(cacheTime) < 600000) {
+          setUsers(JSON.parse(cachedData));
+          setIsLoading(false);
+          return;
         }
 
-        const res = await fetch('/api/students/list?limit=50', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
-        const data = await res.json()
-        
+        const res = await fetch("/api/students/list?limit=50", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+
         if (res.ok && data.data) {
           const formattedUsers = data.data.map((user: any, index: number) => ({
             id: index + 1,
-            name: user.name || user.fullName || 'Unknown',
+            name: user.name || user.fullName || "Unknown",
             email: user.email,
-            role: user.role || 'Student',
-            status: user.isActive ? 'Active' : 'Inactive',
-            joinDate: new Date(user.createdAt).toISOString().split('T')[0],
-            lastActive: user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never',
-            avatar: user.avatar || user.profilePicture
-          }))
-          setUsers(formattedUsers)
-          
+            role: user.role || "Student",
+            status: user.isActive ? "Active" : "Inactive",
+            joinDate: new Date(user.createdAt).toISOString().split("T")[0],
+            lastActive: user.lastLogin
+              ? new Date(user.lastLogin).toLocaleDateString()
+              : "Never",
+            avatar: user.avatar || user.profilePicture,
+          }));
+          setUsers(formattedUsers);
+
           // Cache the data
-          localStorage.setItem(cacheKey, JSON.stringify(formattedUsers))
-          localStorage.setItem(`${cacheKey}-time`, now.toString())
+          localStorage.setItem(cacheKey, JSON.stringify(formattedUsers));
+          localStorage.setItem(`${cacheKey}-time`, now.toString());
         }
       } catch (error) {
-        console.error('Failed to fetch users:', error)
+        console.error("Failed to fetch users:", error);
         // Fallback to mock data
-        setUsers(mockUsers)
+        setUsers(mockUsers);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchUsers()
-  }, [])
+    fetchUsers();
+  }, []);
   const [isImporting, setIsImporting] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
 
@@ -332,7 +336,9 @@ export function UserManagement() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              User Management
+            </h1>
             <p className="text-gray-600">Loading users...</p>
           </div>
         </div>
@@ -677,3 +683,5 @@ export function UserManagement() {
     </div>
   );
 }
+
+export default UserManagement;
