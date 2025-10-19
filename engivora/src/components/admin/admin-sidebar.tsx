@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import {
   LayoutDashboard,
@@ -48,13 +48,8 @@ const navigation = [
 export function AdminSidebar() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const pathname = usePathname()
-  const router = useRouter()
 
-  const handleLogout = () => {
-    localStorage.removeItem("adminToken")
-    localStorage.removeItem("adminUser")
-    router.push("/admin/login")
-  }
+  // No logout needed - admin panel is open access
 
   return (
     <>
@@ -111,7 +106,7 @@ export function AdminSidebar() {
           </nav>
           <div className="border-t border-gray-200 p-4">
             <button 
-              onClick={handleLogout}
+              onClick={() => console.log('Admin panel - open access')}
               className="flex w-full items-center px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-md"
             >
               <LogOut className="mr-3 h-5 w-5 text-gray-400" />
@@ -163,7 +158,7 @@ export function AdminSidebar() {
           </nav>
           <div className="border-t border-gray-200 p-4">
             <button 
-              onClick={handleLogout}
+              onClick={() => console.log('Admin panel - open access')}
               className="flex w-full items-center px-3 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-md"
             >
               <LogOut className="mr-3 h-5 w-5 text-gray-400" />

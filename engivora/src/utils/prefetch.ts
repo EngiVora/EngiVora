@@ -157,8 +157,7 @@ export function prefetchCriticalResources() {
   const criticalPages = [
     '/jobs',
     '/blogs',
-    '/admin',
-    '/admin/login'
+    '/admin'
   ]
 
   // Prefetch with high priority

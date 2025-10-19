@@ -32,7 +32,6 @@ export const metadata: Metadata = {
   },
   manifest: '/manifest.json',
   themeColor: '#3b82f6',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=5',
   robots: 'index, follow',
   openGraph: {
     title: "Engivora - Engineering Student Hub",
@@ -48,6 +47,12 @@ export const metadata: Metadata = {
     description: 'One-stop hub for every engineering student',
     images: ['/logo.png'],
   },
+}
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
 }
 
 export default function RootLayout({

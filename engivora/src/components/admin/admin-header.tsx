@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Bell, Search, User, Settings, LogOut, Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 
@@ -13,13 +12,8 @@ export function AdminHeader() {
     { id: 3, message: "System backup completed", time: "3 hours ago", unread: false },
   ])
   const { theme, setTheme } = useTheme()
-  const router = useRouter()
 
-  const handleLogout = () => {
-    localStorage.removeItem("adminToken")
-    localStorage.removeItem("adminUser")
-    router.push("/admin/login")
-  }
+  // No authentication needed - admin panel is open access
 
   const unreadCount = notifications.filter(n => n.unread).length
 
@@ -84,9 +78,8 @@ export function AdminHeader() {
               <Settings className="h-5 w-5" />
             </button>
             <button 
-              onClick={handleLogout}
               className="p-2 text-gray-400 hover:text-gray-600 rounded-md hover:bg-gray-100"
-              aria-label="Sign out"
+              aria-label="Admin panel - open access"
             >
               <LogOut className="h-5 w-5" />
             </button>
