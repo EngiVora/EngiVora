@@ -400,7 +400,7 @@ export default function DiscountsClient() {
                     setCurrentOfferIndex(Math.max(0, currentOfferIndex - 1))
                   }
                   disabled={currentOfferIndex === 0}
-                  className="p-2 rounded-full bg-slate-800 text-slate-300 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="p-2 rounded-full bg-slate-800 text-slate-300 hover:bg-sky-600 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-110"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
@@ -414,7 +414,7 @@ export default function DiscountsClient() {
                     )
                   }
                   disabled={currentOfferIndex >= featuredOffers.length - 1}
-                  className="p-2 rounded-full bg-slate-800 text-slate-300 hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="p-2 rounded-full bg-slate-800 text-slate-300 hover:bg-sky-600 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 hover:scale-110"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>
@@ -423,10 +423,10 @@ export default function DiscountsClient() {
 
             <div className="relative overflow-hidden">
               <motion.div
-                className="flex gap-6 transition-transform duration-300"
+                className="flex gap-6 transition-transform duration-500 ease-in-out"
                 style={{
-                  transform: `translateX(-${currentOfferIndex * 25}%)`,
-                  width: `${featuredOffers.length * 25}%`,
+                  transform: `translateX(-${currentOfferIndex * 100}%)`,
+                  width: `${featuredOffers.length * 100}%`,
                 }}
               >
                 {featuredOffers.map((offer, index) => (
@@ -435,7 +435,7 @@ export default function DiscountsClient() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: index * 0.1 }}
-                    className="flex-shrink-0 w-80 group relative"
+                    className="flex-shrink-0 w-full sm:w-80 group relative"
                   >
                     <div className="bg-slate-900 border border-slate-800 rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-sky-500/20 hover:-translate-y-1">
                       {/* Image */}
@@ -444,7 +444,7 @@ export default function DiscountsClient() {
                           src={offer.image}
                           alt={offer.title}
                           fill
-                          sizes="320px"
+                          sizes="(max-width: 640px) 100vw, 320px"
                           className="object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                         {/* Badges */}
@@ -485,26 +485,26 @@ export default function DiscountsClient() {
                       {/* Content */}
                       <div className="p-6">
                         <div className="mb-3">
-                          <div className="flex items-center justify-between mb-2">
+                          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                             <span className="text-xs font-medium text-sky-400 uppercase tracking-wide">
                               {offer.category}
                             </span>
                             <div className="flex items-center gap-1 text-xs text-slate-400">
                               <Clock className="w-3 h-3" />
-                              Valid until {formatDate(offer.validUntil)}
+                              <span className="truncate">Valid until {formatDate(offer.validUntil)}</span>
                             </div>
                           </div>
-                          <h3 className="text-lg font-bold mb-2 group-hover:text-sky-400 transition-colors">
+                          <h3 className="text-lg font-bold mb-2 group-hover:text-sky-400 transition-colors line-clamp-2">
                             {offer.title}
                           </h3>
-                          <p className="text-slate-400 text-sm leading-relaxed mb-4">
+                          <p className="text-slate-400 text-sm leading-relaxed mb-4 line-clamp-3">
                             {offer.description}
                           </p>
                         </div>
 
                         {/* Pricing */}
                         {offer.originalPrice && (
-                          <div className="flex items-center gap-2 mb-4">
+                          <div className="flex flex-wrap items-center gap-2 mb-4">
                             <span className="text-xl font-bold text-green-400">
                               ${offer.discountedPrice || 0}
                             </span>
@@ -513,7 +513,7 @@ export default function DiscountsClient() {
                                 ${offer.originalPrice}
                               </span>
                             )}
-                            <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded">
+                            <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded whitespace-nowrap">
                               Save $
                               {(offer.originalPrice || 0) -
                                 (offer.discountedPrice || 0)}
@@ -523,7 +523,7 @@ export default function DiscountsClient() {
 
                         {/* Provider */}
                         <div className="flex items-center justify-between mb-4">
-                          <span className="text-xs text-slate-400">
+                          <span className="text-xs text-slate-400 truncate">
                             by {offer.provider}
                           </span>
                         </div>
@@ -531,7 +531,7 @@ export default function DiscountsClient() {
                         {/* CTA Button */}
                         <button
                           onClick={() => handleOfferAction(offer)}
-                          className="w-full bg-sky-600 hover:bg-sky-500 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                          className="w-full bg-sky-600 hover:bg-sky-500 text-white font-semibold py-3 px-4 rounded-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-lg flex items-center justify-center gap-2"
                         >
                           {offer.ctaText}
                           <ArrowRight className="w-4 h-4" />
