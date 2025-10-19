@@ -32,6 +32,20 @@ export function TechCard({ title, description, cta = "Learn more →", href = "#
     y.set(0)
   }
 
+  // Map card titles to thematic background images
+  const getBackgroundImage = (title: string) => {
+    const imageMap: Record<string, string> = {
+      "Exam Updates": "https://images.unsplash.com/photo-1584697964358-3e14ca5765b0?auto=format&fit=crop&w=800&q=80",
+      "Jobs & Internships": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=800&q=80",
+      "Blogs": "https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=800&q=80",
+      "Discounts": "https://images.unsplash.com/photo-1607082350899-7e105aa886ae?auto=format&fit=crop&w=800&q=80",
+      "Work Hub": "https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80"
+    }
+    return imageMap[title] || imageUrl
+  }
+
+  const backgroundImage = getBackgroundImage(title)
+
   return (
     <motion.a
       href={href}
@@ -44,13 +58,26 @@ export function TechCard({ title, description, cta = "Learn more →", href = "#
       onMouseLeave={handleMouseLeave}
       style={{ perspective: 1000 }}
     >
+      {/* Background image with blur and opacity */}
+      {backgroundImage && (
+        <div 
+          className="absolute inset-0 -z-10 opacity-15 group-hover:opacity-20 transition-opacity duration-500"
+          style={{ 
+            backgroundImage: `url(${backgroundImage})`, 
+            backgroundSize: "cover", 
+            backgroundPosition: "center",
+            filter: "blur(2px)"
+          }} 
+        />
+      )}
+      
+      {/* Dark overlay to blend with dark theme */}
+      <div className="absolute inset-0 -z-10 bg-slate-900/30" />
+      
       <motion.div
         style={{ rotateX, rotateY }}
         className="relative p-8 min-h-[280px] flex flex-col items-center text-center"
       >
-        {imageUrl && (
-          <div className="absolute inset-0 -z-10 opacity-10 group-hover:opacity-20 transition-opacity duration-300" style={{ backgroundImage: `url(${imageUrl})`, backgroundSize: "cover", backgroundPosition: "center" }} />
-        )}
         <div className="mb-6 rounded-2xl bg-sky-900/20 p-4 border border-sky-800/50 backdrop-blur-sm group-hover:bg-sky-900/30 transition-all duration-300">
           {icon}
         </div>
