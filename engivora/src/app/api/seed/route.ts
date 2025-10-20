@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 export const runtime = 'nodejs'
 import { connectToDatabase } from '@/lib/db'
-import { User } from '@/models/User'
+import { User, UserDocument } from '@/models/User'
 import { Blog } from '@/models/Blog'
 import { Exam } from '@/models/Exam'
 import { Job } from '@/models/Job'
@@ -39,7 +39,7 @@ export async function POST(_request: NextRequest) {
         success: true,
         message: 'Admin already exists',
         user: {
-          id: existingAdmin._id.toString(),
+          id: (existingAdmin._id as any).toString(),
           email: existingAdmin.email,
           role: existingAdmin.role,
         },
@@ -59,7 +59,7 @@ export async function POST(_request: NextRequest) {
       success: true,
       message: 'Admin user created',
       user: {
-        id: created._id.toString(),
+        id: (created._id as any).toString(),
         email: created.email,
         role: created.role,
       },
@@ -75,5 +75,3 @@ export async function GET() {
     message: 'POST to this endpoint to create a default admin user (admin@engivora.com / admin123)'
   })
 }
-
-

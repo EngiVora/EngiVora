@@ -3,7 +3,7 @@ import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import jwt, { Secret, SignOptions } from 'jsonwebtoken';
 import { connectToDatabase } from '@/lib/db';
-import { User } from '@/models/User';
+import { User, UserDocument } from '@/models/User';
 import { findUserByEmail } from '@/lib/auth-db';
 
 export const runtime = 'nodejs'
@@ -51,13 +51,13 @@ export async function POST(request: NextRequest) {
           expiresIn: expiresInEnv && expiresInEnv.trim() !== '' ? (isNaN(Number(expiresInEnv)) ? expiresInEnv : Number(expiresInEnv)) : 604800,
         } as SignOptions;
 
-        const token = jwt.sign({ sub: userDoc._id.toString(), name: userDoc.name, email: userDoc.email, role: userDoc.role }, JWT_SECRET, signOptions);
+        const token = jwt.sign({ sub: (userDoc._id as any).toString(), name: userDoc.name, email: userDoc.email, role: userDoc.role }, JWT_SECRET, signOptions);
 
         const response = NextResponse.json({
           success: true,
           message: 'Login successful',
           user: {
-            id: userDoc._id.toString(),
+            id: (userDoc._id as any).toString(),
             name: userDoc.name,
             email: userDoc.email,
             role: userDoc.role,

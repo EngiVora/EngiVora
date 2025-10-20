@@ -907,12 +907,10 @@ function JobModal({
                 value={formData.contactEmail}
                 onChange={(e) => {
                   setFormData({...formData, contactEmail: e.target.value})
-                  if (errors.contactEmail) setErrors({...errors, contactEmail: ''})
                 }}
-                className={`mt-1 block w-full border ${errors.contactEmail ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2`}
+                className={`mt-1 block w-full border border-gray-300 rounded-md px-3 py-2`}
                 placeholder="contact@company.com"
               />
-              {errors.contactEmail && <p className="mt-1 text-sm text-red-600">{errors.contactEmail}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Application Link</label>
@@ -921,12 +919,10 @@ function JobModal({
                 value={formData.applicationLink}
                 onChange={(e) => {
                   setFormData({...formData, applicationLink: e.target.value})
-                  if (errors.applicationLink) setErrors({...errors, applicationLink: ''})
                 }}
-                className={`mt-1 block w-full border ${errors.applicationLink ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2`}
+                className={`mt-1 block w-full border border-gray-300 rounded-md px-3 py-2`}
                 placeholder="https://company.com/apply"
               />
-              {errors.applicationLink && <p className="mt-1 text-sm text-red-600">{errors.applicationLink}</p>}
             </div>
           </div>
 

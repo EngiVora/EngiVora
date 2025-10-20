@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
-import { User } from '@/models/User';
+import { User, UserDocument } from '@/models/User';
 import { findUserById } from '@/lib/auth-db';
 import jwt from 'jsonwebtoken';
 
@@ -56,8 +56,8 @@ export async function GET(request: NextRequest) {
         .sort({ createdAt: -1 })
         .limit(5);
       
-      recentUsers = users.map(user => ({
-        id: user._id.toString(),
+      recentUsers = users.map((user: UserDocument) => ({
+        id: (user._id as any).toString(),
         name: user.name,
         email: user.email,
         role: user.role,

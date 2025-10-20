@@ -15,7 +15,7 @@ export async function syncAdminBlogsToMain() {
     
     for (const adminBlog of adminBlogs) {
       // Check if blog already exists in main Blog collection
-      let existingBlog = await Blog.findOne({ slug: adminBlog.slug });
+      const existingBlog = await Blog.findOne({ slug: adminBlog.slug });
       
       if (existingBlog) {
         // Update existing blog
@@ -51,7 +51,7 @@ export async function syncAdminBlogsToMain() {
     
     console.log(`Synced ${adminBlogs.length} blogs from admin to main collection`);
     return { success: true, count: adminBlogs.length };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error syncing admin blogs to main:', error);
     return { success: false, error: error.message };
   }
@@ -72,7 +72,7 @@ export async function syncSingleAdminBlog(adminBlogId: string) {
     }
     
     // Check if blog already exists in main Blog collection
-    let existingBlog = await Blog.findOne({ slug: adminBlog.slug });
+    const existingBlog = await Blog.findOne({ slug: adminBlog.slug });
     
     if (existingBlog) {
       // Update existing blog
@@ -107,8 +107,40 @@ export async function syncSingleAdminBlog(adminBlogId: string) {
     
     console.log(`Synced blog ${adminBlogId} from admin to main collection`);
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error syncing single admin blog:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Sync a single blog to the AdminBlog model
+ */
+export async function syncSingleBlogToAdmin(blogData: any) {
+  let updatedCount = 0;
+  let createdCount = 0;
+  
+  try {
+    await connectToDatabase();
+    
+    // Check if blog already exists
+    const existingBlog = await AdminBlog.findOne({ slug: blogData.slug });
+    
+    if (existingBlog) {
+      // Update existing blog
+      Object.assign(existingBlog, blogData);
+      await existingBlog.save();
+      updatedCount++;
+    } else {
+      // Create new blog
+      await AdminBlog.create(blogData);
+      createdCount++;
+    }
+    
+    console.log(`Synced blog ${blogData.title} to admin collection`);
+    return { success: true, createdCount, updatedCount };
+  } catch (error: any) {
+    console.error('Error syncing single blog to admin:', error);
     return { success: false, error: error.message };
   }
 }

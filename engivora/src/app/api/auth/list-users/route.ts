@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
-import { User } from '@/models/User';
+import { User, UserDocument } from '@/models/User';
 
 export const runtime = 'nodejs'
 
@@ -16,8 +16,8 @@ export async function GET(request: NextRequest) {
       success: true,
       message: 'Users retrieved successfully',
       count: users.length,
-      users: users.map(user => ({
-        id: user._id.toString(),
+      users: users.map((user: UserDocument) => ({
+        id: (user._id as any).toString(),
         name: user.name,
         email: user.email,
         role: user.role,

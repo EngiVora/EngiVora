@@ -16,6 +16,13 @@ if (!cached) {
 }
 
 export async function connectToDatabase(): Promise<typeof mongoose> {
+  // Return early if we're in a build environment (no database needed)
+  if (process.env.NEXT_PHASE === 'phase-production-build') {
+    console.log('Skipping database connection during build phase')
+    // Return a mock connection object for build process
+    return mongoose
+  }
+
   if (cached.conn) return cached.conn
 
   const uri = process.env.MONGODB_URI as string | undefined

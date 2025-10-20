@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { connectToDatabase } from '@/lib/db';
-import { User } from '@/models/User';
+import { User, UserDocument } from '@/models/User';
 
 export const runtime = 'nodejs'
 
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
         success: true,
         message: 'Account created successfully',
         user: {
-          id: savedUser._id.toString(),
+          id: (savedUser._id as any).toString(),
           name: savedUser.name,
           email: savedUser.email,
           role: savedUser.role,

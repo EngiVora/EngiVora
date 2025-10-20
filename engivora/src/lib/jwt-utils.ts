@@ -1,5 +1,5 @@
 import jwt, { Secret } from "jsonwebtoken";
-import { User } from "@/models/User";
+import { User, UserDocument } from "@/models/User";
 import { findUserById } from "@/lib/auth-db";
 import { connectToDatabase } from "@/lib/db";
 
@@ -47,7 +47,7 @@ export async function verifyAdminToken(token: string): Promise<{
           success: true,
           payload,
           user: {
-            id: userDoc._id.toString(),
+            id: (userDoc._id as any).toString(),
             name: userDoc.name,
             email: userDoc.email,
             role: userDoc.role,

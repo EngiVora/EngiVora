@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/"
+    }
+  ],
+  "github": {
+    "enabled": false
+  },
+  "env": {
+    "MONGODB_URI": "@mongodb_uri",
+    "MONGODB_DB": "engivora",
+    "JWT_SECRET": "@jwt_secret",
+    "JWT_EXPIRES_IN": "604800",
+    "NEXT_PUBLIC_APP_URL": "@next_public_app_url"
+  }
+}
