@@ -979,3 +979,5 @@ export function BlogManagement() {
     </div>
   );
 }
+
+export default BlogManagement;

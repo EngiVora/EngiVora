@@ -3,7 +3,7 @@ import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import jwt, { Secret, SignOptions } from 'jsonwebtoken';
 import { connectToDatabase } from '@/lib/db';
-import { User } from '@/models/User';
+import { User, UserDocument } from '@/models/User';
 
 export const runtime = 'nodejs'
 
@@ -17,6 +17,21 @@ const JWT_SECRET = (process.env.JWT_SECRET || '') as Secret;
 
 export async function POST(request: NextRequest) {
   try {
+    // Skip database operations during build
+    if (process.env.NEXT_PHASE === 'phase-production-build') {
+      return NextResponse.json({ 
+        success: true,
+        message: 'Build-time placeholder response',
+        user: {
+          id: 'build-placeholder',
+          name: 'Build Placeholder',
+          email: 'build@placeholder.com',
+          role: 'user',
+        },
+        token: 'build-placeholder-token',
+      });
+    }
+
     const body = await request.json();
     
     // Validate input
@@ -63,7 +78,7 @@ export async function POST(request: NextRequest) {
       expiresIn: expiresInEnv && expiresInEnv.trim() !== '' ? (isNaN(Number(expiresInEnv)) ? expiresInEnv : Number(expiresInEnv)) : 604800,
     } as SignOptions;
     
-    const token = jwt.sign({ sub: userDoc._id.toString(), role: userDoc.role }, JWT_SECRET, signOptions);
+    const token = jwt.sign({ sub: (userDoc._id as any).toString(), role: userDoc.role }, JWT_SECRET, signOptions);
     
     // Format dateOfBirth properly
     let formattedDateOfBirth = undefined;
@@ -89,7 +104,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Login successful',
       user: {
-        id: userDoc._id.toString(),
+        id: (userDoc._id as any).toString(),
         name: userDoc.name,
         email: userDoc.email,
         role: userDoc.role,

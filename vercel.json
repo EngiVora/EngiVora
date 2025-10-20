@@ -14,5 +14,12 @@
   ],
   "github": {
     "enabled": false
+  },
+  "env": {
+    "MONGODB_URI": "@mongodb_uri",
+    "MONGODB_DB": "engivora",
+    "JWT_SECRET": "@jwt_secret",
+    "JWT_EXPIRES_IN": "604800",
+    "NEXT_PUBLIC_APP_URL": "@next_public_app_url"
   }
 }
