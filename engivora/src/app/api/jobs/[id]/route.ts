@@ -144,10 +144,7 @@ export async function PUT(
 }
 
 // DELETE /api/jobs/[id] - Delete job
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: NextRequest, context: { params: Promise<{ id: string }> }) {
   const params = await context.params;
   try {
     // Verify admin authentication

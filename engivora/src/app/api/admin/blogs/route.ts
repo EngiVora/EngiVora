@@ -442,18 +442,26 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     }
     
     try {
-      // Delete from AdminBlog collection (if exists)
-      const adminBlogResult = await AdminBlog.deleteOne({ blog_id: id });
+      // First, try to find the blog in either collection to confirm it exists
+      const adminBlog = await AdminBlog.findOne({ blog_id: id });
+      const mainBlog = await Blog.findById(id);
       
-      // Delete from main Blog collection (if exists)
-      const mainBlogResult = await Blog.deleteOne({ _id: id });
-      
-      // Check if either deletion was successful
-      if (adminBlogResult.deletedCount === 0 && mainBlogResult.deletedCount === 0) {
+      // If blog doesn't exist in either collection, return error
+      if (!adminBlog && !mainBlog) {
         return NextResponse.json(
           { error: 'Blog not found' },
           { status: 404 }
         );
+      }
+      
+      // Delete from AdminBlog collection (if exists)
+      if (adminBlog) {
+        await AdminBlog.deleteOne({ blog_id: id });
+      }
+      
+      // Delete from main Blog collection (if exists)
+      if (mainBlog) {
+        await Blog.findByIdAndDelete(id);
       }
       
       return NextResponse.json({

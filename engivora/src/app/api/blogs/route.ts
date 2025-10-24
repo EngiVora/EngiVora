@@ -396,15 +396,18 @@ export async function DELETE(request: NextRequest) {
 
     await connectToDatabase();
 
-    // Delete the blog
-    const deleted = await Blog.findByIdAndDelete(id);
-
-    if (!deleted) {
+    // First, try to find the blog to confirm it exists
+    const blog = await Blog.findById(id);
+    
+    if (!blog) {
       return NextResponse.json(
         { error: 'Blog not found' },
         { status: 404 }
       );
     }
+
+    // Delete the blog
+    await Blog.findByIdAndDelete(id);
 
     // Also delete from AdminBlog collection if it exists
     try {
