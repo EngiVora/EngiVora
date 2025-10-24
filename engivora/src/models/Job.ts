@@ -24,6 +24,8 @@ export interface JobDocument extends mongoose.Document {
   contactEmail?: string
   isActive: boolean
   featured?: boolean
+  // Add image field
+  imageUrl?: string
   createdAt: Date
   updatedAt: Date
 }
@@ -52,6 +54,8 @@ const JobSchema = new Schema<JobDocument>({
   contactEmail: { type: String },
   isActive: { type: Boolean, default: true },
   featured: { type: Boolean, default: false },
+  // Add image field to schema
+  imageUrl: { type: String },
 }, { timestamps: true })
 
 export const Job = models.Job || model<JobDocument>('Job', JobSchema)

@@ -52,6 +52,8 @@ interface Event {
   imageUrl: string
   requirements: string
   agenda: string[]
+  // Add image preview field
+  imagePreview?: string
 }
 
 const mockEvents: Event[] = [
@@ -204,6 +206,9 @@ export function EventManagement() {
   const [selectedType, setSelectedType] = useState("all")
   const [selectedStatus, setSelectedStatus] = useState("all")
   const [selectedEvents, setSelectedEvents] = useState<number[]>([])
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [modalEvent, setModalEvent] = useState<Event | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const filteredEvents = events.filter(event => {
     const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -282,6 +287,31 @@ export function EventManagement() {
     return now < start && event.status === "Upcoming"
   }
 
+  const openModal = (event?: Event) => {
+    setModalEvent(event || null)
+    setIsModalOpen(true)
+  }
+
+  const closeModal = () => {
+    setIsModalOpen(false)
+    setModalEvent(null)
+  }
+
+  const handleModalSubmit = (data: any) => {
+    setIsSubmitting(true)
+    setTimeout(() => {
+      if (modalEvent) {
+        setEvents(prevEvents => prevEvents.map(event => 
+          event.id === modalEvent.id ? { ...event, ...data } : event
+        ))
+      } else {
+        setEvents(prevEvents => [...prevEvents, { ...data, id: events.length + 1 }])
+      }
+      closeModal()
+      setIsSubmitting(false)
+    }, 1000)
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -299,7 +329,7 @@ export function EventManagement() {
             <Upload className="h-4 w-4 mr-2" />
             Import
           </button>
-          <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+          <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700" onClick={() => openModal()}>
             <Plus className="h-4 w-4 mr-2" />
             Create Event
           </button>
@@ -582,7 +612,7 @@ export function EventManagement() {
                         <Eye className="h-4 w-4" />
                       </button>
                       <button
-                        onClick={() => handleEventAction(event.id, "edit")}
+                        onClick={() => openModal(event)}
                         className="text-gray-400 hover:text-gray-600"
                       >
                         <Edit className="h-4 w-4" />
@@ -651,7 +681,461 @@ export function EventManagement() {
           </div>
         </div>
       </div>
+
+      {/* Event Modal */}
+      {isModalOpen && (
+        <EventModal
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          onSubmit={handleModalSubmit}
+          event={modalEvent}
+          isLoading={isSubmitting}
+        />
+      )}
     </div>
   )
 }
 
+function EventModal({ isOpen, onClose, onSubmit, event, isLoading }: {
+  isOpen: boolean
+  onClose: () => void
+  onSubmit: (data: any) => void
+  event?: Event | null
+  isLoading: boolean
+}) {
+  const [formData, setFormData] = useState({
+    title: event?.title || '',
+    description: event?.description || '',
+    type: event?.type || 'Workshop',
+    status: event?.status || 'Scheduled',
+    startDate: event?.startDate || '',
+    endDate: event?.endDate || '',
+    startTime: event?.startTime || '09:00',
+    endTime: event?.endTime || '17:00',
+    location: event?.location || '',
+    isOnline: event?.isOnline || false,
+    maxAttendees: event?.maxAttendees || 100,
+    price: event?.price || 0,
+    organizer: event?.organizer || '',
+    category: event?.category || 'Education',
+    tags: event?.tags?.join(', ') || '',
+    featured: event?.featured || false,
+    requirements: event?.requirements || '',
+    agenda: event?.agenda?.join('\n') || '',
+    // Add image URL field
+    imageUrl: event?.imageUrl || '',
+  })
+  
+  // Add image preview state
+  const [imagePreview, setImagePreview] = useState<string | null>(event?.imageUrl || null)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // Add image upload handler
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // For now, we'll just show a preview - in a real app, you would upload to a service
+    // and get back a URL to store in the database
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string)
+      // In a real implementation, you would upload the file to a service here
+      // and set the imageUrl to the returned URL
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {}
+    
+    // Title validation
+    if (!formData.title.trim()) {
+      newErrors.title = 'Event title is required'
+    } else if (formData.title.trim().length < 3) {
+      newErrors.title = 'Event title must be at least 3 characters'
+    }
+    
+    // Description validation
+    if (!formData.description.trim()) {
+      newErrors.description = 'Description is required'
+    } else if (formData.description.trim().length < 10) {
+      newErrors.description = 'Description must be at least 10 characters'
+    }
+    
+    // Date validation
+    if (!formData.startDate) {
+      newErrors.startDate = 'Start date is required'
+    }
+    
+    if (!formData.endDate) {
+      newErrors.endDate = 'End date is required'
+    }
+    
+    // Date sequence validation
+    if (formData.startDate && formData.endDate && 
+        new Date(formData.startDate) > new Date(formData.endDate)) {
+      newErrors.startDate = 'Start date must be before end date'
+    }
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target
+    // For checkbox inputs, we need to check the checked property
+    const checked = (e.target as HTMLInputElement).checked !== undefined ? 
+      (e.target as HTMLInputElement).checked : undefined
+    
+    setFormData(prev => ({
+      ...prev,
+      [name]: checked !== undefined ? checked : value
+    }))
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev }
+        delete newErrors[name]
+        return newErrors
+      })
+    }
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (validateForm()) {
+      // Convert comma-separated tags to array
+      const tagsArray = formData.tags.split(',').map(tag => tag.trim()).filter(tag => tag !== '')
+      
+      // Convert multiline agenda to array
+      const agendaArray = formData.agenda.split('\n').filter(item => item.trim() !== '')
+      
+      const submitData = {
+        title: formData.title,
+        description: formData.description,
+        type: formData.type,
+        status: formData.status,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        location: formData.location,
+        isOnline: formData.isOnline,
+        maxAttendees: formData.maxAttendees,
+        price: formData.price,
+        organizer: formData.organizer,
+        category: formData.category,
+        tags: tagsArray,
+        featured: formData.featured,
+        requirements: formData.requirements,
+        agenda: agendaArray,
+        // Add image URL to submit data
+        imageUrl: imagePreview || formData.imageUrl,
+      }
+      
+      onSubmit(submitData)
+    }
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+        <h2 className="text-xl font-bold mb-4">{event ? 'Edit Event' : 'Create New Event'}</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Event Title *</label>
+              <input
+                type="text"
+                name="title"
+                required
+                value={formData.title}
+                onChange={handleInputChange}
+                className={`mt-1 block w-full border ${errors.title ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2`}
+                placeholder="Enter event title"
+              />
+              {errors.title && <p className="mt-1 text-sm text-red-600">{errors.title}</p>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Category</label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleInputChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+              >
+                <option value="Education">Education</option>
+                <option value="Career">Career</option>
+                <option value="Conference">Conference</option>
+                <option value="Competition">Competition</option>
+                <option value="Webinar">Webinar</option>
+                <option value="Workshop">Workshop</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Description *</label>
+            <textarea
+              name="description"
+              required
+              rows={3}
+              value={formData.description}
+              onChange={handleInputChange}
+              className={`mt-1 block w-full border ${errors.description ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2`}
+              placeholder="Enter event description"
+            />
+            <div className="flex justify-between mt-1">
+              <span className="text-sm text-gray-500">Characters: {formData.description.length}/10 minimum</span>
+              {errors.description && <p className="text-sm text-red-600">{errors.description}</p>}
+            </div>
+          </div>
+
+          {/* Add image upload section */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Event Image</label>
+            <div className="mt-1 flex items-center">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="block w-full text-sm text-gray-500
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-md file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-50 file:text-blue-700
+                  hover:file:bg-blue-100"
+              />
+            </div>
+            {imagePreview && (
+              <div className="mt-2">
+                <img 
+                  src={imagePreview} 
+                  alt="Preview" 
+                  className="h-32 w-32 object-cover rounded-md border"
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Type</label>
+              <select
+                name="type"
+                value={formData.type}
+                onChange={handleInputChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+              >
+                <option value="Workshop">Workshop</option>
+                <option value="Webinar">Webinar</option>
+                <option value="Conference">Conference</option>
+                <option value="Competition">Competition</option>
+                <option value="Meetup">Meetup</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Status</label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleInputChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+              >
+                <option value="Scheduled">Scheduled</option>
+                <option value="Live">Live</option>
+                <option value="Completed">Completed</option>
+                <option value="Cancelled">Cancelled</option>
+                <option value="Postponed">Postponed</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Start Date *</label>
+              <input
+                type="date"
+                name="startDate"
+                required
+                value={formData.startDate}
+                onChange={handleInputChange}
+                className={`mt-1 block w-full border ${errors.startDate ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2`}
+              />
+              {errors.startDate && <p className="mt-1 text-sm text-red-600">{errors.startDate}</p>}
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">End Date *</label>
+              <input
+                type="date"
+                name="endDate"
+                required
+                value={formData.endDate}
+                onChange={handleInputChange}
+                className={`mt-1 block w-full border ${errors.endDate ? 'border-red-500' : 'border-gray-300'} rounded-md px-3 py-2`}
+              />
+              {errors.endDate && <p className="mt-1 text-sm text-red-600">{errors.endDate}</p>}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Start Time</label>
+              <input
+                type="time"
+                name="startTime"
+                value={formData.startTime}
+                onChange={handleInputChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">End Time</label>
+              <input
+                type="time"
+                name="endTime"
+                value={formData.endTime}
+                onChange={handleInputChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Location</label>
+              <input
+                type="text"
+                name="location"
+                value={formData.location}
+                onChange={handleInputChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                placeholder="Enter location or 'Online'"
+              />
+            </div>
+            <div className="flex items-center pt-6">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  name="isOnline"
+                  checked={formData.isOnline}
+                  onChange={handleInputChange}
+                  className="mr-2"
+                />
+                Online Event
+              </label>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Max Attendees</label>
+              <input
+                type="number"
+                name="maxAttendees"
+                min="1"
+                value={formData.maxAttendees}
+                onChange={handleInputChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Price (₹)</label>
+              <input
+                type="number"
+                name="price"
+                min="0"
+                value={formData.price}
+                onChange={handleInputChange}
+                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Organizer</label>
+            <input
+              type="text"
+              name="organizer"
+              value={formData.organizer}
+              onChange={handleInputChange}
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+              placeholder="Enter organizer name"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Tags (comma separated)</label>
+            <input
+              type="text"
+              name="tags"
+              value={formData.tags}
+              onChange={handleInputChange}
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+              placeholder="e.g., AI, Robotics, Career"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Requirements (one per line)</label>
+            <textarea
+              name="requirements"
+              rows={2}
+              value={formData.requirements}
+              onChange={handleInputChange}
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+              placeholder="Enter requirements, one per line"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Agenda (one item per line)</label>
+            <textarea
+              name="agenda"
+              rows={3}
+              value={formData.agenda}
+              onChange={handleInputChange}
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+              placeholder="Enter agenda items, one per line"
+            />
+          </div>
+
+          <div className="flex items-center">
+            <label className="flex items-center">
+              <input
+                type="checkbox"
+                name="featured"
+                checked={formData.featured}
+                onChange={handleInputChange}
+                className="mr-2"
+              />
+              Featured Event
+            </label>
+          </div>
+
+          <div className="flex justify-end space-x-3">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+            >
+              {isLoading ? 'Saving...' : (event ? 'Update Event' : 'Create Event')}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}

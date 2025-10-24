@@ -46,6 +46,19 @@ const DiscountSchema = new Schema<DiscountDocument>({
   active: { type: Boolean, default: true },
   percentage: { type: Number, required: true, min: 0 },
   expiresAt: { type: Date },
-}, { timestamps: true })
+}, { 
+  timestamps: true,
+  // Add a pre-save hook to automatically set expiresAt based on validUntil
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+})
+
+// Set expiresAt before saving
+DiscountSchema.pre('save', function(next) {
+  if (this.validUntil) {
+    this.expiresAt = this.validUntil;
+  }
+  next();
+});
 
 export const Discount = models.Discount || model<DiscountDocument>('Discount', DiscountSchema)

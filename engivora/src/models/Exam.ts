@@ -15,6 +15,8 @@ export interface ExamDocument extends mongoose.Document {
   isActive: boolean
   registrationStartDate: Date
   registrationEndDate: Date
+  // Add image field
+  imageUrl?: string
   createdAt: Date
   updatedAt: Date
 }
@@ -34,6 +36,8 @@ const ExamSchema = new Schema<ExamDocument>({
   isActive: { type: Boolean, default: true },
   registrationStartDate: { type: Date, required: true },
   registrationEndDate: { type: Date, required: true },
+  // Add image field to schema
+  imageUrl: { type: String },
 }, { timestamps: true })
 
 export const Exam = models.Exam || model<ExamDocument>('Exam', ExamSchema)

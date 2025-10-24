@@ -22,6 +22,23 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Image Upload Functionality
+
+All content types (exams, blogs, events, and jobs) now support image uploads:
+
+- Images can be uploaded through the admin panels when creating or editing content
+- Images are displayed in both admin panels and public pages
+- See [Image Upload Guide](src/docs/image-upload-guide.md) for detailed documentation
+
+## Blog Management and Synchronization
+
+The platform now supports bidirectional blog synchronization between the main website and admin panel:
+
+- Blogs created on the main website are automatically visible in the admin panel
+- Blogs created in the admin panel are automatically visible on the main website
+- Use the "Sync Blogs" button in the admin panel to manually synchronize blogs
+- See [Blog Management Documentation](src/docs/blog-management.md) for detailed documentation
+
 ## Authentication
 
 This application uses a custom JWT-based authentication system for both regular users and administrators:

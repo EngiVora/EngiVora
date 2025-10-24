@@ -12,13 +12,15 @@ export interface BlogDocument extends mongoose.Document {
   published: boolean
   views: number
   likes: number
+  // Add image field
+  imageUrl?: string
   createdAt: Date
   updatedAt: Date
 }
 
 const BlogSchema = new Schema<BlogDocument>({
   title: { type: String, required: true, trim: true },
-  slug: { type: String, required: true, unique: true, index: true },
+  slug: { type: String, required: true, unique: true },
   summary: { type: String, required: true },
   content: { type: String, required: true },
   category: { type: String, enum: ['technology', 'career', 'academic', 'lifestyle', 'news'], required: true },
@@ -28,6 +30,8 @@ const BlogSchema = new Schema<BlogDocument>({
   published: { type: Boolean, default: true },
   views: { type: Number, default: 0 },
   likes: { type: Number, default: 0 },
+  // Add image field to schema
+  imageUrl: { type: String },
 }, { timestamps: true })
 
 // Fix the text index - don't include tags in text index since it's an array

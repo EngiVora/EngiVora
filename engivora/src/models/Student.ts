@@ -13,9 +13,9 @@ export interface StudentDocument extends mongoose.Document {
 }
 
 const StudentSchema = new Schema<StudentDocument>({
-  student_id: { type: String, required: true, unique: true, index: true },
+  student_id: { type: String, required: true, unique: true },
   full_name: { type: String, required: true, trim: true },
-  email: { type: String, required: true, unique: true, index: true, lowercase: true, trim: true },
+  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   password_hash: { type: String, required: true },
   signup_date: { type: Date, default: Date.now },
   last_login: { type: Date, default: Date.now },

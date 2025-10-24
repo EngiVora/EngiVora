@@ -33,6 +33,7 @@ export function BlogManagement() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingBlog, setEditingBlog] = useState<any>(null);
+  const [syncMessage, setSyncMessage] = useState(""); // Add this state
   const router = useRouter();
 
   // Form states
@@ -42,63 +43,126 @@ export function BlogManagement() {
   const [category, setCategory] = useState("technology");
   const [tags, setTags] = useState("");
   const [status, setStatus] = useState("draft");
+  // Add image state
+  const [imageUrl, setImageUrl] = useState("");
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  
+  // Add image upload handler
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // For now, we'll just show a preview - in a real app, you would upload to a service
+    // and get back a URL to store in the database
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+      // In a real implementation, you would upload the file to a service here
+      // and set the imageUrl to the returned URL
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Add sync blogs function
+  const handleSyncBlogs = async () => {
+    setIsLoading(true);
+    setSyncMessage("");
+    
+    try {
+      const token = typeof window !== 'undefined' 
+        ? (localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken'))
+        : null
+      
+      if (!token) {
+        router.push('/admin/login')
+        return
+      }
+
+      const res = await fetch('/api/admin/sync-blogs', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      
+      const data = await res.json()
+      
+      if (res.ok) {
+        setSyncMessage(data.message)
+        // Refresh the blog list
+        fetchBlogs()
+      } else {
+        setSyncMessage(`Sync failed: ${data.error}`)
+      }
+    } catch (error) {
+      console.error("Failed to sync blogs:", error);
+      setSyncMessage("Sync failed: Network error")
+    } finally {
+      setIsLoading(false);
+      
+      // Clear message after 5 seconds
+      setTimeout(() => {
+        setSyncMessage("")
+      }, 5000)
+    }
+  }
+
+  const fetchBlogs = async () => {
+    setIsLoading(true);
+    try {
+      // Get admin token from localStorage or sessionStorage
+      const token = typeof window !== 'undefined' 
+        ? (localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken'))
+        : null
+      
+      if (!token) {
+        // Redirect to login page if no token
+        router.push('/admin/login')
+        return
+      }
+
+      const params = new URLSearchParams()
+      if (searchQuery) params.set('search', searchQuery)
+      params.set('limit', '100') // Get more results
+      
+      const res = await fetch(`/api/admin/blogs?${params.toString()}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+      const data = await res.json()
+      if (res.ok) {
+        // Transform data to match expected format
+        const transformedBlogs = data.data.map((blog: any) => ({
+          _id: blog.blog_id,
+          title: blog.title,
+          content: blog.content,
+          summary: blog.content.substring(0, 100) + '...',
+          category: 'technology', // Default since AdminBlog doesn't have this field
+          tags: blog.tags || [],
+          published: blog.status === 'published',
+          featured: false, // Default
+          views: 0, // Default since AdminBlog doesn't track this
+          createdAt: blog.createdAt,
+          updatedAt: blog.updatedAt,
+          source: blog.source || 'admin' // Track the source of the blog
+        }))
+        setBlogs(transformedBlogs || [])
+      } else {
+        console.error('Failed to fetch blogs:', data.error)
+        // If unauthorized, redirect to login
+        if (res.status === 401) {
+          router.push('/admin/login')
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch blogs:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchBlogs = async () => {
-      setIsLoading(true);
-      try {
-        // Get admin token from localStorage or sessionStorage
-        const token = typeof window !== 'undefined' 
-          ? (localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken'))
-          : null
-        
-        if (!token) {
-          // Redirect to login page if no token
-          router.push('/admin/login')
-          return
-        }
-
-        const params = new URLSearchParams()
-        if (searchQuery) params.set('search', searchQuery)
-        params.set('limit', '100') // Get more results
-        
-        const res = await fetch(`/api/admin/blogs?${params.toString()}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        })
-        const data = await res.json()
-        if (res.ok) {
-          // Transform data to match expected format
-          const transformedBlogs = data.data.map((blog: any) => ({
-            _id: blog.blog_id,
-            title: blog.title,
-            content: blog.content,
-            summary: blog.content.substring(0, 100) + '...',
-            category: 'technology', // Default since AdminBlog doesn't have this field
-            tags: blog.tags || [],
-            published: blog.status === 'published',
-            featured: false, // Default
-            views: 0, // Default since AdminBlog doesn't track this
-            createdAt: blog.createdAt,
-            updatedAt: blog.updatedAt
-          }))
-          setBlogs(transformedBlogs || [])
-        } else {
-          console.error('Failed to fetch blogs:', data.error)
-          // If unauthorized, redirect to login
-          if (res.status === 401) {
-            router.push('/admin/login')
-          }
-        }
-      } catch (error) {
-        console.error("Failed to fetch blogs:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    // Debounce search
     const timeoutId = setTimeout(fetchBlogs, 300)
     return () => clearTimeout(timeoutId)
   }, [searchQuery, router])
@@ -290,7 +354,9 @@ export function BlogManagement() {
           title,
           content,
           tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-          status
+          status,
+          // Add imageUrl to the request
+          imageUrl: imagePreview || imageUrl
         })
       })
       
@@ -316,7 +382,9 @@ export function BlogManagement() {
         featured: false,
         views: 0,
         createdAt: data.data.createdAt,
-        updatedAt: data.data.updatedAt
+        updatedAt: data.data.updatedAt,
+        // Add imageUrl to the blog object
+        imageUrl: data.data.imageUrl || imagePreview || imageUrl
       }
       
       setBlogs(prev => [newBlog, ...prev])
@@ -329,6 +397,8 @@ export function BlogManagement() {
       setCategory("technology")
       setTags("")
       setStatus("draft")
+      setImageUrl("")
+      setImagePreview(null)
       
       alert('Blog created successfully')
     } catch (e) {
@@ -374,7 +444,9 @@ export function BlogManagement() {
           title,
           content,
           tags: tags.split(',').map(tag => tag.trim()).filter(tag => tag),
-          status
+          status,
+          // Add imageUrl to the request
+          imageUrl: imagePreview || imageUrl || editingBlog.imageUrl
         })
       })
       
@@ -400,7 +472,9 @@ export function BlogManagement() {
         featured: false,
         views: 0,
         createdAt: data.data.createdAt,
-        updatedAt: data.data.updatedAt
+        updatedAt: data.data.updatedAt,
+        // Add imageUrl to the blog object
+        imageUrl: data.data.imageUrl || imagePreview || imageUrl || editingBlog.imageUrl
       }
       
       setBlogs(prev => prev.map(blog => 
@@ -409,6 +483,7 @@ export function BlogManagement() {
       
       setShowEditModal(false)
       setEditingBlog(null)
+      setImagePreview(null)
       alert('Blog updated successfully')
     } catch (e) {
       console.error('Error updating blog:', e)
@@ -455,6 +530,20 @@ export function BlogManagement() {
           </p>
         </div>
         <div className="flex items-center space-x-3">
+          {/* Add Sync button */}
+          <button 
+            onClick={handleSyncBlogs}
+            disabled={isLoading}
+            className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          >
+            <Upload className="h-4 w-4 mr-2" />
+            Sync Blogs
+          </button>
+          {syncMessage && (
+            <div className="text-sm text-green-600 bg-green-50 px-3 py-1 rounded">
+              {syncMessage}
+            </div>
+          )}
           <button className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
             <Download className="h-4 w-4 mr-2" />
             Export
@@ -648,6 +737,11 @@ export function BlogManagement() {
                               Featured
                             </span>
                           )}
+                          {blog.source === 'main' && (
+                            <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                              From Main Site
+                            </span>
+                          )}
                         </div>
                         <p className="text-sm text-gray-500 mt-1 line-clamp-2">
                           {blog.summary}
@@ -839,6 +933,32 @@ export function BlogManagement() {
               </div>
               
               <div>
+                <label className="block text-sm font-medium text-gray-700">Image</label>
+                <div className="mt-1 flex items-center">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="block w-full text-sm text-gray-500
+                      file:mr-4 file:py-2 file:px-4
+                      file:rounded-md file:border-0
+                      file:text-sm file:font-semibold
+                      file:bg-blue-50 file:text-blue-700
+                      hover:file:bg-blue-100"
+                  />
+                </div>
+                {imagePreview && (
+                  <div className="mt-2">
+                    <img 
+                      src={imagePreview} 
+                      alt="Preview" 
+                      className="h-32 w-32 object-cover rounded-md border"
+                    />
+                  </div>
+                )}
+              </div>
+              
+              <div>
                 <label className="block text-sm font-medium text-gray-700">Status</label>
                 <select
                   value={status}
@@ -943,6 +1063,32 @@ export function BlogManagement() {
                   className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
                   placeholder="Enter tags separated by commas"
                 />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Image</label>
+                <div className="mt-1 flex items-center">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="block w-full text-sm text-gray-500
+                      file:mr-4 file:py-2 file:px-4
+                      file:rounded-md file:border-0
+                      file:text-sm file:font-semibold
+                      file:bg-blue-50 file:text-blue-700
+                      hover:file:bg-blue-100"
+                  />
+                </div>
+                {imagePreview && (
+                  <div className="mt-2">
+                    <img 
+                      src={imagePreview} 
+                      alt="Preview" 
+                      className="h-32 w-32 object-cover rounded-md border"
+                    />
+                  </div>
+                )}
               </div>
               
               <div>

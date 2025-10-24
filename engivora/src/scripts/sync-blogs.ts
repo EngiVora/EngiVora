@@ -1,30 +1,32 @@
-import dotenv from 'dotenv';
-import { syncAdminBlogsToMain } from '@/utils/blog-sync';
+/**
+ * Script to sync blogs from main Blog collection to AdminBlog collection
+ * Run this script to ensure all existing blogs are visible in the admin panel
+ */
 
-// Load environment variables
-dotenv.config({ path: '.env.local' });
+import { syncMainBlogsToAdmin } from '@/utils/blog-sync';
+import { connectToDatabase } from '@/lib/db';
 
 async function syncBlogs() {
-  console.log('Starting blog synchronization...');
-  
-  // Check if MONGODB_URI is set
-  if (!process.env.MONGODB_URI) {
-    console.error('MONGODB_URI is not set in environment variables');
-    process.exit(1);
+  try {
+    console.log('Connecting to database...');
+    await connectToDatabase();
+    
+    console.log('Syncing blogs from main collection to admin collection...');
+    const result = await syncMainBlogsToAdmin();
+    
+    if (result.success) {
+      console.log(`Successfully synced blogs: ${result.count} total (${result.created} created, ${result.updated} updated)`);
+    } else {
+      console.error('Failed to sync blogs:', result.error);
+    }
+  } catch (error) {
+    console.error('Error during blog sync:', error);
   }
-  
-  const result = await syncAdminBlogsToMain();
-  
-  if (result.success) {
-    console.log(`Successfully synced ${result.count} blogs from admin to main collection`);
-  } else {
-    console.error('Failed to sync blogs:', result.error);
-  }
-  
-  process.exit(0);
 }
 
-syncBlogs().catch(error => {
-  console.error('Error during blog sync:', error);
-  process.exit(1);
-});
+// Run the sync if this file is executed directly
+if (require.main === module) {
+  syncBlogs().catch(console.error);
+}
+
+export default syncBlogs;

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db';
 import { Discount } from '@/models/Discount';
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET as string;
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,8 +17,15 @@ export async function GET(request: NextRequest) {
     const active = searchParams.get('active') === 'true';
     const search = searchParams.get('search');
     const provider = searchParams.get('provider');
+    const showAll = searchParams.get('showAll') === 'true'; // New parameter to show all discounts
 
-    const query: Record<string, unknown> = { active: true };
+    const query: Record<string, unknown> = {};
+    
+    // Only filter by active status if not showing all discounts
+    if (!showAll) {
+      query.active = true;
+    }
+    
     if (category) query.category = category;
     if (discountType) query.discountType = discountType;
     if (featured) query.featured = true;
@@ -25,14 +35,19 @@ export async function GET(request: NextRequest) {
       const s = String(search).trim();
       query.$or = [
         { code: { $regex: s, $options: 'i' } },
+        { title: { $regex: s, $options: 'i' } },
         { description: { $regex: s, $options: 'i' } },
       ];
     }
 
-    const now = new Date();
-    query.$and = [
-      { $or: [{ expiresAt: null }, { expiresAt: { $gt: now } }] },
-    ];
+    // Only apply date filtering if not showing all discounts
+    if (!showAll) {
+      const now = new Date();
+      query.$and = [
+        { validFrom: { $lte: now } },
+        { validUntil: { $gte: now } }
+      ];
+    }
 
     const skip = (page - 1) * limit;
     const [items, total] = await Promise.all([
@@ -66,7 +81,43 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Remove authentication check to allow public access
+    // Check if user is authenticated as admin
+    const authHeader = request.headers.get('authorization');
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: 'Authorization token required' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.substring(7);
+    if (!JWT_SECRET) {
+      console.error('JWT_SECRET not configured');
+      return NextResponse.json({ 
+        error: 'Server configuration error',
+        details: 'JWT_SECRET is not properly configured'
+      }, { status: 500 });
+    }
+    
+    let userId = '';
+    try {
+      const payload = jwt.verify(token, JWT_SECRET) as { sub: string, role: string };
+      if (payload.role !== 'admin') {
+        return NextResponse.json(
+          { error: 'Admin access required' },
+          { status: 403 }
+        );
+      }
+      userId = payload.sub;
+    } catch (jwtError) {
+      console.error('JWT verification error:', jwtError);
+      return NextResponse.json(
+        { error: 'Invalid token' },
+        { status: 401 }
+      );
+    }
+
     let body;
     try {
       body = await request.json();
@@ -90,7 +141,7 @@ export async function POST(request: NextRequest) {
       validFrom: body.validFrom || now,
       validUntil: body.validUntil || thirtyDaysFromNow,
       percentage: body.percentage || body.discountValue || 0,
-      expiresAt: body.expiresAt || thirtyDaysFromNow,
+      expiresAt: body.expiresAt || body.validUntil || thirtyDaysFromNow,
     };
 
     // Create discount with any data provided (no validation)

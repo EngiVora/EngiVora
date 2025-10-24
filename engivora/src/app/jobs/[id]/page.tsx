@@ -32,6 +32,8 @@ interface JobDetail {
   skills: string[];
   applicationDeadline: string;
   postedDate: string;
+  // Add image property
+  image?: string;
   companyInfo: {
     name: string;
     description: string;
@@ -95,6 +97,8 @@ const mockJobData: { [key: string]: JobDetail } = {
     ],
     applicationDeadline: "2024-08-15",
     postedDate: "2024-07-10",
+    // Add image
+    image: "https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=800&h=400&fit=crop",
     companyInfo: {
       name: "Tech Solutions Inc",
       description:
@@ -163,6 +167,8 @@ const mockJobData: { [key: string]: JobDetail } = {
     skills: ["JavaScript", "React", "Node.js", "Python", "SQL", "Git"],
     applicationDeadline: "2024-08-20",
     postedDate: "2024-07-08",
+    // Add image
+    image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&h=400&fit=crop",
     companyInfo: {
       name: "Innovate Systems",
       description:
@@ -238,6 +244,8 @@ const mockJobData: { [key: string]: JobDetail } = {
     ],
     applicationDeadline: "2024-08-25",
     postedDate: "2024-07-05",
+    // Add image
+    image: "https://images.unsplash.com/photo-1620714223084-8fcacc6dfd8d?w=800&h=400&fit=crop",
     companyInfo: {
       name: "Power Grid Corp",
       description:
@@ -313,6 +321,8 @@ const mockJobData: { [key: string]: JobDetail } = {
     ],
     applicationDeadline: "2024-08-30",
     postedDate: "2024-07-12",
+    // Add image
+    image: "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&h=400&fit=crop",
     companyInfo: {
       name: "BuildWell Construction",
       description:

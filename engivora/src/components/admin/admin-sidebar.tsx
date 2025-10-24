@@ -41,6 +41,7 @@ const navigation = [
   { name: "System", href: "/admin/system", icon: Database },
   { name: "Activity Log", href: "/admin/activity-log", icon: Activity },
   { name: "Security", href: "/admin/security", icon: Shield },
+  { name: "Dummy Data", href: "/admin/dummy-data", icon: Database }, // Add this line
   { name: "Settings", href: "/admin/settings", icon: Settings },
   { name: "Help", href: "/admin/help", icon: HelpCircle },
 ];

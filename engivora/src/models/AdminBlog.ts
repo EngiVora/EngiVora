@@ -15,11 +15,11 @@ export interface AdminBlogDocument extends mongoose.Document {
 }
 
 const AdminBlogSchema = new Schema<AdminBlogDocument>({
-  blog_id: { type: String, required: true, unique: true, index: true },
+  blog_id: { type: String, required: true, unique: true },
   title: { type: String, required: true, trim: true },
-  slug: { type: String, required: true, unique: true, index: true },
+  slug: { type: String, required: true, unique: true },
   content: { type: String, required: true },
-  author_id: { type: String, required: true, index: true },
+  author_id: { type: String, required: true },
   tags: { type: [String], default: [] },
   published_date: { type: Date },
   last_updated: { type: Date, default: Date.now },
@@ -28,7 +28,7 @@ const AdminBlogSchema = new Schema<AdminBlogDocument>({
   timestamps: true 
 })
 
-// Ensure blog_id and slug are unique
+// Remove duplicate index definitions - keep only schema.index() definitions
 AdminBlogSchema.index({ blog_id: 1 }, { unique: true })
 AdminBlogSchema.index({ slug: 1 }, { unique: true })
 AdminBlogSchema.index({ author_id: 1 })

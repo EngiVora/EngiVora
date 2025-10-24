@@ -79,9 +79,22 @@ export async function POST(request: NextRequest) {
     
     // Ensure required fields are present
     const examData = {
-      ...body,
+      title: body.name || body.title,
+      organization: body.organization || "Unknown Organization",
+      date: body.examDate || body.date || new Date(thirtyDaysFromNow),
+      category: body.category || "general",
+      description: body.description || "",
+      type: body.type || "entrance",
+      applicationFee: body.applicationFee || 0,
+      eligibility: body.eligibility || [],
+      syllabus: body.syllabus || [],
+      examCenters: body.examCenters || [],
+      officialWebsite: body.officialWebsite || "",
+      isActive: body.isActive !== undefined ? body.isActive : true,
       registrationStartDate: body.registrationStartDate || now,
       registrationEndDate: body.registrationEndDate || thirtyDaysFromNow,
+      // Add image URL
+      imageUrl: body.imageUrl || "/images/exam-placeholder.svg"
     };
 
     // Create exam with any data provided (no validation)

@@ -709,6 +709,7 @@ function DiscountModal({ isOpen, onClose, onSubmit, discount, isLoading }: {
   })
   
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [imagePreview, setImagePreview] = useState<string | null>(discount?.imageUrl || null)
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -758,6 +759,21 @@ function DiscountModal({ isOpen, onClose, onSubmit, discount, isLoading }: {
     return Object.keys(newErrors).length === 0
   }
 
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // For now, we'll just show a preview - in a real app, you would upload to a service
+    // and get back a URL to store in the database
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string)
+      // In a real implementation, you would upload the file to a service here
+      // and set the imageUrl to the returned URL
+    }
+    reader.readAsDataURL(file)
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -774,17 +790,17 @@ function DiscountModal({ isOpen, onClose, onSubmit, discount, isLoading }: {
         discountValue: formData.discountValue,
         originalPrice: formData.originalPrice,
         discountedPrice: formData.discountedPrice,
-        couponCode: formData.couponCode,
+        code: formData.couponCode,
         provider: formData.provider,
         websiteUrl: formData.websiteUrl,
-        imageUrl: formData.imageUrl,
+        imageUrl: imagePreview || formData.imageUrl,
         validFrom: formData.validFrom,
         validUntil: formData.validUntil,
         termsAndConditions: termsArray,
         eligibility: eligibilityArray,
         maxUsage: formData.maxUsage,
         featured: formData.featured,
-        isActive: formData.isActive,
+        active: formData.isActive,
       }
       
       onSubmit(submitData)
@@ -985,6 +1001,32 @@ function DiscountModal({ isOpen, onClose, onSubmit, discount, isLoading }: {
               />
               {errors.validUntil && <p className="mt-1 text-sm text-red-600">{errors.validUntil}</p>}
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Discount Image</label>
+            <div className="mt-1 flex items-center">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="block w-full text-sm text-gray-500
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-md file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-50 file:text-blue-700
+                  hover:file:bg-blue-100"
+              />
+            </div>
+            {imagePreview && (
+              <div className="mt-2">
+                <img 
+                  src={imagePreview} 
+                  alt="Preview" 
+                  className="h-32 w-32 object-cover rounded-md border"
+                />
+              </div>
+            )}
           </div>
 
           <div>

@@ -24,6 +24,15 @@ export default function NationalHackathonEventPage() {
           transition={{ duration: 0.6 }}
           className="bg-gradient-to-r from-red-900/50 to-purple-900/50 rounded-2xl p-8 md:p-12 mb-12"
         >
+          {/* Add event image */}
+          <div className="mb-6">
+            <img 
+              src="https://images.unsplash.com/photo-1555421689-43cad7100750?w=800&h=400&fit=crop" 
+              alt="National Hackathon 2025" 
+              className="w-full h-64 object-cover rounded-lg"
+            />
+          </div>
+          
           <div className="text-center">
             <span className="inline-block bg-red-100 text-red-800 text-sm font-semibold px-3 py-1 rounded-full mb-4">
               Competition • Featured Event
@@ -278,7 +287,7 @@ export default function NationalHackathonEventPage() {
                 <div className="text-center mb-6">
                   <div className="text-3xl font-bold text-green-400 mb-2">FREE</div>
                   <p className="text-slate-400">Early Bird Registration</p>
-                  <p className="text-sm text-red-400">Limited Time Offer</p>
+                  <p className="text-sm text-red-400 mt-1">Limited Time Offer</p>
                 </div>
                 
                 <button className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors mb-4">

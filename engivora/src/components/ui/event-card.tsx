@@ -10,9 +10,11 @@ type EventCardProps = {
   title: string
   tagColor?: string
   href?: string
+  // Add image prop
+  image?: string
 }
 
-export function EventCard({ day, mon, tag, title, tagColor = "bg-green-100 text-green-800", href = "#" }: EventCardProps) {
+export function EventCard({ day, mon, tag, title, tagColor = "bg-green-100 text-green-800", href = "#", image }: EventCardProps) {
   const x = useMotionValue(0)
   const y = useMotionValue(0)
   const rotateX = useTransform(y, [-40, 40], [6, -6])
@@ -33,6 +35,16 @@ export function EventCard({ day, mon, tag, title, tagColor = "bg-green-100 text-
         onMouseLeave={() => { x.set(0); y.set(0) }}
       >
         <motion.div style={{ rotateX, rotateY }}>
+          {/* Add image display */}
+          {image && (
+            <div className="w-full h-32 overflow-hidden">
+              <img 
+                src={image} 
+                alt={title} 
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
           <div className="p-6">
             <div className="flex items-center gap-4">
               <div className="flex-shrink-0 flex flex-col items-center justify-center w-16 h-16 bg-sky-900/50 text-sky-400 rounded-xl border border-sky-800/50">

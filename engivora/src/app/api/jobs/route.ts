@@ -80,8 +80,24 @@ export async function POST(request: NextRequest) {
 
     // Ensure required fields are present
     const jobData = {
-      ...body,
-      isActive: body.isActive !== undefined ? body.isActive : true, // Default to active
+      title: body.title,
+      company: body.company || "Unknown Company",
+      location: body.location || "Remote",
+      type: body.type || "full-time",
+      category: body.category || "software",
+      description: body.description || "",
+      remote: body.remote !== undefined ? body.remote : false,
+      salary: body.salary || { min: 0, max: 0, currency: "INR" },
+      requirements: body.requirements || [],
+      skills: body.skills || [],
+      experience: body.experience || { min: 0, max: 0 },
+      applicationDeadline: body.applicationDeadline || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      applicationLink: body.applicationLink || "",
+      contactEmail: body.contactEmail || "",
+      isActive: body.isActive !== undefined ? body.isActive : true,
+      featured: body.featured !== undefined ? body.featured : false,
+      // Add image URL
+      imageUrl: body.imageUrl || "/images/company-placeholder.svg"
     };
 
     // Create job with any data provided (no validation)

@@ -766,19 +766,53 @@ function JobModal({
     location: job?.location || "",
     remote: job?.remote || false,
     salary: job?.salary || { min: 0, max: 0, currency: "INR" },
-    requirements: job?.requirements || [],
-    skills: job?.skills || [],
+    requirements: job?.requirements?.join("\n") || "",
+    skills: job?.skills?.join(", ") || "",
     experience: job?.experience || { min: 0, max: 0 },
     applicationDeadline: job?.applicationDeadline || "",
     applicationLink: job?.applicationLink || "",
     contactEmail: job?.contactEmail || "",
     isActive: job?.isActive ?? true,
     featured: job?.featured || false,
+    // Add image URL field
+    imageUrl: job?.imageUrl || "",
   });
+
+  // Add image preview state
+  const [imagePreview, setImagePreview] = useState<string | null>(job?.imageUrl || null);
+
+  // Add image upload handler
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // For now, we'll just show a preview - in a real app, you would upload to a service
+    // and get back a URL to store in the database
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+      // In a real implementation, you would upload the file to a service here
+      // and set the imageUrl to the returned URL
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
+    
+    // Convert multiline text to arrays
+    const requirementsArray = formData.requirements.split('\n').filter((item: string) => item.trim() !== '');
+    const skillsArray = formData.skills.split(',').map((skill: string) => skill.trim()).filter((skill: string) => skill !== '');
+    
+    const submitData = {
+      ...formData,
+      requirements: requirementsArray,
+      skills: skillsArray,
+      // Add image URL to submit data
+      imageUrl: imagePreview || formData.imageUrl,
+    };
+    
+    onSubmit(submitData);
   };
 
   if (!isOpen) return null;
@@ -821,6 +855,33 @@ function JobModal({
                 placeholder="Enter company name"
               />
             </div>
+          </div>
+
+          {/* Add image upload section */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Job Image</label>
+            <div className="mt-1 flex items-center">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="block w-full text-sm text-gray-500
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-md file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-50 file:text-blue-700
+                  hover:file:bg-blue-100"
+              />
+            </div>
+            {imagePreview && (
+              <div className="mt-2">
+                <img 
+                  src={imagePreview} 
+                  alt="Preview" 
+                  className="h-32 w-32 object-cover rounded-md border"
+                />
+              </div>
+            )}
           </div>
 
           <div>
@@ -908,9 +969,146 @@ function JobModal({
                 onChange={(e) => {
                   setFormData({...formData, contactEmail: e.target.value})
                 }}
-                className={`mt-1 block w-full border border-gray-300 rounded-md px-3 py-2`}
+                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
                 placeholder="contact@company.com"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Application Deadline</label>
+              <input
+                type="date"
+                value={formData.applicationDeadline}
+                onChange={(e) => {
+                  setFormData({...formData, applicationDeadline: e.target.value})
+                }}
+                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Salary Range (Min-Max)</label>
+              <div className="flex space-x-2">
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.salary.min}
+                  onChange={(e) => {
+                    setFormData({
+                      ...formData,
+                      salary: {
+                        ...formData.salary,
+                        min: Number(e.target.value)
+                      }
+                    })
+                  }}
+                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                  placeholder="Min salary"
+                />
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.salary.max}
+                  onChange={(e) => {
+                    setFormData({
+                      ...formData,
+                      salary: {
+                        ...formData.salary,
+                        max: Number(e.target.value)
+                      }
+                    })
+                  }}
+                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                  placeholder="Max salary"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Currency</label>
+              <select
+                value={formData.salary.currency}
+                onChange={(e) => {
+                  setFormData({
+                    ...formData,
+                    salary: {
+                      ...formData.salary,
+                      currency: e.target.value
+                    }
+                  })
+                }}
+                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+              >
+                <option value="INR">INR (₹)</option>
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Requirements (one per line)</label>
+            <textarea
+              rows={3}
+              value={formData.requirements}
+              onChange={(e) => {
+                setFormData({...formData, requirements: e.target.value})
+              }}
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+              placeholder="Enter job requirements, one per line"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Skills (comma separated)</label>
+            <input
+              type="text"
+              value={formData.skills}
+              onChange={(e) => {
+                setFormData({...formData, skills: e.target.value})
+              }}
+              className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+              placeholder="e.g., JavaScript, React, Node.js"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Experience Required (Years)</label>
+              <div className="flex space-x-2">
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.experience.min}
+                  onChange={(e) => {
+                    setFormData({
+                      ...formData,
+                      experience: {
+                        ...formData.experience,
+                        min: Number(e.target.value)
+                      }
+                    })
+                  }}
+                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                  placeholder="Min years"
+                />
+                <input
+                  type="number"
+                  min="0"
+                  value={formData.experience.max}
+                  onChange={(e) => {
+                    setFormData({
+                      ...formData,
+                      experience: {
+                        ...formData.experience,
+                        max: Number(e.target.value)
+                      }
+                    })
+                  }}
+                  className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
+                  placeholder="Max years"
+                />
+              </div>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">Application Link</label>
@@ -920,13 +1118,13 @@ function JobModal({
                 onChange={(e) => {
                   setFormData({...formData, applicationLink: e.target.value})
                 }}
-                className={`mt-1 block w-full border border-gray-300 rounded-md px-3 py-2`}
+                className="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2"
                 placeholder="https://company.com/apply"
               />
             </div>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-6">
             <label className="flex items-center">
               <input
                 type="checkbox"
@@ -936,7 +1134,7 @@ function JobModal({
                 }
                 className="mr-2"
               />
-              Remote Work
+              Remote Position
             </label>
             <label className="flex items-center">
               <input

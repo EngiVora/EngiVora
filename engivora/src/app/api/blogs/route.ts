@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { connectToDatabase } from '@/lib/db';
 import { Blog } from '@/models/Blog';
+import { AdminBlog } from '@/models/AdminBlog'; // Add this import
 import jwt from 'jsonwebtoken';
 
 // Validation schema for blog posts
@@ -142,7 +143,46 @@ export async function POST(request: NextRequest) {
       authorId: userId,
       views: 0,
       likes: 0,
+      imageUrl: body.imageUrl || "/images/blog-placeholder.svg"
     });
+
+    // Sync to AdminBlog collection
+    try {
+      // Check if blog already exists in AdminBlog collection
+      const existingAdminBlog = await AdminBlog.findOne({ blog_id: created._id.toString() });
+      
+      if (existingAdminBlog) {
+        // Update existing admin blog
+        existingAdminBlog.title = created.title;
+        existingAdminBlog.slug = created.slug;
+        existingAdminBlog.content = created.content;
+        existingAdminBlog.author_id = created.authorId?.toString() || 'unknown';
+        existingAdminBlog.tags = created.tags || [];
+        existingAdminBlog.published_date = created.createdAt;
+        existingAdminBlog.last_updated = created.updatedAt;
+        existingAdminBlog.status = created.published ? 'published' : 'draft';
+        
+        await existingAdminBlog.save();
+      } else {
+        // Create new admin blog
+        const newAdminBlog = new AdminBlog({
+          blog_id: created._id.toString(),
+          title: created.title,
+          slug: created.slug,
+          content: created.content,
+          author_id: created.authorId?.toString() || 'unknown',
+          tags: created.tags || [],
+          published_date: created.createdAt,
+          last_updated: created.updatedAt,
+          status: created.published ? 'published' : 'draft',
+        });
+        
+        await newAdminBlog.save();
+      }
+    } catch (syncError) {
+      console.error('Error syncing blog to AdminBlog collection:', syncError);
+      // Don't fail the main operation if sync fails
+    }
 
     return NextResponse.json({
       success: true,
@@ -159,6 +199,228 @@ export async function POST(request: NextRequest) {
     }
 
     console.error('Blog creation error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// Add PUT endpoint for updating blogs
+export async function PUT(request: NextRequest) {
+  try {
+    const authHeader = request.headers.get('authorization');
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: 'Authorization token required' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.substring(7);
+    if (!JWT_SECRET) {
+      console.error('JWT_SECRET not configured');
+      return NextResponse.json({ 
+        error: 'Server configuration error',
+        details: 'JWT_SECRET is not properly configured'
+      }, { status: 500 });
+    }
+    
+    let userId = '';
+    try {
+      const payload = jwt.verify(token, JWT_SECRET) as { sub: string };
+      userId = payload.sub;
+    } catch (jwtError) {
+      console.error('JWT verification error:', jwtError);
+      return NextResponse.json(
+        { error: 'Invalid token' },
+        { status: 401 }
+      );
+    }
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Invalid token' },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const { id, ...updateData } = body;
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Blog ID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate input
+    const validatedData = blogSchema.parse(updateData);
+    await connectToDatabase();
+
+    // Find and update the blog
+    const updated = await Blog.findByIdAndUpdate(
+      id,
+      {
+        title: validatedData.title,
+        summary: validatedData.summary,
+        content: validatedData.content,
+        category: validatedData.category,
+        tags: validatedData.tags || [],
+        featured: validatedData.featured ?? false,
+        published: validatedData.published ?? true,
+        authorId: userId,
+        imageUrl: updateData.imageUrl || "/images/blog-placeholder.svg"
+      },
+      { new: true }
+    );
+
+    if (!updated) {
+      return NextResponse.json(
+        { error: 'Blog not found' },
+        { status: 404 }
+      );
+    }
+
+    // Sync to AdminBlog collection
+    try {
+      // Check if blog already exists in AdminBlog collection
+      const existingAdminBlog = await AdminBlog.findOne({ blog_id: updated._id.toString() });
+      
+      if (existingAdminBlog) {
+        // Update existing admin blog
+        existingAdminBlog.title = updated.title;
+        existingAdminBlog.slug = updated.slug;
+        existingAdminBlog.content = updated.content;
+        existingAdminBlog.author_id = updated.authorId?.toString() || 'unknown';
+        existingAdminBlog.tags = updated.tags || [];
+        existingAdminBlog.published_date = updated.createdAt;
+        existingAdminBlog.last_updated = updated.updatedAt;
+        existingAdminBlog.status = updated.published ? 'published' : 'draft';
+        
+        await existingAdminBlog.save();
+      } else {
+        // Create new admin blog
+        const newAdminBlog = new AdminBlog({
+          blog_id: updated._id.toString(),
+          title: updated.title,
+          slug: updated.slug,
+          content: updated.content,
+          author_id: updated.authorId?.toString() || 'unknown',
+          tags: updated.tags || [],
+          published_date: updated.createdAt,
+          last_updated: updated.updatedAt,
+          status: updated.published ? 'published' : 'draft',
+        });
+        
+        await newAdminBlog.save();
+      }
+    } catch (syncError) {
+      console.error('Error syncing blog to AdminBlog collection:', syncError);
+      // Don't fail the main operation if sync fails
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Blog post updated successfully',
+      data: updated,
+    });
+
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: error.errors },
+        { status: 400 }
+      );
+    }
+
+    console.error('Blog update error:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
+  }
+}
+
+// Add DELETE endpoint for deleting blogs
+export async function DELETE(request: NextRequest) {
+  try {
+    const authHeader = request.headers.get('authorization');
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: 'Authorization token required' },
+        { status: 401 }
+      );
+    }
+
+    const token = authHeader.substring(7);
+    if (!JWT_SECRET) {
+      console.error('JWT_SECRET not configured');
+      return NextResponse.json({ 
+        error: 'Server configuration error',
+        details: 'JWT_SECRET is not properly configured'
+      }, { status: 500 });
+    }
+    
+    let userId = '';
+    try {
+      const payload = jwt.verify(token, JWT_SECRET) as { sub: string };
+      userId = payload.sub;
+    } catch (jwtError) {
+      console.error('JWT verification error:', jwtError);
+      return NextResponse.json(
+        { error: 'Invalid token' },
+        { status: 401 }
+      );
+    }
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Invalid token' },
+        { status: 401 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'Blog ID is required' },
+        { status: 400 }
+      );
+    }
+
+    await connectToDatabase();
+
+    // Delete the blog
+    const deleted = await Blog.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return NextResponse.json(
+        { error: 'Blog not found' },
+        { status: 404 }
+      );
+    }
+
+    // Also delete from AdminBlog collection if it exists
+    try {
+      await AdminBlog.deleteOne({ blog_id: id });
+    } catch (syncError) {
+      console.error('Error deleting blog from AdminBlog collection:', syncError);
+      // Don't fail the main operation if sync fails
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Blog post deleted successfully',
+    });
+
+  } catch (error) {
+    console.error('Blog deletion error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

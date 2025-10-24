@@ -15,7 +15,8 @@ const events = [
     description: "Learn the fundamentals of quantum computing and its applications in modern technology.",
     time: "2:00 PM - 4:00 PM IST",
     speaker: "Dr. Sarah Chen, Quantum Research Institute",
-    registrations: 450
+    registrations: 450,
+    image: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=400&h=200&fit=crop"
   },
   {
     id: "robotics-automation",
@@ -27,7 +28,8 @@ const events = [
     description: "Hands-on workshop covering modern robotics and automation techniques.",
     time: "10:00 AM - 5:00 PM IST",
     speaker: "Prof. Michael Rodriguez, MIT",
-    registrations: 280
+    registrations: 280,
+    image: "https://images.unsplash.com/photo-1581092580497-e0d23cbdf1dc?w=400&h=200&fit=crop"
   },
   {
     id: "national-hackathon-2025",
@@ -39,7 +41,8 @@ const events = [
     description: "48-hour coding competition with exciting prizes and opportunities.",
     time: "February 5-7, 2025",
     speaker: "Various Industry Mentors",
-    registrations: 1250
+    registrations: 1250,
+    image: "https://images.unsplash.com/photo-1555421689-43cad7100750?w=400&h=200&fit=crop"
   },
   {
     id: "alumni-networking-night",
@@ -51,7 +54,8 @@ const events = [
     description: "Connect with successful alumni and expand your professional network.",
     time: "6:00 PM - 9:00 PM IST",
     speaker: "Alumni Panel Discussion",
-    registrations: 320
+    registrations: 320,
+    image: "https://images.unsplash.com/photo-1540331547168-8b63109225b7?w=400&h=200&fit=crop"
   },
   {
     id: "ai-machine-learning-workshop",
@@ -63,7 +67,8 @@ const events = [
     description: "Introduction to AI and ML concepts with practical implementations.",
     time: "11:00 AM - 4:00 PM IST",
     speaker: "Dr. Priya Sharma, Google AI",
-    registrations: 380
+    registrations: 380,
+    image: "https://images.unsplash.com/photo-1677442135722-5f11e06a4e6d?w=400&h=200&fit=crop"
   },
   {
     id: "startup-pitch-competition",
@@ -75,7 +80,8 @@ const events = [
     description: "Present your startup ideas to industry experts and investors.",
     time: "9:00 AM - 6:00 PM IST", 
     speaker: "VC Panel & Entrepreneurs",
-    registrations: 150
+    registrations: 150,
+    image: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=200&fit=crop"
   }
 ]
 
@@ -165,6 +171,8 @@ export default function EventsPage() {
                   title={event.title}
                   tagColor={event.tagColor}
                   href={`/events/${event.id}`}
+                  // Add image prop
+                  image={event.image}
                 />
               </motion.div>
             ))}

@@ -107,8 +107,8 @@ export default function DiscountsClient() {
       try {
         setLoading(true);
         
-        // Fetch discounts from API
-        const response = await fetch('/api/discounts');
+        // Fetch discounts from API with showAll parameter to get all active discounts
+        const response = await fetch('/api/discounts?showAll=true');
         const data = await response.json();
         
         if (data.success) {
@@ -123,8 +123,8 @@ export default function DiscountsClient() {
             originalPrice: discount.originalPrice,
             discountedPrice: discount.discountedPrice,
             image: discount.imageUrl || "/images/discount-placeholder.svg",
-            ctaText: "View Offer",
-            ctaAction: "#",
+            ctaText: "View Details",
+            ctaAction: `/discounts/offers/${discount._id}`,
             provider: discount.provider,
             featured: discount.featured || false,
             validUntil: discount.validUntil || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
@@ -134,9 +134,9 @@ export default function DiscountsClient() {
           setFeaturedOffers(transformedOffers);
           
           // Set coupon codes from the same data
-          const coupons = data.data.filter((d: any) => d.couponCode).map((discount: any) => ({
+          const coupons = data.data.filter((d: any) => d.code).map((discount: any) => ({
             id: discount._id,
-            code: discount.couponCode,
+            code: discount.code,
             title: discount.title,
             description: discount.description,
             discountValue: discount.discountValue || 0,
@@ -218,8 +218,8 @@ export default function DiscountsClient() {
             discountedPrice: 239,
             image:
               "https://lh3.googleusercontent.com/aida-public/AB6AXuCLiK0joKD2l9p83OCFHkN8OZ2R6UGDOXMq3Cn1RHx43SYJwxFly10Pt9G5cKjw98PlQVegI7P8zgWH781_jyAhsT-x5pp8J4Z4fgsdPYbAZk_XgZo8N41plbHomLP4qkg3Z2cx_dQjfPxu_dlWLa-6H2TGBwp9ihIhI76s3vtkAOOEjWrI0phHZCwIqUK1AwvLpIv57gbi8NyAxUhH6mqQJJeqLH_UuFlF4YsPN3dJ4Zq9D8V-T_t5IzOHkawmoh6XaueSotbGnMg",
-            ctaText: "View Offer",
-            ctaAction: "/courses?discount=COURSE20",
+            ctaText: "View Details",
+            ctaAction: "/discounts/offers/1",
             provider: "Engivora Academy",
             featured: true,
             validUntil: "2024-12-31T23:59:59Z",
@@ -241,8 +241,8 @@ export default function DiscountsClient() {
             discountedPrice: 0,
             image:
               "https://lh3.googleusercontent.com/aida-public/AB6AXuAHizWWhTVHfQ_PKQEc7h4LnLtfVjPSXwcE7atFX1yzshoGImb55qmNPaghdGl-ZKe0KJbigYLx6SJGjmvgwBJfCw9LHT2RtJpcO53Rw3GlCi4lXg-T3BUYAo9RoiUGeMTIQE4HqAjZ2x2WHarIffoyqCBGvxlt0O1nU80Y0PeF-U32IHTGzjna9Sra01aAAMXrUlz1RfuemdGvmY-XkgqqIou7mFlvXf-XPXPFjEmZeCtiu9knLx3PO-8626mBrIgwGZpzQS34-G0",
-            ctaText: "Explore Now",
-            ctaAction: "/resources/premium",
+            ctaText: "View Details",
+            ctaAction: "/discounts/offers/2",
             provider: "Academic Hub",
             featured: true,
             validUntil: "2024-12-31T23:59:59Z",
@@ -260,8 +260,8 @@ export default function DiscountsClient() {
             discountedPrice: 1699,
             image:
               "https://lh3.googleusercontent.com/aida-public/AB6AXuAH9v1fMfK3Bopk9alh_JmBLoxOpSzZYhKaSUEr6bSIRJUDKhAjzeOwdEzzGkZUNJsto9O0r62Zzb_23zDYd_kh6tKvgfYoBYC11aDjseWuvBNLvfOva4AANnpLwbu8TUXYvUzQ2wpQR4uuzPBQadpV72KWIkguL5vrfzpXSei9YGEYRC0NxaBwWMxjluFLrDyiRCD6-lI6kh-rFXv8-IoqqFPi2jFcBMlxMcePZcE1UL8SWOZyaIOv9dO8LI9Ay_b702OqoX2noSg",
-            ctaText: "Shop Deals",
-            ctaAction: "/shop/equipment?category=lab",
+            ctaText: "View Details",
+            ctaAction: "/discounts/offers/3",
             provider: "TechLab Solutions",
             featured: true,
             validUntil: "2024-11-30T23:59:59Z",
@@ -279,8 +279,8 @@ export default function DiscountsClient() {
             discountedPrice: 0,
             image:
               "https://lh3.googleusercontent.com/aida-public/AB6AXuAKkjl5tAIsUCq9RwMkFg75cwsVHfe0eFNBMW2XxMBz2RCK2ttp-CzMb8oUzzdfz9leO7XML7kmRvvpaujOmJ4RXPDaKsw2WiKE7gfgpP7iDaoN1eISCoycyg3Ih7pq7-24vYYK2YXsWyr3DLS2i0rzEj0rZePsAVcbV8IbnKMxIIPLFoU7QXYZQ7q8ACePJgGX_nDTlQKMEyqgJDhMmAZFidDG8xeTn1yOgo8c5i9maqOn8cSAVvrx7Ol1j8Hnj8O5kBcf6s_iMQs",
-            ctaText: "Download Now",
-            ctaAction: "/downloads/student-pack",
+            ctaText: "View Details",
+            ctaAction: "/discounts/offers/4",
             provider: "Software Depot",
             featured: true,
             validUntil: "2024-12-31T23:59:59Z",
@@ -353,12 +353,8 @@ export default function DiscountsClient() {
     // Track click analytics
     console.log(`Clicked on offer: ${offer.title}`);
 
-    // Navigate to offer page or external link
-    if (offer.ctaAction.startsWith("http")) {
-      window.open(offer.ctaAction, "_blank");
-    } else {
-      window.location.href = offer.ctaAction;
-    }
+    // Navigate to the public discount detail page
+    window.location.href = `/discounts/offers/${offer.id}`;
   };
 
   const handleAffiliateClick = (link: AffiliateLink) => {
@@ -932,7 +928,7 @@ export default function DiscountsClient() {
                           </div>
 
                           {/* CTA Button */}
-                          <button className="w-full bg-white text-sky-700 font-bold py-3 px-6 rounded-xl hover:bg-sky-50 transition-colors">
+                          <button className="w-full bg-white text-sky-700 font-bold py-3 px-6 rounded-xl hover:bg-sky-5 transition-colors">
                             Share Your Link & Earn Rewards
                           </button>
                         </div>

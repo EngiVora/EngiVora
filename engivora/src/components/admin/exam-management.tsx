@@ -42,6 +42,8 @@ interface Exam {
   registrationEndDate: string
   createdAt: string
   updatedAt: string
+  // Add imageUrl field
+  imageUrl?: string
 }
 
 export function ExamManagement() {
@@ -672,9 +674,29 @@ function ExamModal({ isOpen, onClose, onSubmit, exam, isLoading }: {
     examCenters: exam?.examCenters?.join('\n') || '',
     officialWebsite: exam?.officialWebsite || '',
     isActive: exam?.isActive ?? true,
+    // Add image field
+    imageUrl: exam?.imageUrl || '',
   })
   
+  // Add image preview state
+  const [imagePreview, setImagePreview] = useState<string | null>(exam?.imageUrl || null)
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  // Add image upload handler
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // For now, we'll just show a preview - in a real app, you would upload to a service
+    // and get back a URL to store in the database
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string)
+      // In a real implementation, you would upload the file to a service here
+      // and set the imageUrl to the returned URL
+    }
+    reader.readAsDataURL(file)
+  }
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -749,6 +771,8 @@ function ExamModal({ isOpen, onClose, onSubmit, exam, isLoading }: {
         examCenters: examCentersArray,
         officialWebsite: formData.officialWebsite,
         isActive: formData.isActive,
+        // Add image URL to submit data
+        imageUrl: imagePreview || formData.imageUrl,
       }
       
       onSubmit(submitData)
@@ -792,6 +816,33 @@ function ExamModal({ isOpen, onClose, onSubmit, exam, isLoading }: {
                 <option value="general">General</option>
               </select>
             </div>
+          </div>
+
+          {/* Add image upload section */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Exam Image</label>
+            <div className="mt-1 flex items-center">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="block w-full text-sm text-gray-500
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-md file:border-0
+                  file:text-sm file:font-semibold
+                  file:bg-blue-50 file:text-blue-700
+                  hover:file:bg-blue-100"
+              />
+            </div>
+            {imagePreview && (
+              <div className="mt-2">
+                <img 
+                  src={imagePreview} 
+                  alt="Preview" 
+                  className="h-32 w-32 object-cover rounded-md border"
+                />
+              </div>
+            )}
           </div>
 
           <div>
