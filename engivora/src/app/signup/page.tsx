@@ -15,7 +15,8 @@ import {
   AlertCircle,
   CheckCircle,
   Loader2,
-  Cake
+  Cake,
+  Phone
 } from "lucide-react"
 
 export default function SignupPage() {
@@ -27,7 +28,8 @@ export default function SignupPage() {
     department: "",
     year: "",
     rollNumber: "",
-    dateOfBirth: ""
+    dateOfBirth: "",
+    mobileNumber: ""
   })
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -67,7 +69,8 @@ export default function SignupPage() {
           department: formData.department,
           year: formData.year,
           rollNumber: formData.rollNumber,
-          dateOfBirth: formData.dateOfBirth
+          dateOfBirth: formData.dateOfBirth,
+          mobileNumber: formData.mobileNumber
         })
       })
 
@@ -216,6 +219,27 @@ export default function SignupPage() {
                       <option value="Artificial Intelligence and Data Science Engineering">Artificial Intelligence and Data Science Engineering</option>
                       <option value="Others">Others</option>
                     </select>
+                  </div>
+                </div>
+
+                {/* Mobile Number Field */}
+                <div>
+                  <label htmlFor="mobileNumber" className="block text-sm font-medium text-slate-300 mb-1">
+                    Mobile Number <span className="text-slate-500 text-xs">(Optional)</span>
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Phone className="h-5 w-5 text-slate-500" />
+                    </div>
+                    <input
+                      id="mobileNumber"
+                      name="mobileNumber"
+                      type="tel"
+                      value={formData.mobileNumber}
+                      onChange={handleInputChange}
+                      className="pl-10 block w-full rounded-lg border-slate-700 bg-slate-800/50 text-slate-100 placeholder-slate-500 focus:border-sky-500 focus:ring-sky-500 focus:ring-1 focus:ring-inset sm:text-sm py-3"
+                      placeholder="+91 9876543210"
+                    />
                   </div>
                 </div>
 

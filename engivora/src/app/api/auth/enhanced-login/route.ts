@@ -112,6 +112,7 @@ export async function POST(request: NextRequest) {
         year: userDoc.year,
         rollNumber: userDoc.rollNumber,
         dateOfBirth: formattedDateOfBirth,
+        mobileNumber: userDoc.mobileNumber,
       },
       token,
     });

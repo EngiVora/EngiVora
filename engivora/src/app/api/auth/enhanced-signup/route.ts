@@ -15,6 +15,7 @@ const signupSchema = z.object({
   year: z.string().optional(),
   rollNumber: z.string().optional(),
   dateOfBirth: z.string().optional(),
+  mobileNumber: z.string().optional(),
 });
 
 export async function POST(request: NextRequest) {
@@ -50,6 +51,7 @@ export async function POST(request: NextRequest) {
       year: validatedData.year,
       rollNumber: validatedData.rollNumber,
       dateOfBirth: validatedData.dateOfBirth ? new Date(validatedData.dateOfBirth) : undefined,
+      mobileNumber: validatedData.mobileNumber,
       role: 'student', // Default role for new users
     });
     
@@ -67,6 +69,7 @@ export async function POST(request: NextRequest) {
         year: savedUser.year,
         rollNumber: savedUser.rollNumber,
         dateOfBirth: savedUser.dateOfBirth,
+        mobileNumber: savedUser.mobileNumber,
         profilePicture: savedUser.profilePicture,
       },
     });

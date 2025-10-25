@@ -13,6 +13,7 @@ export interface UserDocument extends mongoose.Document {
   year?: string
   rollNumber?: string
   dateOfBirth?: Date
+  mobileNumber?: string
   lastLogin?: Date
   createdAt: Date
   updatedAt: Date
@@ -33,6 +34,7 @@ if (process.env.NEXT_PHASE !== 'phase-production-build') {
     year: { type: String },
     rollNumber: { type: String },
     dateOfBirth: { type: Date },
+    mobileNumber: { type: String },
     lastLogin: { type: Date }
   }, { timestamps: true })
 

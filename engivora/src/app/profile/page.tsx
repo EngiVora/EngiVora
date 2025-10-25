@@ -20,7 +20,8 @@ import {
   Settings,
   Shield,
   Cake,
-  LogOut
+  LogOut,
+  Phone
 } from "lucide-react"
 
 interface UserProfile {
@@ -32,6 +33,7 @@ interface UserProfile {
   year?: string
   rollNumber?: string
   dateOfBirth?: string
+  mobileNumber?: string
   profilePicture?: string | null
 }
 
@@ -48,7 +50,8 @@ export default function ProfilePage() {
     department: "",
     year: "",
     rollNumber: "",
-    dateOfBirth: ""
+    dateOfBirth: "",
+    mobileNumber: ""
   })
   const [profilePicture, setProfilePicture] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
@@ -69,7 +72,8 @@ export default function ProfilePage() {
             department: userData.department || "",
             year: userData.year || "",
             rollNumber: userData.rollNumber || "",
-            dateOfBirth: userData.dateOfBirth || ""
+            dateOfBirth: userData.dateOfBirth || "",
+            mobileNumber: userData.mobileNumber || ""
           })
           setProfilePicture(userData.profilePicture || null)
           setLoading(false)
@@ -87,7 +91,8 @@ export default function ProfilePage() {
             department: userData.department || "",
             year: userData.year || "",
             rollNumber: userData.rollNumber || "",
-            dateOfBirth: userData.dateOfBirth || ""
+            dateOfBirth: userData.dateOfBirth || "",
+            mobileNumber: userData.mobileNumber || ""
           })
           setProfilePicture(userData.profilePicture || null)
           setLoading(false)
@@ -249,6 +254,7 @@ export default function ProfilePage() {
           year: formData.year,
           rollNumber: formData.rollNumber,
           dateOfBirth: formData.dateOfBirth,
+          mobileNumber: formData.mobileNumber,
           profilePicture: profilePicture || undefined
         }
         
@@ -535,6 +541,26 @@ export default function ProfilePage() {
                           value={formData.dateOfBirth}
                           onChange={handleInputChange}
                           className="pl-10 block w-full rounded-lg border-slate-700 bg-slate-800/50 text-slate-100 placeholder-slate-500 focus:border-sky-500 focus:ring-sky-500 focus:ring-1 focus:ring-inset sm:text-sm py-3"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="sm:col-span-6">
+                      <label htmlFor="mobileNumber" className="block text-sm font-medium text-slate-300 mb-1">
+                        Mobile Number <span className="text-slate-500 text-xs">(Optional)</span>
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Phone className="h-5 w-5 text-slate-500" />
+                        </div>
+                        <input
+                          type="tel"
+                          name="mobileNumber"
+                          id="mobileNumber"
+                          value={formData.mobileNumber}
+                          onChange={handleInputChange}
+                          className="pl-10 block w-full rounded-lg border-slate-700 bg-slate-800/50 text-slate-100 placeholder-slate-500 focus:border-sky-500 focus:ring-sky-500 focus:ring-1 focus:ring-inset sm:text-sm py-3"
+                          placeholder="+91 9876543210"
                         />
                       </div>
                     </div>
