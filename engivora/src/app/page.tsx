@@ -334,29 +334,6 @@ export default function HomePage() {
                 </svg>
               }
             />
-            <TechCard
-              title="Work Hub"
-              description="Collaborate on projects and connect with fellow students."
-              cta="Enter the Hub →"
-              href="/work-hub"
-              imageUrl="/logo.png"
-              delay={0.2}
-              icon={
-                <svg
-                  className="h-10 w-10 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M3 18v-6a9 9 0 0 1 18 0v6"></path>
-                  <path d="M21 19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3.19a2 2 0 0 1 1.74.85l.23.33a2 2 0 0 0 1.74.82h3.18a2 2 0 0 0 1.74-.85l.23-.33a2 2 0 0 1 1.74-.82H21a2 2 0 0 1 2 2v3Z"></path>
-                </svg>
-              }
-            />
           </div>
         </div>
       </section>
