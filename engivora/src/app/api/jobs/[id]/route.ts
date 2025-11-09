@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { connectToDatabase } from '@/lib/db';
 import { Job } from '@/models/Job';
-import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET as string;
+import { verifyAdminToken } from '@/lib/jwt-utils';
 
 // Validation schema for job updates
 const jobUpdateSchema = z.object({
@@ -34,26 +32,57 @@ const jobUpdateSchema = z.object({
 });
 
 async function verifyAdmin(request: NextRequest) {
+  // Try to get token from Authorization header first
+  let token: string | null = null;
   const authHeader = request.headers.get('authorization');
   
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.substring(7);
+  } else {
+    // Fallback to cookies from request
+    try {
+      // NextRequest has a cookies property in Next.js 13+
+      token = request.cookies.get('adminToken')?.value || null;
+    } catch (error) {
+      // If that fails, parse cookie header manually
+      const cookieHeader = request.headers.get('cookie');
+      if (cookieHeader) {
+        const cookieMap = cookieHeader.split(';').reduce((acc, cookie) => {
+          const [key, value] = cookie.trim().split('=');
+          if (key && value) {
+            acc[key] = decodeURIComponent(value);
+          }
+          return acc;
+        }, {} as Record<string, string>);
+        token = cookieMap['adminToken'] || null;
+      }
+    }
+  }
+  
+  if (!token) {
+    console.error('No token found in request');
     return { error: 'Authorization token required', status: 401 };
   }
 
-  const token = authHeader.substring(7);
-  if (!JWT_SECRET) {
-    return { error: 'Server configuration error', status: 500 };
+  console.log('Token found, verifying...', { tokenLength: token.length, tokenPrefix: token.substring(0, 20) });
+  
+  const verificationResult = await verifyAdminToken(token);
+  
+  if (!verificationResult.success) {
+    console.error('Token verification failed:', verificationResult.error);
+    // Provide more helpful error message
+    let errorMessage = verificationResult.error || 'Invalid token';
+    if (errorMessage.includes('Invalid token') || errorMessage.includes('JsonWebTokenError')) {
+      errorMessage = 'Your session has expired or is invalid. Please log out and log back in.';
+    }
+    return { 
+      error: errorMessage, 
+      status: 401 
+    };
   }
 
-  try {
-    const payload = jwt.verify(token, JWT_SECRET) as { role?: string };
-    if (payload.role !== 'admin') {
-      return { error: 'Admin access required', status: 403 };
-    }
-    return { user: payload };
-  } catch (error) {
-    return { error: 'Invalid token', status: 401 };
-  }
+  console.log('Token verified successfully for user:', verificationResult.user?.email);
+  return { user: verificationResult.user };
 }
 
 // GET /api/jobs/[id] - Get specific job
@@ -106,7 +135,20 @@ export async function PUT(
     const body = await request.json();
     const validatedData = jobUpdateSchema.parse(body);
     
-    await connectToDatabase();
+    // Try to connect to database, handle gracefully if not configured
+    try {
+      await connectToDatabase();
+    } catch (dbError) {
+      console.error('Database connection error:', dbError);
+      return NextResponse.json(
+        { 
+          error: 'Database not configured',
+          message: 'Cannot update job. Please set MONGODB_URI in your environment.',
+          details: dbError instanceof Error ? dbError.message : 'Unknown database error'
+        },
+        { status: 503 }
+      );
+    }
     
     const updatedJob = await Job.findByIdAndUpdate(
       params.id,
@@ -156,7 +198,20 @@ export async function DELETE(request: NextRequest, context: { params: Promise<{ 
       );
     }
 
-    await connectToDatabase();
+    // Try to connect to database, handle gracefully if not configured
+    try {
+      await connectToDatabase();
+    } catch (dbError) {
+      console.error('Database connection error:', dbError);
+      return NextResponse.json(
+        { 
+          error: 'Database not configured',
+          message: 'Cannot delete job. Please set MONGODB_URI in your environment.',
+          details: dbError instanceof Error ? dbError.message : 'Unknown database error'
+        },
+        { status: 503 }
+      );
+    }
     
     const deletedJob = await Job.findByIdAndDelete(params.id);
 

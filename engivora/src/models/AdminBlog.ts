@@ -28,9 +28,7 @@ const AdminBlogSchema = new Schema<AdminBlogDocument>({
   timestamps: true 
 })
 
-// Remove duplicate index definitions - keep only schema.index() definitions
-AdminBlogSchema.index({ blog_id: 1 }, { unique: true })
-AdminBlogSchema.index({ slug: 1 }, { unique: true })
+// Indexes for non-unique fields (blog_id and slug already have unique indexes via unique: true)
 AdminBlogSchema.index({ author_id: 1 })
 AdminBlogSchema.index({ status: 1 })
 
