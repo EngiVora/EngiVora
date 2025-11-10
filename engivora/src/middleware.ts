@@ -3,6 +3,13 @@ import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  
+  // Check if someone is trying to access /events and redirecting to work-hub
+  // This is to fix the issue where Events link was incorrectly pointing to external URL
+  if (pathname === "/events") {
+    // Ensure we're serving the events page, not redirecting elsewhere
+    return NextResponse.next();
+  }
 
   // Only apply middleware to admin routes
   if (pathname.startsWith("/admin")) {
@@ -57,5 +64,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  matcher: ["/admin/:path*", "/events"],
 };

@@ -15,6 +15,7 @@ import { SocialLinks } from "@/components/ui/social-links";
 import { Users, Linkedin, ArrowRight } from "lucide-react";
 import { WhatsAppIcon } from "@/components/ui/whatsapp-icon";
 import { TelegramIcon } from "@/components/ui/telegram-icon";
+import { FeaturedEvents } from "@/components/home/featured-events";
 
 export default function HomePage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -334,6 +335,31 @@ export default function HomePage() {
                 </svg>
               }
             />
+            <TechCard
+              title="Events"
+              description="Stay updated with upcoming workshops, webinars, and competitions."
+              cta="View Events →"
+              href="/events"
+              imageUrl="/calendar.svg"
+              delay={0.2}
+              icon={
+                <svg
+                  className="h-10 w-10 text-sky-400"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
+                  <line x1="16" x2="16" y1="2" y2="6"></line>
+                  <line x1="8" x2="8" y1="2" y2="6"></line>
+                  <line x1="3" x2="21" y1="10" y2="10"></line>
+                </svg>
+              }
+            />
           </div>
         </div>
       </section>
@@ -376,143 +402,8 @@ export default function HomePage() {
       {/* Testimonials */}
       <Testimonials />
 
-      {/* Connect with Us */}
-      <section className="py-24 bg-slate-950">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl font-bold gradient-text mb-4">
-              Stay Connected with EngiVora
-            </h2>
-            <p className="text-slate-400 text-lg max-w-3xl mx-auto">
-              Join our community across all platforms for instant updates,
-              career guidance, and exclusive opportunities
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            viewport={{ once: true }}
-            className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16"
-          >
-            {/* Left side - Social Links */}
-            <div className="glass-panel p-6 rounded-2xl border border-slate-700/50 backdrop-blur-sm shadow-xl">
-              <SocialLinks variant="detailed" showDescriptions={true} />
-            </div>
-
-            {/* Right side - Benefits */}
-            <div className="space-y-6">
-              <div className="flex items-start gap-4 p-5 rounded-2xl bg-slate-900/50 border border-slate-800 hover:bg-slate-900/70 transition-all duration-300 hover:border-slate-700 hover:shadow-lg group">
-                <div className="w-12 h-12 bg-sky-600/20 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-sky-600/30 transition-colors duration-300">
-                  <span className="text-2xl">🔔</span>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-slate-100 mb-2 text-lg">
-                    Instant Notifications
-                  </h3>
-                  <p className="text-slate-400 text-sm">
-                    Get real-time alerts for exam schedules, job postings, and
-                    application deadlines
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4 p-5 rounded-2xl bg-slate-900/50 border border-slate-800 hover:bg-slate-900/70 transition-all duration-300 hover:border-slate-700 hover:shadow-lg group">
-                <div className="w-12 h-12 bg-green-600/20 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-green-600/30 transition-colors duration-300">
-                  <span className="text-2xl">🎯</span>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-slate-100 mb-2 text-lg">
-                    Exclusive Content
-                  </h3>
-                  <p className="text-slate-400 text-sm">
-                    Access platform-specific tips, study materials, and career
-                    guidance content
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4 p-5 rounded-2xl bg-slate-900/50 border border-slate-800 hover:bg-slate-900/70 transition-all duration-300 hover:border-slate-700 hover:shadow-lg group">
-                <div className="w-12 h-12 bg-purple-600/20 rounded-xl flex items-center justify-center flex-shrink-0 group-hover:bg-purple-600/30 transition-colors duration-300">
-                  <span className="text-2xl">👥</span>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-slate-100 mb-2 text-lg">
-                    Active Community
-                  </h3>
-                  <p className="text-slate-400 text-sm">
-                    Connect with 50K+ engineering students and get answers to
-                    your questions
-                  </p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Quick Connect CTA */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            viewport={{ once: true }}
-            className="text-center bg-gradient-to-r from-sky-900/30 to-purple-900/30 rounded-2xl p-10 border border-sky-800/50 backdrop-blur-sm hover:from-sky-900/40 hover:to-purple-900/40 transition-all duration-500 shadow-xl"
-          >
-            <div className="inline-block p-4 rounded-2xl bg-sky-600/20 mb-6">
-              <Users className="h-10 w-10 text-sky-400" />
-            </div>
-            <h3 className="text-3xl font-bold text-slate-100 mb-4">
-              Ready to Join Our Community?
-            </h3>
-            <p className="text-slate-400 mb-8 max-w-2xl mx-auto text-lg">
-              Choose your favorite platform and never miss an update. Join thousands of engineering students already connected with us.
-            </p>
-            <div className="flex flex-wrap justify-center gap-5">
-              <Link
-                href="https://whatsapp.com/channel/0029Vb75C2EDeON8HP7kgq20"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-7 py-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-xl transition-all flex items-center gap-3 hover:scale-105 transform duration-200 shadow-lg shadow-green-500/30 hover:shadow-green-500/40"
-              >
-                <WhatsAppIcon className="w-5 h-5" />
-                WhatsApp Channel
-              </Link>
-              <Link
-                href="https://t.me/engivora"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-7 py-4 bg-sky-600 hover:bg-sky-700 text-white font-semibold rounded-xl transition-all flex items-center gap-3 hover:scale-105 transform duration-200 shadow-lg shadow-sky-500/30 hover:shadow-sky-500/40"
-              >
-                <TelegramIcon className="w-5 h-5" />
-                Telegram
-              </Link>
-              <Link
-                href="http://linkedin.com/company/engivora"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-7 py-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all flex items-center gap-3 hover:scale-105 transform duration-200 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40"
-              >
-                <Linkedin className="w-5 h-5" />
-                LinkedIn
-              </Link>
-            </div>
-            <div className="mt-6">
-              <Link
-                href="/connect"
-                className="text-sky-400 hover:text-sky-300 transition-colors text-base font-medium inline-flex items-center gap-2"
-              >
-                View all platforms <ArrowRight className="w-5 h-5" />
-              </Link>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+      {/* Featured Events */}
+      <FeaturedEvents />
 
       {/* FAQ */}
       <FAQ />
