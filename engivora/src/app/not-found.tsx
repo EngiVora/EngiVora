@@ -31,7 +31,6 @@ export default function NotFound() {
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev <= 1) {
-          router.push('/')
           return 0
         }
         return prev - 1
@@ -39,7 +38,14 @@ export default function NotFound() {
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [router])
+  }, [])
+
+  // Navigate when countdown reaches 0
+  useEffect(() => {
+    if (countdown === 0) {
+      router.push('/')
+    }
+  }, [countdown, router])
 
   const quickLinks = [
     { href: '/', icon: Home, label: 'Home', description: 'Back to homepage' },

@@ -275,17 +275,33 @@ export function JobManagement() {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
+        credentials: "include", // Include cookies
       });
       if (!res.ok) {
         const data = await res.json();
-        alert(data?.error || "Failed to delete job");
+        const errorMessage = data?.error || "Failed to delete job";
+        
+        // If token is invalid, clear it and redirect to login
+        if (res.status === 401 && (errorMessage.includes("token") || errorMessage.includes("session"))) {
+          localStorage.removeItem("adminToken");
+          sessionStorage.removeItem("adminToken");
+          alert(errorMessage + "\n\nRedirecting to login...");
+          window.location.href = "/admin/login";
+          return;
+        }
+        
+        alert(errorMessage);
         return;
       }
-      setJobs((prev) => prev.filter((job) => job._id !== jobId));
+      const data = await res.json();
+      if (data.success) {
+        setJobs((prev) => prev.filter((job) => job._id !== jobId));
+      }
     } catch (error) {
       console.error("Error deleting job:", error);
-      alert("Network error deleting job");
+      alert("Network error deleting job. Please try again.");
     } finally {
       setIsLoading(false);
     }

@@ -30,8 +30,6 @@ const StudentSchema = new Schema<StudentDocument>({
   }
 })
 
-// Ensure student_id is unique
-StudentSchema.index({ student_id: 1 }, { unique: true })
-StudentSchema.index({ email: 1 }, { unique: true })
+// student_id and email already have unique indexes via unique: true in schema definition
 
 export const Student = models.Student || model<StudentDocument>('Student', StudentSchema)

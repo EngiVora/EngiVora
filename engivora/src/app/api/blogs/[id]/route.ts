@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import mongoose from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import { Blog } from '@/models/Blog';
 
@@ -32,7 +33,13 @@ export async function GET(
     await connectToDatabase();
     const { id } = await params;
     
-    const blog = await Blog.findById(id);
+    // Check if id is a valid MongoDB ObjectId, otherwise treat it as a slug
+    let blog;
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      blog = await Blog.findById(id);
+    } else {
+      blog = await Blog.findOne({ slug: id, published: true });
+    }
 
     if (!blog) {
       return NextResponse.json(

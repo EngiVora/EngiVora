@@ -20,6 +20,7 @@ export async function verifyAdminToken(token: string): Promise<{
 }> {
   try {
     if (!JWT_SECRET || JWT_SECRET === "") {
+      console.error("JWT_SECRET not configured");
       return {
         success: false,
         error: "Server configuration error: JWT_SECRET not configured",
@@ -27,10 +28,32 @@ export async function verifyAdminToken(token: string): Promise<{
     }
 
     // Verify the token
-    const payload = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    let payload: JwtPayload;
+    try {
+      payload = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    } catch (jwtError) {
+      if (jwtError instanceof jwt.TokenExpiredError) {
+        console.error("Token expired");
+        return {
+          success: false,
+          error: "Token expired",
+        };
+      }
+      if (jwtError instanceof jwt.JsonWebTokenError) {
+        console.error("JWT verification error:", jwtError.message);
+        return {
+          success: false,
+          error: `Invalid token: ${jwtError.message}`,
+        };
+      }
+      throw jwtError;
+    }
+
+    console.log("Token payload decoded:", { sub: payload.sub, role: payload.role });
 
     // Check if user has admin role
     if (payload.role !== "admin") {
+      console.error("User does not have admin role:", payload.role);
       return {
         success: false,
         error: "Access denied: Admin privileges required",
@@ -43,6 +66,7 @@ export async function verifyAdminToken(token: string): Promise<{
       const userDoc = await User.findById(payload.sub);
 
       if (userDoc) {
+        console.log("User found in database:", userDoc.email);
         return {
           success: true,
           payload,
@@ -54,14 +78,17 @@ export async function verifyAdminToken(token: string): Promise<{
             department: userDoc.department,
           },
         };
+      } else {
+        console.warn("User not found in database, trying mock users");
       }
     } catch (error) {
-      console.warn("Database not available, using mock users:", error);
+      console.warn("Database not available, using mock users:", error instanceof Error ? error.message : error);
     }
 
     // Fallback to mock users
     const mockUser = findUserById(payload.sub);
     if (mockUser) {
+      console.log("User found in mock users:", mockUser.email);
       return {
         success: true,
         payload,
@@ -69,29 +96,16 @@ export async function verifyAdminToken(token: string): Promise<{
       };
     }
 
+    console.error("User not found in database or mock users:", payload.sub);
     return {
       success: false,
       error: "User not found",
     };
   } catch (error) {
-    if (error instanceof jwt.TokenExpiredError) {
-      return {
-        success: false,
-        error: "Token expired",
-      };
-    }
-
-    if (error instanceof jwt.JsonWebTokenError) {
-      return {
-        success: false,
-        error: "Invalid token",
-      };
-    }
-
-    console.error("Token verification error:", error);
+    console.error("Unexpected token verification error:", error);
     return {
       success: false,
-      error: "Token verification failed",
+      error: error instanceof Error ? error.message : "Token verification failed",
     };
   }
 }

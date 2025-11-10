@@ -20,123 +20,154 @@ export default function JobsPage() {
   const itemsPerPage = 6;
 
   // Fetch jobs from API
+  const fetchJobs = async () => {
+    try {
+      setLoading(true);
+      // Add cache-busting parameter to ensure fresh data
+      const cacheBuster = Date.now();
+      const response = await fetch(`/api/jobs?_=${cacheBuster}`, {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
+      const data = await response.json();
+      if (data.success) {
+        // Transform API data to match existing structure
+        const transformedJobs = data.data.map((job: any) => ({
+          id: job._id,
+          title: job.title,
+          company: job.company,
+          location: job.location,
+          type: job.type,
+          branch: job.category || "Software", // Map category to branch
+          description: job.description,
+          postedDate: job.createdAt ? new Date(job.createdAt).toLocaleDateString() : "Recently",
+          salary: job.salary ? `${job.salary.currency || 'INR'} ${job.salary.min?.toLocaleString()}-${job.salary.max?.toLocaleString()}` : "Competitive",
+          image: "/images/company-placeholder.svg" // Use placeholder image
+        }));
+        setJobs(transformedJobs);
+      }
+    } catch (error) {
+      console.error('Failed to fetch jobs:', error);
+      // Fallback to hardcoded data if API fails
+      setJobs([
+        {
+          id: "mechanical-engineer-intern",
+          title: "Mechanical Engineer Intern",
+          company: "Tech Solutions Inc",
+          location: "Remote",
+          type: "Internship",
+          branch: "Mechanical",
+          description:
+            "An exciting opportunity for a motivated student to gain hands-on experience in mechanical design and product development.",
+          postedDate: "2 days ago",
+          salary: "$25-30/hour",
+          image:
+            "https://lh3.googleusercontent.com/aida-public/AB6AXuAZ6byUVckMqg6gmZhI9DsFjBLDSADsBBPdbK0f3saTH0PXJD9YJAs16HQ9MnxyasAzqznROviksz6opuPiyoJyisTxYAjpWCmFizrDCO6aURW1d-WdZFTaoyKNy2ZzalhBXRTNRmDdkxVVw41UdGHZy7rWhGsXLaHIeGt1oaekIAsRJ4uo0rM1zq4qrRpuFt7jfpDMYUj7fNrBkPGAJJoIs3i-5CHxbXbGsbotvV2xSoBN5Z5f6bGoPBuGE7oUOsyK-o8XaqQQOlk",
+        },
+        {
+          id: "software-engineer",
+          title: "Software Engineer",
+          company: "Innovate Systems",
+          location: "San Francisco, CA",
+          type: "Full-time",
+          branch: "Software",
+          description:
+            "Join our dynamic team and contribute to the development of our flagship product. Perfect for recent graduates.",
+          postedDate: "3 days ago",
+          salary: "$80,000 - $100,000",
+          image:
+            "https://lh3.googleusercontent.com/aida-public/AB6AXuA1IU2jpeLS_hX69bOnAJKS0x5aYfdFUQTtSMCJzdFoyCMO-l2uzzxdAHbJ5GXn5Jdz4s5SfaBe_HopIr46pVcy67W2hx8LUPsJLKDXOvLX_AN7wqM4oUWCPfCqXwNSX4UN4lWtRW-FyF4Wej-YaF0JtTxME4YPIztBrHxqhjw6hsBxrAFytx2wa83Tq-YBBgRwBkCDTROeNIa8yU82fibAWQXA1WcvnSqpQfVREyUWS-qoJubyq2m-NUQkxp2zKmpJuqMbOmwLxzA",
+        },
+        {
+          id: "electrical-engineer",
+          title: "Electrical Engineer",
+          company: "Power Grid Corp",
+          location: "New York, NY",
+          type: "Full-time",
+          branch: "Electrical",
+          description:
+            "Seeking a skilled electrical engineer to design and oversee installation of electrical equipment.",
+          postedDate: "5 days ago",
+          salary: "$95,000 - $120,000",
+          image:
+            "https://lh3.googleusercontent.com/aida-public/AB6AXuDux4P3_-rmP1G3tsHb2kbzpg44VRBZBwqlwfYovZXac4CLOml05b499gZ-DFWAB-I83A4du3_amUY_rSCVuL4VN13NFv7HzXizS13xko8zW2M0Bt46Pd1JpmNVGSN0Om7DE0UWXqqCiH3IvQZLwe04e2HOrYezmq-ZyD7z_EC0MiWlkLgyFgsx4C4-wEcIQhlsZsZyynIuFrn2EEwemNRMy1H0axAPet97__J6J6oHiKjQpWQjq-zXqE5WfKDc7CGnlMP5_D5dniI",
+        },
+        {
+          id: "civil-engineer-intern",
+          title: "Civil Engineer Intern",
+          company: "BuildWell Construction",
+          location: "Los Angeles, CA",
+          type: "Internship",
+          branch: "Civil",
+          description:
+            "Assist project managers with planning and execution of construction projects.",
+          postedDate: "1 week ago",
+          salary: "$20-25/hour",
+          image:
+            "https://lh3.googleusercontent.com/aida-public/AB6AXuBVRSGwOZxSZBU-lgbk1M4YGdR-mMhb6aVpW8VN_HhB8n9geDwBKPOl4TWSgkvAY352thjCQveODsddEBrbssBMuFxTO_eoXgSswWccg4NH2Dzas2eIC5oqK9ohN9GgkigAu-CTC6i-UjqbQVq-shrT-sNn98iMWM-cEevzxEUQ2RHS_bT4gHjs5SpHhk1w7HgbHfMAXD8s2DaWRbVqTiNeMRAomX1rlg9xOJuu3Pr4z6c7iPbKn4Yz3ZMa8yALrbTulU8CB8i7KyQ",
+        },
+        {
+          id: "product-design-engineer",
+          title: "Product Design Engineer",
+          company: "Creative Assembly",
+          location: "Remote",
+          type: "Full-time",
+          branch: "Mechanical",
+          description:
+            "Lead product design initiatives and collaborate with cross-functional teams.",
+          postedDate: "4 days ago",
+          salary: "$75,000 - $95,000",
+          image:
+            "https://lh3.googleusercontent.com/aida-public/AB6AXuAZ6byUVckMqg6gmZhI9DsFjBLDSADsBBPdbK0f3saTH0PXJD9YJAs16HQ9MnxyasAzqznROviksz6opuPiyoJyisTxYAjpWCmFizrDCO6aURW1d-WdZFTaoyKNy2ZzalhBXRTNRmDdkxVVw41UdGHZy7rWhGsXLaHIeGt1oaekIAsRJ4uo0rM1zq4qrRpuFt7jfpDMYUj7fNrBkPGAJJoIs3i-5CHxbXbGsbotvV2xSoBN5Z5f6bGoPBuGE7oUOsyK-o8XaqQQOlk",
+        },
+        {
+          id: "data-engineer",
+          title: "Data Engineer",
+          company: "DataFlow Inc",
+          location: "Seattle, WA",
+          type: "Full-time",
+          branch: "Software",
+          description:
+            "Build and maintain data pipelines for large-scale analytics platforms.",
+          postedDate: "6 days ago",
+          salary: "$85,000 - $110,000",
+          image:
+            "https://lh3.googleusercontent.com/aida-public/AB6AXuA1IU2jpeLS_hX69bOnAJKS0x5aYfdFUQTtSMCJzdFoyCMO-l2uzzxdAHbJ5GXn5Jdz4s5SfaBe_HopIr46pVcy67W2hx8LUPsJLKDXOvLX_AN7wqM4oUWCPfCqXwNSX4UN4lWtRW-FyF4Wej-YaF0JtTxME4YPIztBrHxqhjw6hsBxrAFytx2wa83Tq-YBBgRwBkCDTROeNIa8yU82fibAWQXA1WcvnSqpQfVREyUWS-qoJubyq2m-NUQkxp2zKmpJuqMbOmwLxzA",
+        },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch jobs on mount
   useEffect(() => {
-    const fetchJobs = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/jobs');
-        const data = await response.json();
-        if (data.success) {
-          // Transform API data to match existing structure
-          const transformedJobs = data.data.map((job: any) => ({
-            id: job._id,
-            title: job.title,
-            company: job.company,
-            location: job.location,
-            type: job.type,
-            branch: job.category || "Software", // Map category to branch
-            description: job.description,
-            postedDate: job.createdAt ? new Date(job.createdAt).toLocaleDateString() : "Recently",
-            salary: job.salary ? `${job.salary.currency || 'INR'} ${job.salary.min?.toLocaleString()}-${job.salary.max?.toLocaleString()}` : "Competitive",
-            image: "/images/company-placeholder.svg" // Use placeholder image
-          }));
-          setJobs(transformedJobs);
-        }
-      } catch (error) {
-        console.error('Failed to fetch jobs:', error);
-        // Fallback to hardcoded data if API fails
-        setJobs([
-          {
-            id: "mechanical-engineer-intern",
-            title: "Mechanical Engineer Intern",
-            company: "Tech Solutions Inc",
-            location: "Remote",
-            type: "Internship",
-            branch: "Mechanical",
-            description:
-              "An exciting opportunity for a motivated student to gain hands-on experience in mechanical design and product development.",
-            postedDate: "2 days ago",
-            salary: "$25-30/hour",
-            image:
-              "https://lh3.googleusercontent.com/aida-public/AB6AXuAZ6byUVckMqg6gmZhI9DsFjBLDSADsBBPdbK0f3saTH0PXJD9YJAs16HQ9MnxyasAzqznROviksz6opuPiyoJyisTxYAjpWCmFizrDCO6aURW1d-WdZFTaoyKNy2ZzalhBXRTNRmDdkxVVw41UdGHZy7rWhGsXLaHIeGt1oaekIAsRJ4uo0rM1zq4qrRpuFt7jfpDMYUj7fNrBkPGAJJoIs3i-5CHxbXbGsbotvV2xSoBN5Z5f6bGoPBuGE7oUOsyK-o8XaqQQOlk",
-          },
-          {
-            id: "software-engineer",
-            title: "Software Engineer",
-            company: "Innovate Systems",
-            location: "San Francisco, CA",
-            type: "Full-time",
-            branch: "Software",
-            description:
-              "Join our dynamic team and contribute to the development of our flagship product. Perfect for recent graduates.",
-            postedDate: "3 days ago",
-            salary: "$80,000 - $100,000",
-            image:
-              "https://lh3.googleusercontent.com/aida-public/AB6AXuA1IU2jpeLS_hX69bOnAJKS0x5aYfdFUQTtSMCJzdFoyCMO-l2uzzxdAHbJ5GXn5Jdz4s5SfaBe_HopIr46pVcy67W2hx8LUPsJLKDXOvLX_AN7wqM4oUWCPfCqXwNSX4UN4lWtRW-FyF4Wej-YaF0JtTxME4YPIztBrHxqhjw6hsBxrAFytx2wa83Tq-YBBgRwBkCDTROeNIa8yU82fibAWQXA1WcvnSqpQfVREyUWS-qoJubyq2m-NUQkxp2zKmpJuqMbOmwLxzA",
-          },
-          {
-            id: "electrical-engineer",
-            title: "Electrical Engineer",
-            company: "Power Grid Corp",
-            location: "New York, NY",
-            type: "Full-time",
-            branch: "Electrical",
-            description:
-              "Seeking a skilled electrical engineer to design and oversee installation of electrical equipment.",
-            postedDate: "5 days ago",
-            salary: "$95,000 - $120,000",
-            image:
-              "https://lh3.googleusercontent.com/aida-public/AB6AXuDux4P3_-rmP1G3tsHb2kbzpg44VRBZBwqlwfYovZXac4CLOml05b499gZ-DFWAB-I83A4du3_amUY_rSCVuL4VN13NFv7HzXizS13xko8zW2M0Bt46Pd1JpmNVGSN0Om7DE0UWXqqCiH3IvQZLwe04e2HOrYezmq-ZyD7z_EC0MiWlkLgyFgsx4C4-wEcIQhlsZsZyynIuFrn2EEwemNRMy1H0axAPet97__J6J6oHiKjQpWQjq-zXqE5WfKDc7CGnlMP5_D5dniI",
-          },
-          {
-            id: "civil-engineer-intern",
-            title: "Civil Engineer Intern",
-            company: "BuildWell Construction",
-            location: "Los Angeles, CA",
-            type: "Internship",
-            branch: "Civil",
-            description:
-              "Assist project managers with planning and execution of construction projects.",
-            postedDate: "1 week ago",
-            salary: "$20-25/hour",
-            image:
-              "https://lh3.googleusercontent.com/aida-public/AB6AXuBVRSGwOZxSZBU-lgbk1M4YGdR-mMhb6aVpW8VN_HhB8n9geDwBKPOl4TWSgkvAY352thjCQveODsddEBrbssBMuFxTO_eoXgSswWccg4NH2Dzas2eIC5oqK9ohN9GgkigAu-CTC6i-UjqbQVq-shrT-sNn98iMWM-cEevzxEUQ2RHS_bT4gHjs5SpHhk1w7HgbHfMAXD8s2DaWRbVqTiNeMRAomX1rlg9xOJuu3Pr4z6c7iPbKn4Yz3ZMa8yALrbTulU8CB8i7KyQ",
-          },
-          {
-            id: "product-design-engineer",
-            title: "Product Design Engineer",
-            company: "Creative Assembly",
-            location: "Remote",
-            type: "Full-time",
-            branch: "Mechanical",
-            description:
-              "Lead product design initiatives and collaborate with cross-functional teams.",
-            postedDate: "4 days ago",
-            salary: "$75,000 - $95,000",
-            image:
-              "https://lh3.googleusercontent.com/aida-public/AB6AXuAZ6byUVckMqg6gmZhI9DsFjBLDSADsBBPdbK0f3saTH0PXJD9YJAs16HQ9MnxyasAzqznROviksz6opuPiyoJyisTxYAjpWCmFizrDCO6aURW1d-WdZFTaoyKNy2ZzalhBXRTNRmDdkxVVw41UdGHZy7rWhGsXLaHIeGt1oaekIAsRJ4uo0rM1zq4qrRpuFt7jfpDMYUj7fNrBkPGAJJoIs3i-5CHxbXbGsbotvV2xSoBN5Z5f6bGoPBuGE7oUOsyK-o8XaqQQOlk",
-          },
-          {
-            id: "data-engineer",
-            title: "Data Engineer",
-            company: "DataFlow Inc",
-            location: "Seattle, WA",
-            type: "Full-time",
-            branch: "Software",
-            description:
-              "Build and maintain data pipelines for large-scale analytics platforms.",
-            postedDate: "6 days ago",
-            salary: "$85,000 - $110,000",
-            image:
-              "https://lh3.googleusercontent.com/aida-public/AB6AXuA1IU2jpeLS_hX69bOnAJKS0x5aYfdFUQTtSMCJzdFoyCMO-l2uzzxdAHbJ5GXn5Jdz4s5SfaBe_HopIr46pVcy67W2hx8LUPsJLKDXOvLX_AN7wqM4oUWCPfCqXwNSX4UN4lWtRW-FyF4Wej-YaF0JtTxME4YPIztBrHxqhjw6hsBxrAFytx2wa83Tq-YBBgRwBkCDTROeNIa8yU82fibAWQXA1WcvnSqpQfVREyUWS-qoJubyq2m-NUQkxp2zKmpJuqMbOmwLxzA",
-          },
-        ]);
-      } finally {
-        setLoading(false);
+    fetchJobs();
+  }, []);
+
+  // Refetch jobs when page becomes visible or window regains focus
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // Refetch jobs when page becomes visible
+        fetchJobs();
       }
     };
 
-    fetchJobs();
+    const handleFocus = () => {
+      // Refetch jobs when window regains focus
+      fetchJobs();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+    };
   }, []);
 
   // All available locations from jobs

@@ -4,7 +4,27 @@ import { Job } from '@/models/Job';
 
 export async function GET(request: NextRequest) {
   try {
-    await connectToDatabase();
+    // Try to connect to database, but handle gracefully if not configured
+    try {
+      await connectToDatabase();
+    } catch (dbError) {
+      console.log('Database not available, returning empty jobs list');
+      // Return empty results if database is not configured
+      return NextResponse.json({
+        success: true,
+        data: [],
+        pagination: {
+          currentPage: 1,
+          totalPages: 0,
+          totalItems: 0,
+          itemsPerPage: 10,
+          hasNext: false,
+          hasPrev: false,
+        },
+        message: 'Database not configured. Please set MONGODB_URI in your environment.',
+      });
+    }
+
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
@@ -41,7 +61,7 @@ export async function GET(request: NextRequest) {
 
     const totalPages = Math.ceil(total / limit);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       data: items,
       pagination: {
@@ -53,6 +73,13 @@ export async function GET(request: NextRequest) {
         hasPrev: page > 1,
       },
     });
+
+    // Add cache control headers to prevent stale data
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+
+    return response;
 
   } catch (error) {
     console.error('Jobs fetch error:', error);
@@ -76,7 +103,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await connectToDatabase();
+    // Try to connect to database, return error if not configured
+    try {
+      await connectToDatabase();
+    } catch (dbError) {
+      console.error('Database connection error:', dbError);
+      return NextResponse.json(
+        { 
+          error: 'Database not configured',
+          message: 'Cannot create job. Please set MONGODB_URI in your environment to enable job creation.',
+          details: dbError instanceof Error ? dbError.message : 'Unknown database error'
+        },
+        { status: 503 }
+      );
+    }
 
     // Ensure required fields are present
     const jobData = {
