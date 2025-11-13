@@ -1,6 +1,7 @@
 import { Blog } from '@/models/Blog';
 import { AdminBlog } from '@/models/AdminBlog';
 import { connectToDatabase } from '@/lib/db';
+import mongoose from 'mongoose';
 
 /**
  * Syncs blog data from AdminBlog to Blog model
@@ -72,22 +73,58 @@ export async function syncSingleAdminBlog(adminBlogId: string) {
     }
     
     // Check if blog already exists in main Blog collection
-    const existingBlog = await Blog.findOne({ slug: adminBlog.slug });
+    // First try to find by _id (which should match blog_id)
+    let existingBlog = null;
+    
+    if (mongoose.Types.ObjectId.isValid(adminBlogId)) {
+      existingBlog = await Blog.findById(adminBlogId);
+    }
+    
+    // If not found by ID, try to find by slug
+    if (!existingBlog) {
+      existingBlog = await Blog.findOne({ slug: adminBlog.slug });
+    }
     
     if (existingBlog) {
       // Update existing blog
       existingBlog.title = adminBlog.title;
+      existingBlog.slug = adminBlog.slug; // Update slug in case it changed
       existingBlog.summary = adminBlog.content.substring(0, 200) + '...';
       existingBlog.content = adminBlog.content;
       existingBlog.category = 'technology'; // Default category
       existingBlog.tags = adminBlog.tags || [];
       existingBlog.featured = false; // Default to not featured
       existingBlog.published = adminBlog.status === 'published';
-      existingBlog.authorId = adminBlog.author_id;
+      // Handle author_id - convert to ObjectId if it's a valid ObjectId string
+      if (adminBlog.author_id && adminBlog.author_id !== 'unknown') {
+        try {
+          if (mongoose.Types.ObjectId.isValid(adminBlog.author_id)) {
+            existingBlog.authorId = new mongoose.Types.ObjectId(adminBlog.author_id);
+          } else {
+            existingBlog.authorId = undefined;
+          }
+        } catch (e) {
+          existingBlog.authorId = undefined;
+        }
+      } else {
+        existingBlog.authorId = undefined;
+      }
       
       await existingBlog.save();
+      console.log(`Updated blog ${adminBlogId} in main collection (slug: ${adminBlog.slug}, _id: ${existingBlog._id})`);
     } else {
       // Create new blog in main collection
+      let authorIdObj = undefined;
+      if (adminBlog.author_id && adminBlog.author_id !== 'unknown') {
+        try {
+          if (mongoose.Types.ObjectId.isValid(adminBlog.author_id)) {
+            authorIdObj = new mongoose.Types.ObjectId(adminBlog.author_id);
+          }
+        } catch (e) {
+          // Keep as undefined
+        }
+      }
+      
       const newBlog = new Blog({
         title: adminBlog.title,
         slug: adminBlog.slug,
@@ -97,15 +134,15 @@ export async function syncSingleAdminBlog(adminBlogId: string) {
         tags: adminBlog.tags || [],
         featured: false, // Default to not featured
         published: adminBlog.status === 'published',
-        authorId: adminBlog.author_id,
+        authorId: authorIdObj,
         views: 0,
         likes: 0,
       });
       
       await newBlog.save();
+      console.log(`Created blog ${adminBlogId} in main collection (slug: ${adminBlog.slug}, _id: ${newBlog._id})`);
     }
     
-    console.log(`Synced blog ${adminBlogId} from admin to main collection`);
     return { success: true };
   } catch (error: any) {
     console.error('Error syncing single admin blog:', error);

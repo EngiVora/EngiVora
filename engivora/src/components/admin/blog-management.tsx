@@ -33,7 +33,6 @@ export function BlogManagement() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editingBlog, setEditingBlog] = useState<any>(null);
-  const [syncMessage, setSyncMessage] = useState(""); // Add this state
   const router = useRouter();
 
   // Form states
@@ -63,50 +62,6 @@ export function BlogManagement() {
     reader.readAsDataURL(file);
   };
 
-  // Add sync blogs function
-  const handleSyncBlogs = async () => {
-    setIsLoading(true);
-    setSyncMessage("");
-    
-    try {
-      const token = typeof window !== 'undefined' 
-        ? (localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken'))
-        : null
-      
-      if (!token) {
-        router.push('/admin/login')
-        return
-      }
-
-      const res = await fetch('/api/admin/sync-blogs', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-      
-      const data = await res.json()
-      
-      if (res.ok) {
-        setSyncMessage(data.message)
-        // Refresh the blog list
-        fetchBlogs()
-      } else {
-        setSyncMessage(`Sync failed: ${data.error}`)
-      }
-    } catch (error) {
-      console.error("Failed to sync blogs:", error);
-      setSyncMessage("Sync failed: Network error")
-    } finally {
-      setIsLoading(false);
-      
-      // Clear message after 5 seconds
-      setTimeout(() => {
-        setSyncMessage("")
-      }, 5000)
-    }
-  }
-
   const fetchBlogs = async () => {
     setIsLoading(true);
     try {
@@ -124,11 +79,15 @@ export function BlogManagement() {
       const params = new URLSearchParams()
       if (searchQuery) params.set('search', searchQuery)
       params.set('limit', '100') // Get more results
+      params.set('_t', Date.now().toString()) // Cache-busting timestamp
       
       const res = await fetch(`/api/admin/blogs?${params.toString()}`, {
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          'Authorization': `Bearer ${token}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+        },
+        cache: 'no-store', // Disable caching
       })
       const data = await res.json()
       if (res.ok) {
@@ -137,15 +96,16 @@ export function BlogManagement() {
           _id: blog.blog_id,
           title: blog.title,
           content: blog.content,
-          summary: blog.content.substring(0, 100) + '...',
-          category: 'technology', // Default since AdminBlog doesn't have this field
+          summary: blog.summary || blog.content.substring(0, 100) + '...',
+          category: blog.category || 'technology', // Use category from API if available
           tags: blog.tags || [],
           published: blog.status === 'published',
-          featured: false, // Default
-          views: 0, // Default since AdminBlog doesn't track this
+          featured: blog.featured || false,
+          views: blog.views || 0,
           createdAt: blog.createdAt,
           updatedAt: blog.updatedAt,
-          source: blog.source || 'admin' // Track the source of the blog
+          source: blog.source || 'admin', // Track the source of the blog
+          imageUrl: blog.imageUrl || null
         }))
         setBlogs(transformedBlogs || [])
       } else {
@@ -165,6 +125,7 @@ export function BlogManagement() {
   useEffect(() => {
     const timeoutId = setTimeout(fetchBlogs, 300)
     return () => clearTimeout(timeoutId)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, router])
 
   const filteredBlogs = useMemo(() => {
@@ -257,7 +218,9 @@ export function BlogManagement() {
         return
       }
       
-      setBlogs(prev => prev.filter(blog => blog._id !== blogId))
+      // Refetch blogs from database to ensure data consistency
+      await fetchBlogs()
+      
       alert('Blog deleted successfully')
     } catch (e) {
       console.error('Error deleting blog:', e)
@@ -306,11 +269,8 @@ export function BlogManagement() {
         return
       }
       
-      setBlogs(prev => prev.map(blog => 
-        blog._id === blogId 
-          ? {...blog, published: shouldPublish, status: shouldPublish ? 'published' : 'draft'}
-          : blog
-      ))
+      // Refetch blogs from database to ensure data consistency
+      await fetchBlogs()
       
       alert(`Blog ${shouldPublish ? 'published' : 'unpublished'} successfully`)
     } catch (e) {
@@ -370,27 +330,8 @@ export function BlogManagement() {
         return
       }
       
-      // Add new blog to the list
-      const newBlog = {
-        _id: data.data.blog_id,
-        title: data.data.title,
-        content: data.data.content,
-        summary: data.data.content.substring(0, 100) + '...',
-        category: 'technology',
-        tags: data.data.tags || [],
-        published: data.data.status === 'published',
-        featured: false,
-        views: 0,
-        createdAt: data.data.createdAt,
-        updatedAt: data.data.updatedAt,
-        // Add imageUrl to the blog object
-        imageUrl: data.data.imageUrl || imagePreview || imageUrl
-      }
-      
-      setBlogs(prev => [newBlog, ...prev])
+      // Close modal and reset form
       setShowCreateModal(false)
-      
-      // Reset form
       setTitle("")
       setContent("")
       setSummary("")
@@ -399,6 +340,9 @@ export function BlogManagement() {
       setStatus("draft")
       setImageUrl("")
       setImagePreview(null)
+      
+      // Refetch blogs from database to ensure data consistency
+      await fetchBlogs()
       
       alert('Blog created successfully')
     } catch (e) {
@@ -460,30 +404,14 @@ export function BlogManagement() {
         return
       }
       
-      // Update blog in the list
-      const updatedBlog = {
-        _id: data.data.blog_id,
-        title: data.data.title,
-        content: data.data.content,
-        summary: data.data.content.substring(0, 100) + '...',
-        category: 'technology',
-        tags: data.data.tags || [],
-        published: data.data.status === 'published',
-        featured: false,
-        views: 0,
-        createdAt: data.data.createdAt,
-        updatedAt: data.data.updatedAt,
-        // Add imageUrl to the blog object
-        imageUrl: data.data.imageUrl || imagePreview || imageUrl || editingBlog.imageUrl
-      }
-      
-      setBlogs(prev => prev.map(blog => 
-        blog._id === editingBlog._id ? updatedBlog : blog
-      ))
-      
+      // Close modal and reset
       setShowEditModal(false)
       setEditingBlog(null)
       setImagePreview(null)
+      
+      // Refetch blogs from database to ensure data consistency
+      await fetchBlogs()
+      
       alert('Blog updated successfully')
     } catch (e) {
       console.error('Error updating blog:', e)
@@ -530,20 +458,6 @@ export function BlogManagement() {
           </p>
         </div>
         <div className="flex items-center space-x-3">
-          {/* Add Sync button */}
-          <button 
-            onClick={handleSyncBlogs}
-            disabled={isLoading}
-            className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-          >
-            <Upload className="h-4 w-4 mr-2" />
-            Sync Blogs
-          </button>
-          {syncMessage && (
-            <div className="text-sm text-green-600 bg-green-50 px-3 py-1 rounded">
-              {syncMessage}
-            </div>
-          )}
           <button className="flex items-center px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
             <Download className="h-4 w-4 mr-2" />
             Export

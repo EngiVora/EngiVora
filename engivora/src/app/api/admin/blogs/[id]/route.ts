@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { connectToDatabase } from '@/lib/db';
 import { AdminBlog } from '@/models/AdminBlog';
+import { Blog } from '@/models/Blog';
 import { verifyAdminToken } from '@/lib/jwt-utils';
 import { syncSingleAdminBlog } from '@/utils/blog-sync';
+import { isValidObjectId } from 'mongoose';
 
 export const runtime = 'nodejs'
 
@@ -122,7 +124,6 @@ export async function PUT(
       );
     }
 
-    const user = authResult.user;
     const { id } = await params;
 
     const body = await request.json();
@@ -151,15 +152,8 @@ export async function PUT(
       );
     }
     
-    // Check if user is the author of the blog
-    if (blog.author_id !== user.id) {
-      return NextResponse.json(
-        { error: 'Access denied: You can only edit your own blogs' },
-        { status: 403 }
-      );
-    }
-    
     // Update blog fields
+    // Note: Removed author check - admins can edit any blog
     if (validatedData.title !== undefined) {
       blog.title = validatedData.title;
       
@@ -207,9 +201,13 @@ export async function PUT(
     try {
       const updatedBlog = await blog.save();
       
-      // Sync to main blog collection if published
-      if (updatedBlog.status === 'published') {
+      // Always sync to main blog collection (for both published and draft)
+      // This ensures the Blog collection stays in sync with AdminBlog
+      try {
         await syncSingleAdminBlog(updatedBlog.blog_id);
+      } catch (syncError) {
+        console.error('Error syncing blog to main collection:', syncError);
+        // Don't fail the request if sync fails, but log it
       }
       
       return NextResponse.json({
@@ -267,7 +265,6 @@ export async function DELETE(
       );
     }
 
-    const user = authResult.user;
     const { id } = await params;
 
     // Connect to database
@@ -281,36 +278,50 @@ export async function DELETE(
       );
     }
     
-    // Find the blog
-    const blog = await AdminBlog.findOne({ blog_id: id });
+    // Find the blog in AdminBlog collection
+    const adminBlog = await AdminBlog.findOne({ blog_id: id });
     
-    if (!blog) {
+    if (!adminBlog) {
       return NextResponse.json(
         { error: 'Blog not found' },
         { status: 404 }
       );
     }
     
-    // Check if user is the author of the blog
-    if (blog.author_id !== user.id) {
-      return NextResponse.json(
-        { error: 'Access denied: You can only delete your own blogs' },
-        { status: 403 }
-      );
-    }
-    
-    // Delete the blog
+    // Delete from AdminBlog collection
     try {
       await AdminBlog.deleteOne({ blog_id: id });
+      
+      // Also delete from main Blog collection if it exists
+      // Try to find by slug first (most reliable)
+      const mainBlog = await Blog.findOne({ slug: adminBlog.slug });
+      
+      if (mainBlog) {
+        await Blog.deleteOne({ _id: mainBlog._id });
+        console.log(`Deleted blog "${adminBlog.title}" from both AdminBlog and Blog collections`);
+      } else {
+        // Try to find by ID if slug doesn't match
+        if (isValidObjectId(id)) {
+          const blogById = await Blog.findById(id);
+          if (blogById) {
+            await Blog.deleteOne({ _id: blogById._id });
+            console.log(`Deleted blog "${adminBlog.title}" from Blog collection by ID`);
+          }
+        }
+      }
       
       return NextResponse.json({
         success: true,
         message: 'Blog deleted successfully',
+      }, {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        },
       });
     } catch (deleteError) {
       console.error('Error deleting blog:', deleteError);
       return NextResponse.json(
-        { error: 'Blog deletion failed' },
+        { error: 'Blog deletion failed', details: deleteError instanceof Error ? deleteError.message : 'Unknown error' },
         { status: 500 }
       );
     }

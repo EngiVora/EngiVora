@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
+import { isValidObjectId } from 'mongoose';
 import { connectToDatabase } from '@/lib/db';
 import { AdminBlog } from '@/models/AdminBlog';
 import { Blog } from '@/models/Blog'; // Add this import
@@ -62,73 +63,84 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const author_id = searchParams.get('author_id');
+    const search = searchParams.get('search')?.trim().toLowerCase();
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
 
-    // Build filter object for AdminBlog
+    // Build filter object for AdminBlog only (no main Blog collection)
     const adminBlogFilter: any = {};
     if (status) adminBlogFilter.status = status;
     if (author_id) adminBlogFilter.author_id = author_id;
 
-    // Get blogs from AdminBlog collection
+    // Add search filter to MongoDB query for better performance
+    if (search) {
+      adminBlogFilter.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { content: { $regex: search, $options: 'i' } },
+        { tags: { $in: [new RegExp(search, 'i')] } },
+      ];
+    }
+
+    // Get blogs from AdminBlog collection and sync missing ones from Blog collection
     try {
-      const adminBlogs = await AdminBlog.find(adminBlogFilter)
-        .sort({ createdAt: -1 })
-        .skip((page - 1) * limit)
-        .limit(limit);
-
-      // Get all blogs from main Blog collection (for sync)
-      const mainBlogs = await Blog.find({}).sort({ createdAt: -1 });
-
-      // Combine blogs from both collections
-      // Create a map to avoid duplicates
-      const blogMap = new Map();
-      
-      // Add AdminBlog entries first
-      for (const blog of adminBlogs) {
-        blogMap.set(blog.blog_id, {
-          blog_id: blog.blog_id,
-          title: blog.title,
-          slug: blog.slug,
-          content: blog.content,
-          author_id: blog.author_id,
-          tags: blog.tags,
-          published_date: blog.published_date,
-          last_updated: blog.last_updated,
-          status: blog.status,
-          createdAt: blog.createdAt,
-          updatedAt: blog.updatedAt,
-          source: 'admin' // Indicates this blog is from AdminBlog collection
-        });
-      }
-      
-      // Add main Blog entries that don't exist in AdminBlog
-      for (const blog of mainBlogs) {
-        const blogId = blog._id.toString();
-        if (!blogMap.has(blogId)) {
-          blogMap.set(blogId, {
-            blog_id: blogId,
-            title: blog.title,
-            slug: blog.slug,
-            content: blog.content,
-            author_id: blog.authorId?.toString() || 'unknown',
-            tags: blog.tags || [],
-            published_date: blog.createdAt,
-            last_updated: blog.updatedAt,
-            status: blog.published ? 'published' : 'draft',
-            createdAt: blog.createdAt,
-            updatedAt: blog.updatedAt,
-            source: 'main' // Indicates this blog is from main Blog collection
+      // First, sync any blogs from Blog collection that don't exist in AdminBlog
+      // This ensures all blogs are manageable from admin panel
+      // Only sync on first page to avoid performance issues
+      if (page === 1) {
+        const mainBlogs = await Blog.find({});
+        const adminBlogSlugs = new Set(
+          (await AdminBlog.find({}, { slug: 1 })).map(b => b.slug)
+        );
+        
+        // Only process blogs that don't exist in AdminBlog
+        const blogsToSync = mainBlogs.filter(blog => !adminBlogSlugs.has(blog.slug));
+        
+        if (blogsToSync.length > 0) {
+          const syncPromises = blogsToSync.map(mainBlog => {
+            const newAdminBlog = new AdminBlog({
+              blog_id: mainBlog._id.toString(),
+              title: mainBlog.title,
+              slug: mainBlog.slug,
+              content: mainBlog.content,
+              author_id: mainBlog.authorId?.toString() || 'unknown',
+              tags: mainBlog.tags || [],
+              published_date: mainBlog.createdAt,
+              last_updated: mainBlog.updatedAt,
+              status: mainBlog.published ? 'published' : 'draft',
+            });
+            return newAdminBlog.save();
           });
+          
+          await Promise.all(syncPromises);
+          console.log(`Auto-synced ${blogsToSync.length} blog(s) from Blog to AdminBlog collection`);
         }
       }
-
-      // Convert map to array
-      const combinedBlogs = Array.from(blogMap.values());
       
-      // Apply pagination to combined blogs
-      const paginatedBlogs = combinedBlogs.slice((page - 1) * limit, page * limit);
-      const total = combinedBlogs.length;
+      const skip = (page - 1) * limit;
+      
+      const [adminBlogs, total] = await Promise.all([
+        AdminBlog.find(adminBlogFilter)
+          .sort({ createdAt: -1 })
+          .skip(skip)
+          .limit(limit),
+        AdminBlog.countDocuments(adminBlogFilter),
+      ]);
+
+      // Transform AdminBlog entries to match expected format
+      const paginatedBlogs = adminBlogs.map((blog) => ({
+        blog_id: blog.blog_id,
+        title: blog.title,
+        slug: blog.slug,
+        content: blog.content,
+        author_id: blog.author_id,
+        tags: blog.tags || [],
+        published_date: blog.published_date,
+        last_updated: blog.last_updated,
+        status: blog.status,
+        createdAt: blog.createdAt,
+        updatedAt: blog.updatedAt,
+        source: 'admin', // All blogs are from AdminBlog collection
+      }));
 
       return NextResponse.json({
         success: true,
@@ -138,6 +150,12 @@ export async function GET(request: NextRequest) {
           limit,
           total,
           pages: Math.ceil(total / limit),
+        },
+      }, {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
         },
       });
     } catch (findError) {
@@ -218,9 +236,13 @@ export async function POST(request: NextRequest) {
       
       const savedBlog = await newBlog.save();
       
-      // Sync to main blog collection if published
-      if (savedBlog.status === 'published') {
+      // Always sync to main blog collection (for both published and draft)
+      // This ensures consistency and allows drafts to be visible when published
+      try {
         await syncSingleAdminBlog(savedBlog.blog_id);
+      } catch (syncError) {
+        console.error('Error syncing blog to main collection:', syncError);
+        // Don't fail the request if sync fails, but log it
       }
       
       return NextResponse.json({
@@ -239,6 +261,10 @@ export async function POST(request: NextRequest) {
           createdAt: savedBlog.createdAt,
           updatedAt: savedBlog.updatedAt,
         }
+      }, {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        },
       });
     } catch (saveError) {
       console.error('Error saving blog:', saveError);
@@ -355,19 +381,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       
       const updatedAdminBlog = await adminBlog.save();
       
-      // Also update the main blog if it exists
-      if (!mainBlog) {
-        mainBlog = await Blog.findById(id);
-      }
-      
-      if (mainBlog) {
-        mainBlog.title = updatedAdminBlog.title;
-        mainBlog.slug = updatedAdminBlog.slug;
-        mainBlog.content = updatedAdminBlog.content;
-        mainBlog.tags = updatedAdminBlog.tags || [];
-        mainBlog.published = updatedAdminBlog.status === 'published';
-        mainBlog.authorId = updatedAdminBlog.author_id;
-        await mainBlog.save();
+      // Always sync to main blog collection to ensure consistency
+      try {
+        await syncSingleAdminBlog(updatedAdminBlog.blog_id);
+      } catch (syncError) {
+        console.error('Error syncing blog to main collection:', syncError);
+        // Don't fail the request if sync fails, but log it
       }
       
       return NextResponse.json({
@@ -386,6 +405,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
           createdAt: updatedAdminBlog.createdAt,
           updatedAt: updatedAdminBlog.updatedAt,
         }
+      }, {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        },
       });
     } catch (updateError) {
       console.error('Error updating blog:', updateError);
@@ -444,7 +467,13 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     try {
       // First, try to find the blog in either collection to confirm it exists
       const adminBlog = await AdminBlog.findOne({ blog_id: id });
-      const mainBlog = await Blog.findById(id);
+      let mainBlog = null;
+
+      if (adminBlog) {
+        mainBlog = await Blog.findOne({ slug: adminBlog.slug });
+      } else if (isValidObjectId(id)) {
+        mainBlog = await Blog.findById(id);
+      }
       
       // If blog doesn't exist in either collection, return error
       if (!adminBlog && !mainBlog) {
@@ -460,13 +489,23 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
       }
       
       // Delete from main Blog collection (if exists)
-      if (mainBlog) {
-        await Blog.findByIdAndDelete(id);
+      // Try to find by slug first (in case blog_id doesn't match _id)
+      if (adminBlog) {
+        const blogBySlug = await Blog.findOne({ slug: adminBlog.slug });
+        if (blogBySlug) {
+          await Blog.deleteOne({ _id: blogBySlug._id });
+        }
+      } else if (mainBlog) {
+        await Blog.deleteOne({ _id: mainBlog._id });
       }
       
       return NextResponse.json({
         success: true,
         message: 'Blog deleted successfully'
+      }, {
+        headers: {
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+        },
       });
     } catch (deleteError) {
       console.error('Error deleting blog:', deleteError);

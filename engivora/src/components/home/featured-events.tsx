@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { EventCard } from "@/components/ui/event-card";
 
@@ -151,7 +152,7 @@ export function FeaturedEvents() {
           viewport={{ once: true }}
           className="text-center mt-10"
         >
-          <a
+          <Link
             href="/events"
             className="inline-flex items-center gap-2 text-sky-400 hover:text-sky-300 font-medium"
           >
@@ -166,10 +167,10 @@ export function FeaturedEvents() {
               viewBox="0 0 24 24"
               xmlns="http://www.w3.org/2000/svg"
             >
-              <path d="M5 12h14"></path>
-              <path d="M12 5l7 7-7 7"></path>
-            </svg>
-          </a>
+                  <path d="M5 12h14"></path>
+                  <path d="M12 5l7 7-7 7"></path>
+                </svg>
+          </Link>
         </motion.div>
       </div>
     </section>

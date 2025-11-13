@@ -98,8 +98,15 @@ export default function BlogsClient() {
         if (search) queryParams.append('search', search);
         if (category) queryParams.append('category', category);
         if (tag) queryParams.append('tag', tag);
+        queryParams.append('_t', Date.now().toString()); // Cache-busting timestamp
 
-        const response = await fetch(`/api/blogs?${queryParams.toString()}`);
+        const response = await fetch(`/api/blogs?${queryParams.toString()}`, {
+          cache: 'no-store', // Disable caching
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+          },
+        });
         const result = await response.json();
 
         if (result.success) {
