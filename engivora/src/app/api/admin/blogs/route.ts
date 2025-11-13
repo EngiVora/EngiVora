@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
         const adminBlogSlugs = new Set(
           (await AdminBlog.find({}, { slug: 1 })).map(b => b.slug)
         );
-        
+
         // Only process blogs that don't exist in AdminBlog
         const blogsToSync = mainBlogs.filter(blog => !adminBlogSlugs.has(blog.slug));
         
@@ -125,20 +125,20 @@ export async function GET(request: NextRequest) {
           .limit(limit),
         AdminBlog.countDocuments(adminBlogFilter),
       ]);
-
+      
       // Transform AdminBlog entries to match expected format
       const paginatedBlogs = adminBlogs.map((blog) => ({
-        blog_id: blog.blog_id,
-        title: blog.title,
-        slug: blog.slug,
-        content: blog.content,
-        author_id: blog.author_id,
+          blog_id: blog.blog_id,
+          title: blog.title,
+          slug: blog.slug,
+          content: blog.content,
+          author_id: blog.author_id,
         tags: blog.tags || [],
-        published_date: blog.published_date,
-        last_updated: blog.last_updated,
-        status: blog.status,
-        createdAt: blog.createdAt,
-        updatedAt: blog.updatedAt,
+          published_date: blog.published_date,
+          last_updated: blog.last_updated,
+          status: blog.status,
+          createdAt: blog.createdAt,
+          updatedAt: blog.updatedAt,
         source: 'admin', // All blogs are from AdminBlog collection
       }));
 
