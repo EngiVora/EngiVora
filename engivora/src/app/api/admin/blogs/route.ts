@@ -358,6 +358,10 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         );
       }
       
+      // Save old values before updating to detect changes
+      const oldTitle = adminBlog.title;
+      const oldStatus = adminBlog.status;
+      
       // Update the admin blog
       adminBlog.title = validatedData.title;
       adminBlog.content = validatedData.content;
@@ -365,8 +369,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
       adminBlog.status = validatedData.status || adminBlog.status;
       adminBlog.last_updated = new Date();
       
-      // Update slug if title changed
-      if (validatedData.title !== adminBlog.title) {
+      // Update slug if title changed (check BEFORE assignment)
+      if (validatedData.title && validatedData.title !== oldTitle) {
         const slug = validatedData.title
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, '-')
@@ -374,8 +378,8 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
         adminBlog.slug = slug;
       }
       
-      // Set published date if status changed to published
-      if (validatedData.status === 'published' && adminBlog.status !== 'published') {
+      // Set published date if status changed to published (check old status BEFORE assignment)
+      if (validatedData.status === 'published' && oldStatus !== 'published') {
         adminBlog.published_date = new Date();
       }
       
