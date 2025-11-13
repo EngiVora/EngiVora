@@ -111,28 +111,45 @@ export default function BlogsClient() {
 
         if (result.success) {
           // Transform data to match expected format
-          const transformedBlogs = result.data.map((blog: any) => ({
-            _id: blog._id,
-            title: blog.title,
-            slug: blog.slug,
-            summary: blog.summary,
-            category: blog.category,
-            tags: blog.tags,
-            author: {
-              id: blog.authorId || "1",
-              name: "Admin",
-              email: "admin@engivora.com",
-              avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuAQH2T-U3EJFPoNgvpZesWbKFpcd0ZviQAiuAAXZ44awW7nVaxfA-0C07apDiIhXO7tFvlVOryALSZfFo-lHY1Y3XbBcgRPzj5ykTk6ZbZBA2PyQFktuivTFdq-nVk5UNUDRjxhQ6XNsNE8AH8-SHNGlYXPQoe4d5gAC7BKgK29eZvcojsf3jisD5ZSQgh8FHnFpHbRPRQ5sZcFQgGuHiYAj6BS0yu0bT8Y4k2OKqipf2VRZfn790A16s1wxn6O2bf8dympSkwc2Qc"
-            },
-            featured: blog.featured,
-            published: blog.published,
-            views: blog.views,
-            likes: blog.likes,
-            readTime: `${Math.ceil(blog.content.length / 1000)} min read`,
-            publishedAt: blog.createdAt,
-            updatedAt: blog.updatedAt,
-            image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAM2R9kE0qcg7_hHLAZXCfH_Tvh-TI6-usLUJjHNoWpYxZySmxzNOClDeEAywLvLItOAb3U1bDLnXwogGxZQelSU7Ri_ASP0EZjXoXYFoZPP_DIepczx07liojLkJYivHa4O9QBLB5iewgkJJxVlxi0diVPEMTqbwF7BdSa0Adq3LWIoSXU36tchdc0tXNnqSIx5oIus98gAaplRdOJ2qgrKyLlgTeejw-VWKAfHDrvbkTBveOi_ZWoPj1pzwhWj48L8jGcTErsPuo"
-          }));
+          const transformedBlogs = result.data.map((blog: any) => {
+            // Generate slug from title if slug is missing
+            let slug = blog.slug;
+            if (!slug && blog.title) {
+              slug = blog.title
+                .toLowerCase()
+                .replace(/[^a-z0-9\s-]/g, '')
+                .trim()
+                .replace(/\s+/g, '-')
+                .substring(0, 80);
+            }
+            // Fallback to ID if slug is still missing
+            if (!slug && blog._id) {
+              slug = blog._id.toString();
+            }
+            
+            return {
+              _id: blog._id,
+              title: blog.title,
+              slug: slug || 'untitled',
+              summary: blog.summary,
+              category: blog.category,
+              tags: blog.tags,
+              author: {
+                id: blog.authorId || "1",
+                name: "Admin",
+                email: "admin@engivora.com",
+                avatar: "https://lh3.googleusercontent.com/aida-public/AB6AXuAQH2T-U3EJFPoNgvpZesWbKFpcd0ZviQAiuAAXZ44awW7nVaxfA-0C07apDiIhXO7tFvlVOryALSZfFo-lHY1Y3XbBcgRPzj5ykTk6ZbZBA2PyQFktuivTFdq-nVk5UNUDRjxhQ6XNsNE8AH8-SHNGlYXPQoe4d5gAC7BKgK29eZvcojsf3jisD5ZSQgh8FHnFpHbRPRQ5sZcFQgGuHiYAj6BS0yu0bT8Y4k2OKqipf2VRZfn790A16s1wxn6O2bf8dympSkwc2Qc"
+              },
+              featured: blog.featured,
+              published: blog.published,
+              views: blog.views,
+              likes: blog.likes,
+              readTime: `${Math.ceil(blog.content.length / 1000)} min read`,
+              publishedAt: blog.createdAt,
+              updatedAt: blog.updatedAt,
+              image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAM2R9kE0qcg7_hHLAZXCfH_Tvh-TI6-usLUJjHNoWpYxZySmxzNOClDeEAywLvLItOAb3U1bDLnXwogGxZQelSU7Ri_ASP0EZjXoXYFoZPP_DIepczx07liojLkJYivHa4O9QBLB5iewgkJJxVlxi0diVPEMTqbwF7BdSa0Adq3LWIoSXU36tchdc0tXNnqSIx5oIus98gAaplRdOJ2qgrKyLlgTeejw-VWKAfHDrvbkTBveOi_ZWoPj1pzwhWj48L8jGcTErsPuo"
+            };
+          });
 
           setBlogs(transformedBlogs);
           setFeaturedBlogs(transformedBlogs.filter((blog: any) => blog.featured).slice(0, 2));
@@ -297,75 +314,77 @@ export default function BlogsClient() {
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {featuredBlogs.map((blog) => (
-                      <motion.article
+                      <Link
                         key={blog._id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                        className="flex flex-col bg-slate-900 border border-slate-800 rounded-lg shadow-lg overflow-hidden group transition-all duration-300 hover:shadow-sky-500/20 hover:-translate-y-1"
+                        href={`/blogs/${blog.slug}`}
+                        className="block"
                       >
-                        <div className="w-full h-48 overflow-hidden relative">
-                          <Image
-                            src={blog.image}
-                            alt={blog.title}
-                            fill
-                            sizes="(min-width: 768px) 50vw, 100vw"
-                            className="object-cover"
-                          />
-                          <div className="absolute top-4 left-4">
-                            <span
-                              className={`px-2 py-1 rounded-full text-xs font-medium border ${getCategoryColor(blog.category)}`}
-                            >
-                              {blog.category.charAt(0).toUpperCase() +
-                                blog.category.slice(1)}
+                        <motion.article
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ duration: 0.5 }}
+                          className="flex flex-col bg-slate-900 border border-slate-800 rounded-lg shadow-lg overflow-hidden group transition-all duration-300 hover:shadow-sky-500/20 hover:-translate-y-1 hover:border-sky-500/50 cursor-pointer h-full"
+                        >
+                          <div className="w-full h-48 overflow-hidden relative">
+                            <Image
+                              src={blog.image}
+                              alt={blog.title}
+                              fill
+                              sizes="(min-width: 768px) 50vw, 100vw"
+                              className="object-cover group-hover:scale-110 transition-transform duration-500"
+                            />
+                            <div className="absolute top-4 left-4">
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs font-medium border ${getCategoryColor(blog.category)}`}
+                              >
+                                {blog.category.charAt(0).toUpperCase() +
+                                  blog.category.slice(1)}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="p-6 flex flex-col flex-grow">
+                            <h3 className="text-lg font-bold leading-tight mb-2 group-hover:text-sky-400 transition-colors">
+                              {blog.title}
+                            </h3>
+                            <p className="text-slate-400 text-sm leading-relaxed mb-4 flex-grow">
+                              {blog.summary}
+                            </p>
+
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center gap-2">
+                                <Image
+                                  src={blog.author.avatar}
+                                  alt={blog.author.name}
+                                  width={24}
+                                  height={24}
+                                  className="rounded-full"
+                                />
+                                <span className="text-sm text-slate-400">
+                                  {blog.author.name}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-4 text-xs text-slate-500">
+                                <span className="flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  {blog.readTime}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Eye className="w-3 h-3" />
+                                  {blog.views}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Heart className="w-3 h-3" />
+                                  {blog.likes}
+                                </span>
+                              </div>
+                            </div>
+
+                            <span className="inline-flex items-center font-bold text-sky-400 text-sm group-hover:underline">
+                              Read More <span className="ml-1 group-hover:translate-x-1 transition-transform">→</span>
                             </span>
                           </div>
-                        </div>
-                        <div className="p-6 flex flex-col flex-grow">
-                          <h3 className="text-lg font-bold leading-tight mb-2 group-hover:text-sky-400 transition-colors">
-                            {blog.title}
-                          </h3>
-                          <p className="text-slate-400 text-sm leading-relaxed mb-4 flex-grow">
-                            {blog.summary}
-                          </p>
-
-                          <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-2">
-                              <Image
-                                src={blog.author.avatar}
-                                alt={blog.author.name}
-                                width={24}
-                                height={24}
-                                className="rounded-full"
-                              />
-                              <span className="text-sm text-slate-400">
-                                {blog.author.name}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-4 text-xs text-slate-500">
-                              <span className="flex items-center gap-1">
-                                <Clock className="w-3 h-3" />
-                                {blog.readTime}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Eye className="w-3 h-3" />
-                                {blog.views}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Heart className="w-3 h-3" />
-                                {blog.likes}
-                              </span>
-                            </div>
-                          </div>
-
-                          <Link
-                            href={`/blogs/${blog.slug}`}
-                            className="inline-flex items-center font-bold text-sky-400 text-sm group-hover:underline"
-                          >
-                            Read More <span className="ml-1">→</span>
-                          </Link>
-                        </div>
-                      </motion.article>
+                        </motion.article>
+                      </Link>
                     ))}
                   </div>
                 </>
@@ -424,105 +443,112 @@ export default function BlogsClient() {
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       {blogs.map((blog, index) => (
-                        <motion.article
+                        <Link
                           key={blog._id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.5, delay: index * 0.1 }}
-                          className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden hover:border-slate-700 hover:shadow-lg transition-all duration-300 group"
+                          href={`/blogs/${blog.slug}`}
+                          className="block"
                         >
-                          <div className="aspect-video overflow-hidden relative">
-                            <Image
-                              src={blog.image}
-                              alt={blog.title}
-                              fill
-                              sizes="(min-width: 768px) 50vw, 100vw"
-                              className="object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                            <div className="absolute top-4 left-4">
-                              <span
-                                className={`px-2 py-1 rounded-full text-xs font-medium border ${getCategoryColor(blog.category)}`}
-                              >
-                                {blog.category.charAt(0).toUpperCase() +
-                                  blog.category.slice(1)}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="p-6">
-                            <div className="flex items-center gap-2 mb-3">
+                          <motion.article
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.5, delay: index * 0.1 }}
+                            className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden hover:border-sky-500/50 hover:shadow-xl hover:shadow-sky-500/10 transition-all duration-300 group cursor-pointer h-full flex flex-col"
+                          >
+                            <div className="aspect-video overflow-hidden relative">
                               <Image
-                                src={blog.author.avatar}
-                                alt={blog.author.name}
-                                width={20}
-                                height={20}
-                                className="rounded-full"
+                                src={blog.image}
+                                alt={blog.title}
+                                fill
+                                sizes="(min-width: 768px) 50vw, 100vw"
+                                className="object-cover group-hover:scale-110 transition-transform duration-500"
                               />
-                              <span className="text-sm text-slate-400">
-                                {blog.author.name}
-                              </span>
-                              <span className="text-slate-600">•</span>
-                              <span className="text-sm text-slate-400">
-                                {formatDate(blog.publishedAt)}
-                              </span>
+                              <div className="absolute top-4 left-4">
+                                <span
+                                  className={`px-2 py-1 rounded-full text-xs font-medium border ${getCategoryColor(blog.category)}`}
+                                >
+                                  {blog.category.charAt(0).toUpperCase() +
+                                    blog.category.slice(1)}
+                                </span>
+                              </div>
                             </div>
 
-                            <h3 className="text-lg font-bold leading-tight mb-3 group-hover:text-sky-400 transition-colors line-clamp-2">
-                              {blog.title}
-                            </h3>
-
-                            <p className="text-slate-400 text-sm leading-relaxed mb-4 line-clamp-2">
-                              {blog.summary}
-                            </p>
-
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-4 text-xs text-slate-500">
-                                <span className="flex items-center gap-1">
-                                  <Clock className="w-3 h-3" />
-                                  {blog.readTime}
+                            <div className="p-6 flex flex-col flex-grow">
+                              <div className="flex items-center gap-2 mb-3">
+                                <Image
+                                  src={blog.author.avatar}
+                                  alt={blog.author.name}
+                                  width={20}
+                                  height={20}
+                                  className="rounded-full"
+                                />
+                                <span className="text-sm text-slate-400">
+                                  {blog.author.name}
                                 </span>
-                                <span className="flex items-center gap-1">
-                                  <Eye className="w-3 h-3" />
-                                  {blog.views}
-                                </span>
-                                <span className="flex items-center gap-1">
-                                  <Heart className="w-3 h-3" />
-                                  {blog.likes}
+                                <span className="text-slate-600">•</span>
+                                <span className="text-sm text-slate-400">
+                                  {formatDate(blog.publishedAt)}
                                 </span>
                               </div>
 
-                              <Link
-                                href={`/blogs/${blog.slug}`}
-                                className="text-sky-400 hover:text-sky-300 font-medium text-sm transition-colors"
-                              >
-                                Read More →
-                              </Link>
-                            </div>
+                              <h3 className="text-lg font-bold leading-tight mb-3 group-hover:text-sky-400 transition-colors line-clamp-2">
+                                {blog.title}
+                              </h3>
 
-                            <div className="mt-4 pt-4 border-t border-slate-800">
-                              <div className="flex flex-wrap gap-2">
-                                {blog.tags.slice(0, 3).map((tag) => (
-                                  <button
-                                    key={tag}
-                                    onClick={() => handleTagFilter(tag)}
-                                    className={`px-2 py-1 rounded text-xs transition-colors ${
-                                      selectedTag === tag
-                                        ? "bg-sky-600/20 text-sky-400"
-                                        : "bg-slate-800 text-slate-400 hover:bg-slate-700"
-                                    }`}
-                                  >
-                                    #{tag}
-                                  </button>
-                                ))}
-                                {blog.tags.length > 3 && (
-                                  <span className="px-2 py-1 text-xs text-slate-500">
-                                    +{blog.tags.length - 3} more
+                              <p className="text-slate-400 text-sm leading-relaxed mb-4 line-clamp-2 flex-grow">
+                                {blog.summary}
+                              </p>
+
+                              <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-4 text-xs text-slate-500">
+                                  <span className="flex items-center gap-1">
+                                    <Clock className="w-3 h-3" />
+                                    {blog.readTime}
                                   </span>
-                                )}
+                                  <span className="flex items-center gap-1">
+                                    <Eye className="w-3 h-3" />
+                                    {blog.views}
+                                  </span>
+                                  <span className="flex items-center gap-1">
+                                    <Heart className="w-3 h-3" />
+                                    {blog.likes}
+                                  </span>
+                                </div>
+
+                                <span className="text-sky-400 group-hover:text-sky-300 font-medium text-sm transition-colors inline-flex items-center gap-1">
+                                  Read More
+                                  <span className="group-hover:translate-x-1 transition-transform">→</span>
+                                </span>
+                              </div>
+
+                              <div className="mt-auto pt-4 border-t border-slate-800" onClick={(e) => e.stopPropagation()}>
+                                <div className="flex flex-wrap gap-2">
+                                  {blog.tags.slice(0, 3).map((tag) => (
+                                    <button
+                                      key={tag}
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handleTagFilter(tag);
+                                      }}
+                                      className={`px-2 py-1 rounded text-xs transition-colors ${
+                                        selectedTag === tag
+                                          ? "bg-sky-600/20 text-sky-400"
+                                          : "bg-slate-800 text-slate-400 hover:bg-slate-700"
+                                      }`}
+                                    >
+                                      #{tag}
+                                    </button>
+                                  ))}
+                                  {blog.tags.length > 3 && (
+                                    <span className="px-2 py-1 text-xs text-slate-500">
+                                      +{blog.tags.length - 3} more
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </motion.article>
+                          </motion.article>
+                        </Link>
                       ))}
                     </div>
 

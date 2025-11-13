@@ -3,6 +3,7 @@ import { notFound } from "next/navigation"
 import mongoose from "mongoose"
 import { connectToDatabase } from "@/lib/db"
 import { Blog } from "@/models/Blog"
+import { User } from "@/models/User"
 import BlogDetailClient from "./BlogDetailClient"
 
 interface BlogPageProps {
@@ -16,14 +17,32 @@ async function getBlogBySlug(slug: string) {
   try {
     await connectToDatabase();
     
-    // Find blog by slug and ensure it's published
-    // Use lean() for better performance and populate authorId if it exists
-    const blog = await Blog.findOne({ slug, published: true })
-      .populate('authorId', 'name email avatar bio')
-      .lean() as any;
+    // Fetch blog without populate to avoid User model registration issues
+    // We'll handle author data with defaults or fetch separately if needed
+    let blog = await Blog.findOne({ slug, published: true }).lean() as any;
+
+    // If not found by slug, try to find by ID (in case slug is actually an ID)
+    if (!blog && mongoose.Types.ObjectId.isValid(slug)) {
+      blog = await Blog.findOne({ _id: new mongoose.Types.ObjectId(slug), published: true }).lean() as any;
+    }
 
     if (!blog) {
+      console.error(`Blog not found with slug: ${slug}`);
       return null;
+    }
+    
+    // Ensure slug exists in the returned blog data
+    if (!blog.slug && blog._id) {
+      console.warn(`Blog ${blog._id} is missing a slug, generating one from title`);
+      // Generate slug from title if missing
+      if (blog.title) {
+        blog.slug = blog.title
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .trim()
+          .replace(/\s+/g, '-')
+          .substring(0, 80);
+      }
     }
 
     // Increment view count - handle _id properly with lean()
@@ -33,8 +52,39 @@ async function getBlogBySlug(slug: string) {
     }
 
     // Transform database response to match expected format
-    const authorId = blog.authorId as any;
     const blogIdString = blogId?.toString() || (blogId as any)?.toString() || '';
+    
+    // Try to fetch author data if we have an authorId and User model is available
+    let fetchedAuthorData: any = null;
+    if (blog.authorId) {
+      try {
+        // Only try to fetch user if the model is registered
+        if (mongoose.models.User) {
+          const author = await User.findById(blog.authorId).lean() as any;
+          if (author) {
+            fetchedAuthorData = {
+              id: author._id?.toString() || '1',
+              name: author.name || 'Admin',
+              email: author.email || 'admin@engivora.com',
+              bio: 'Engineering expert and content creator.',
+              avatar: author.imageUrl || author.profilePicture || 'https://lh3.googleusercontent.com/aida-public/AB6AXuAQH2T-U3EJFPoNgvpZesWbKFpcd0ZviQAiuAAXZ44awW7nVaxfA-0C07apDiIhXO7tFvlVOryALSZfFo-lHY1Y3XbBcgRPzj5ykTk6ZbZBA2PyQFktuivTFdq-nVk5UNUDRjxhQ6XNsNE8AH8-SHNGlYXPQoe4d5gAC7BKgK29eZvcojsf3jisD5ZSQgh8FHnFpHbRPRQ5sZcFQgGuHiYAj6BS0yu0bT8Y4k2OKqipf2VRZfn790A16s1wxn6O2bf8dympSkwc2Qc'
+            };
+          }
+        }
+      } catch (userError) {
+        // If User model fetch fails, we'll use defaults below
+        console.warn('Could not fetch user data:', userError);
+      }
+    }
+    
+    // Use fetched author data or fallback to defaults
+    const finalAuthorData = fetchedAuthorData || {
+      id: blog.authorId?.toString() || '1',
+      name: 'Admin',
+      email: 'admin@engivora.com',
+      bio: 'Engineering expert and content creator.',
+      avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuAQH2T-U3EJFPoNgvpZesWbKFpcd0ZviQAiuAAXZ44awW7nVaxfA-0C07apDiIhXO7tFvlVOryALSZfFo-lHY1Y3XbBcgRPzj5ykTk6ZbZBA2PyQFktuivTFdq-nVk5UNUDRjxhQ6XNsNE8AH8-SHNGlYXPQoe4d5gAC7BKgK29eZvcojsf3jisD5ZSQgh8FHnFpHbRPRQ5sZcFQgGuHiYAj6BS0yu0bT8Y4k2OKqipf2VRZfn790A16s1wxn6O2bf8dympSkwc2Qc'
+    };
     
     return {
       id: blogIdString,
@@ -44,13 +94,7 @@ async function getBlogBySlug(slug: string) {
       content: blog.content,
       category: blog.category,
       tags: blog.tags || [],
-      author: {
-        id: authorId?._id?.toString() || authorId?.id || '1',
-        name: authorId?.name || 'Admin',
-        email: authorId?.email || 'admin@engivora.com',
-        bio: authorId?.bio || 'Engineering expert and content creator.',
-        avatar: authorId?.avatar || 'https://lh3.googleusercontent.com/aida-public/AB6AXuAQH2T-U3EJFPoNgvpZesWbKFpcd0ZviQAiuAAXZ44awW7nVaxfA-0C07apDiIhXO7tFvlVOryALSZfFo-lHY1Y3XbBcgRPzj5ykTk6ZbZBA2PyQFktuivTFdq-nVk5UNUDRjxhQ6XNsNE8AH8-SHNGlYXPQoe4d5gAC7BKgK29eZvcojsf3jisD5ZSQgh8FHnFpHbRPRQ5sZcFQgGuHiYAj6BS0yu0bT8Y4k2OKqipf2VRZfn790A16s1wxn6O2bf8dympSkwc2Qc'
-      },
+      author: finalAuthorData,
       featured: blog.featured || false,
       published: blog.published || false,
       views: blog.views || 0,
@@ -67,7 +111,7 @@ async function getBlogBySlug(slug: string) {
 }
 
 // Get related blogs directly from database
-async function getRelatedBlogs(currentId: string, category: string, tags: string[]) {
+async function getRelatedBlogs(currentId: string, category: string, _tags: string[]) {
   try {
     await connectToDatabase();
     
