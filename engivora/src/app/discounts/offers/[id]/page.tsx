@@ -15,26 +15,26 @@ async function getOfferById(id: string) {
   try {
     await connectToDatabase();
     
-    // Decode the ID in case it's URL encoded
-    const decodedId = decodeURIComponent(id);
-    
+    // Next.js 15 automatically decodes URL parameters, so id is already decoded
     // Try to find by ID first
-    let discount = await Discount.findById(decodedId);
+    let discount = await Discount.findById(id);
 
     // If not found by ID, try to find by code (in case ID is actually a code)
     if (!discount) {
-      discount = await Discount.findOne({ code: decodedId });
+      discount = await Discount.findOne({ code: id });
     }
 
     // If still not found, try case-insensitive code search
     if (!discount) {
+      // Escape special regex characters
+      const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       discount = await Discount.findOne({ 
-        code: { $regex: new RegExp(`^${decodedId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') } 
+        code: { $regex: new RegExp(`^${escapedId}$`, 'i') } 
       });
     }
 
     if (!discount) {
-      console.error(`Discount not found with id: ${id} (decoded: ${decodedId})`);
+      console.error(`Discount not found with id: ${id}`);
       return null;
     }
 
