@@ -1,0 +1,20 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ea580c;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#grad4)"/>
+  <circle cx="256" cy="160" r="70" fill="#fbbf24"/>
+  <path d="M 200 110 Q 185 80 195 60 Q 205 40 230 50 L 282 50 Q 307 40 317 60 Q 327 80 312 110" fill="#451a03"/>
+  <circle cx="235" cy="160" r="5" fill="#1f2937"/>
+  <circle cx="277" cy="160" r="5" fill="#1f2937"/>
+  <path d="M 220 145 Q 235 140 245 145" stroke="#451a03" stroke-width="3" fill="none"/>
+  <path d="M 267 145 Q 282 140 292 145" stroke="#451a03" stroke-width="3" fill="none"/>
+  <ellipse cx="256" cy="175" rx="3" ry="7" fill="#fbbf24" opacity="0.6"/>
+  <path d="M 240 190 Q 256 195 272 190" stroke="#1f2937" stroke-width="2" fill="none"/>
+  <path d="M 200 230 L 180 380 L 195 400 L 317 400 L 332 380 L 312 230 Z" fill="#ea580c"/>
+  <line x1="256" y1="230" x2="256" y2="380" stroke="#c2410c" stroke-width="3"/>
+  <rect x="280" y="280" width="60" height="80" fill="#1e40af" rx="5"/>
+</svg>

@@ -1,0 +1,19 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#16a34a;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#10b981;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#grad3)"/>
+  <circle cx="256" cy="180" r="75" fill="#fbbf24"/>
+  <path d="M 190 120 Q 180 90 190 70 Q 200 50 220 55 L 292 55 Q 312 50 322 70 Q 332 90 322 120" fill="#ea580c"/>
+  <path d="M 220 120 Q 220 140 240 145 L 272 145 Q 292 140 292 120" fill="#f97316"/>
+  <circle cx="195" cy="200" r="8" fill="#fbbf24"/>
+  <circle cx="317" cy="200" r="8" fill="#fbbf24"/>
+  <path d="M 225 180 Q 230 175 235 180" stroke="#1f2937" stroke-width="3" fill="none"/>
+  <path d="M 277 180 Q 282 175 287 180" stroke="#1f2937" stroke-width="3" fill="none"/>
+  <ellipse cx="256" cy="195" rx="3" ry="6" fill="#fbbf24" opacity="0.6"/>
+  <path d="M 230 220 Q 256 240 282 220" stroke="#1f2937" stroke-width="3" fill="none"/>
+  <path d="M 210 255 L 190 400 L 210 420 L 302 420 L 322 400 L 302 255 Z" fill="#166534"/>
+</svg>

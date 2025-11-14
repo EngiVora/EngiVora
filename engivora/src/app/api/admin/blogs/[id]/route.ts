@@ -278,8 +278,10 @@ export async function DELETE(
       );
     }
     
-    // Find the blog in AdminBlog collection
-    const adminBlog = await AdminBlog.findOne({ blog_id: id });
+    // Find the blog using multiple possible identifiers
+    const adminBlog = await AdminBlog.findOne({ 
+      $or: [{ blog_id: id }, { slug: id }]
+    });
     
     if (!adminBlog) {
       return NextResponse.json(
@@ -288,9 +290,10 @@ export async function DELETE(
       );
     }
     
-    // Delete from AdminBlog collection
+    // For admin operations, allow deletion of any blog
+    // Delete the blog
     try {
-      await AdminBlog.deleteOne({ blog_id: id });
+      await AdminBlog.deleteOne({ blog_id: adminBlog.blog_id });
       
       // Also delete from main Blog collection if it exists
       // Try to find by slug first (most reliable)
