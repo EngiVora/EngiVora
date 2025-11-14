@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - EngiVora</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .offline-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .offline-icon svg {
+            width: 60px;
+            height: 60px;
+            fill: currentColor;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .message {
+            font-size: 1rem;
+            margin-bottom: 40px;
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+
+        .retry-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .retry-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .retry-btn:active {
+            transform: translateY(0);
+        }
+
+        .features {
+            margin-top: 40px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+        }
+
+        .feature {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .feature h3 {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .feature p {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .status.online {
+            background: rgba(34, 197, 94, 0.9);
+        }
+
+        .status.offline {
+            background: rgba(239, 68, 68, 0.9);
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            .offline-icon {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .offline-icon svg {
+                width: 50px;
+                height: 50px;
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="status" id="status">Checking connection...</div>
+    
+    <div class="container">
+        <div class="offline-icon pulse">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+        </div>
+        
+        <h1>You're Offline</h1>
+        <p class="subtitle">No internet connection detected</p>
+        
+        <p class="message">
+            Don't worry! You can still browse cached content. 
+            Check your internet connection and try again.
+        </p>
+        
+        <button class="retry-btn" onclick="retryConnection()">
+            Try Again
+        </button>
+        
+        <div class="features">
+            <div class="feature">
+                <h3>📱 Mobile Ready</h3>
+                <p>Optimized for all devices</p>
+            </div>
+            <div class="feature">
+                <h3>⚡ Fast Loading</h3>
+                <p>Cached content available</p>
+            </div>
+            <div class="feature">
+                <h3>🔒 Secure</h3>
+                <p>Your data is protected</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const status = document.getElementById('status');
+        let retryInterval;
+
+        function updateConnectionStatus() {
+            if (navigator.onLine) {
+                status.textContent = 'Online';
+                status.className = 'status online';
+                status.style.display = 'block';
+                
+                // Redirect to main page after 2 seconds
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 2000);
+            } else {
+                status.textContent = 'Offline';
+                status.className = 'status offline';
+                status.style.display = 'block';
+            }
+        }
+
+        function retryConnection() {
+            const btn = document.querySelector('.retry-btn');
+            btn.textContent = 'Checking...';
+            btn.disabled = true;
+            
+            // Test connection
+            fetch('/', { method: 'HEAD', cache: 'no-cache' })
+                .then(() => {
+                    window.location.reload();
+                })
+                .catch(() => {
+                    btn.textContent = 'Try Again';
+                    btn.disabled = false;
+                });
+        }
+
+        // Check connection status
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+        
+        // Initial check
+        updateConnectionStatus();
+        
+        // Periodic connection check
+        setInterval(() => {
+            fetch('/', { method: 'HEAD', cache: 'no-cache' })
+                .then(() => {
+                    if (!navigator.onLine) {
+                        // Force online state if fetch succeeds
+                        window.dispatchEvent(new Event('online'));
+                    }
+                })
+                .catch(() => {
+                    // Connection still offline
+                });
+        }, 5000);
+
+        // Show status after a delay
+        setTimeout(() => {
+            status.style.display = 'block';
+        }, 1000);
+    </script>
+</body>
+</html>

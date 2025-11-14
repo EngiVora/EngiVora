@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My First Blog</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .meta {
+            color: #7f8c8d;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to My First Blog Post</h1>
+    <div class="meta">
+        Published on November 1, 2025 | 5 min read
+    </div>
+    
+    <p>This is a sample blog post created to demonstrate the dynamic blog loading feature in our Next.js application.</p>
+    
+    <h2>Why Dynamic Blog Loading Matters</h2>
+    <p>Dynamic blog loading allows us to serve blog content without manually creating routes for each post. This makes it easier to manage content and scale our blog section.</p>
+    
+    <h2>How It Works</h2>
+    <p>Our system automatically detects HTML files in the blogs directory and creates corresponding routes. For example, this file <code>my-first-blog.html</code> is accessible at <code>/blog/my-first-blog</code>.</p>
+    
+    <h2>Benefits</h2>
+    <ul>
+        <li>No manual route creation needed</li>
+        <li>Easily add new blog posts</li>
+        <li>Automatic SEO optimization</li>
+        <li>Fast loading times</li>
+    </ul>
+    
+    <h2>Getting Started</h2>
+    <p>To create a new blog post:</p>
+    <ol>
+        <li>Create an HTML file in the <code>public/blogs</code> directory</li>
+        <li>Name it appropriately (e.g., <code>my-new-post.html</code>)</li>
+        <li>Access it at <code>/blog/my-new-post</code></li>
+    </ol>
+    
+    <p>That's it! Your blog post will be automatically available without any additional configuration.</p>
+</body>
+</html>

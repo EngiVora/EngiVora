@@ -281,8 +281,10 @@ export async function DELETE(
       );
     }
     
-    // Find the blog
-    const blog = await AdminBlog.findOne({ blog_id: id });
+    // Find the blog using multiple possible identifiers
+    const blog = await AdminBlog.findOne({ 
+      $or: [{ blog_id: id }, { slug: id }]
+    });
     
     if (!blog) {
       return NextResponse.json(
@@ -291,17 +293,10 @@ export async function DELETE(
       );
     }
     
-    // Check if user is the author of the blog
-    if (blog.author_id !== user.id) {
-      return NextResponse.json(
-        { error: 'Access denied: You can only delete your own blogs' },
-        { status: 403 }
-      );
-    }
-    
+    // For admin operations, allow deletion of any blog
     // Delete the blog
     try {
-      await AdminBlog.deleteOne({ blog_id: id });
+      await AdminBlog.deleteOne({ blog_id: blog.blog_id });
       
       return NextResponse.json({
         success: true,

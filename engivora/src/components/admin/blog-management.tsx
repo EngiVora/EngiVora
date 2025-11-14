@@ -247,9 +247,17 @@ export function BlogManagement() {
         }
       })
       
+      const data = await res.json()
+      
       if (!res.ok) {
-        const data = await res.json()
-        alert(data?.error || 'Failed to delete blog')
+        // Handle specific error cases
+        if (res.status === 404) {
+          alert('Blog not found. It may have already been deleted.')
+          // Remove the blog from the local state
+          setBlogs(prev => prev.filter(blog => blog._id !== blogId))
+        } else {
+          alert(data?.error || 'Failed to delete blog')
+        }
         // If unauthorized, redirect to login
         if (res.status === 401) {
           router.push('/admin/login')
