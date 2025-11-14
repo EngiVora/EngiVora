@@ -462,7 +462,7 @@ export default function BlogCategoryClient({
               {blogs.map((blog, index) => (
                 <Link
                   key={blog.id}
-                  href={`/blogs/${blog.slug}`}
+                  href={`/blogs/${encodeURIComponent(blog.slug)}`}
                   className="block"
                 >
                   <motion.article

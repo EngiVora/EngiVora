@@ -1,9 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { motion, useScroll, useTransform } from "framer-motion"
+import { useState } from "react"
+import { motion } from "framer-motion"
 import {
   Heart,
   BookmarkPlus,
@@ -17,6 +15,8 @@ import {
   Copy,
   Check
 } from "lucide-react"
+import Link from "next/link"
+import Image from "next/image"
 
 interface Author {
   id: string
@@ -55,32 +55,16 @@ interface RelatedBlog {
   publishedAt: string
 }
 
-interface BlogDetailClientProps {
+interface HtmlBlogClientProps {
   blog: Blog
   relatedBlogs: RelatedBlog[]
 }
 
-export default function BlogDetailClient({ blog, relatedBlogs }: BlogDetailClientProps) {
+export default function HtmlBlogClient({ blog, relatedBlogs }: HtmlBlogClientProps) {
   const [isLiked, setIsLiked] = useState(false)
   const [isBookmarked, setIsBookmarked] = useState(false)
   const [showShareMenu, setShowShareMenu] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [readingProgress, setReadingProgress] = useState(0)
-
-  const { scrollYProgress } = useScroll()
-  const progressWidth = useTransform(scrollYProgress, [0, 1], ["0%", "100%"])
-
-  useEffect(() => {
-    const updateReadingProgress = () => {
-      const scrolled = window.scrollY
-      const maxScrollTop = document.documentElement.scrollHeight - window.innerHeight
-      const progress = (scrolled / maxScrollTop) * 100
-      setReadingProgress(progress)
-    }
-
-    window.addEventListener('scroll', updateReadingProgress)
-    return () => window.removeEventListener('scroll', updateReadingProgress)
-  }, [])
 
   const handleLike = async () => {
     try {
@@ -137,19 +121,14 @@ export default function BlogDetailClient({ blog, relatedBlogs }: BlogDetailClien
       career: 'bg-green-500/20 text-green-400 border-green-500/30',
       academic: 'bg-purple-500/20 text-purple-400 border-purple-500/30',
       lifestyle: 'bg-pink-500/20 text-pink-400 border-pink-500/30',
-      news: 'bg-orange-500/20 text-orange-400 border-orange-500/30'
+      news: 'bg-orange-500/20 text-orange-400 border-orange-500/30',
+      general: 'bg-gray-500/20 text-gray-400 border-gray-500/30'
     }
-    return colors[category as keyof typeof colors] || colors.technology
+    return colors[category as keyof typeof colors] || colors.general
   }
 
   return (
     <div className="bg-slate-950 text-slate-100 min-h-screen">
-      {/* Reading Progress Bar */}
-      <motion.div
-        className="fixed top-0 left-0 right-0 h-1 bg-sky-500 z-50 origin-left"
-        style={{ width: progressWidth }}
-      />
-
       {/* Back Button */}
       <div className="fixed top-6 left-6 z-40">
         <Link
@@ -300,30 +279,18 @@ export default function BlogDetailClient({ blog, relatedBlogs }: BlogDetailClien
             </div>
           </motion.div>
 
-          {/* Featured Image */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="mb-12 rounded-xl overflow-hidden"
-          >
-            <Image
-              src={blog.image}
-              alt={blog.title}
-              width={800}
-              height={400}
-              className="w-full h-96 object-cover"
-            />
-          </motion.div>
-
           {/* Article Content */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
-            className="prose prose-slate prose-invert prose-lg max-w-none mb-12"
-            dangerouslySetInnerHTML={{ __html: blog.content }}
-          />
+            className="mb-12"
+          >
+            <div 
+              className="prose prose-slate prose-invert prose-lg max-w-none"
+              dangerouslySetInnerHTML={{ __html: blog.content }}
+            />
+          </motion.div>
 
           {/* Tags */}
           <motion.div
@@ -422,3 +389,4 @@ export default function BlogDetailClient({ blog, relatedBlogs }: BlogDetailClien
     </div>
   )
 }
+

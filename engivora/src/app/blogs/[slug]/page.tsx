@@ -17,17 +17,28 @@ async function getBlogBySlug(slug: string) {
   try {
     await connectToDatabase();
     
+    // Decode the slug in case it's URL encoded
+    const decodedSlug = decodeURIComponent(slug);
+    
     // Fetch blog without populate to avoid User model registration issues
     // We'll handle author data with defaults or fetch separately if needed
-    let blog = await Blog.findOne({ slug, published: true }).lean() as any;
+    let blog = await Blog.findOne({ slug: decodedSlug, published: true }).lean() as any;
 
-    // If not found by slug, try to find by ID (in case slug is actually an ID)
-    if (!blog && mongoose.Types.ObjectId.isValid(slug)) {
-      blog = await Blog.findOne({ _id: new mongoose.Types.ObjectId(slug), published: true }).lean() as any;
+    // If not found by exact slug, try case-insensitive search
+    if (!blog) {
+      blog = await Blog.findOne({ 
+        slug: { $regex: new RegExp(`^${decodedSlug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }, 
+        published: true 
+      }).lean() as any;
+    }
+
+    // If still not found by slug, try to find by ID (in case slug is actually an ID)
+    if (!blog && mongoose.Types.ObjectId.isValid(decodedSlug)) {
+      blog = await Blog.findOne({ _id: new mongoose.Types.ObjectId(decodedSlug), published: true }).lean() as any;
     }
 
     if (!blog) {
-      console.error(`Blog not found with slug: ${slug}`);
+      console.error(`Blog not found with slug: ${slug} (decoded: ${decodedSlug})`);
       return null;
     }
     

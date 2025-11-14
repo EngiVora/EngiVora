@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { EnhancedImage } from "@/components/enhanced-image";
 import {
   Copy,
   Check,
@@ -25,6 +26,7 @@ import {
   Star,
   Calendar,
   DollarSign,
+  Sparkles,
 } from "lucide-react";
 
 interface FeaturedOffer {
@@ -124,7 +126,7 @@ export default function DiscountsClient() {
             discountedPrice: discount.discountedPrice,
             image: discount.imageUrl || "/images/discount-placeholder.svg",
             ctaText: "View Details",
-            ctaAction: `/discounts/offers/${discount._id}`,
+            ctaAction: `/discounts/offers/${encodeURIComponent(discount._id.toString())}`,
             provider: discount.provider,
             featured: discount.featured || false,
             validUntil: discount.validUntil || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
@@ -152,9 +154,19 @@ export default function DiscountsClient() {
           
           setCouponCodes(coupons);
         }
-        
-        // Set affiliate links (using mock data for now)
-        setAffiliateLinks([
+      } catch (error) {
+        console.error("Failed to fetch discounts:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    // Set affiliate links (using mock data for now)
+    setAffiliateLinks([
           {
             id: "1",
             title: "Shop electronics with 10% cashback",
@@ -202,134 +214,6 @@ export default function DiscountsClient() {
           userReferrals: 3,
           referralLink: "https://engivora.com/ref/user123",
         });
-      } catch (error) {
-        console.error("Failed to fetch discounts:", error);
-        // Fallback to mock data if API fails
-        setFeaturedOffers([
-          {
-            id: "1",
-            title: "20% off on select courses",
-            description:
-              "Expand your knowledge with our top-rated engineering courses.",
-            category: "courses",
-            discountType: "percentage",
-            discountValue: 20,
-            originalPrice: 299,
-            discountedPrice: 239,
-            image:
-              "https://lh3.googleusercontent.com/aida-public/AB6AXuCLiK0joKD2l9p83OCFHkN8OZ2R6UGDOXMq3Cn1RHx43SYJwxFly10Pt9G5cKjw98PlQVegI7P8zgWH781_jyAhsT-x5pp8J4Z4fgsdPYbAZk_XgZo8N41plbHomLP4qkg3Z2cx_dQjfPxu_dlWLa-6H2TGBwp9ihIhI76s3vtkAOOEjWrI0phHZCwIqUK1AwvLpIv57gbi8NyAxUhH6mqQJJeqLH_UuFlF4YsPN3dJ4Zq9D8V-T_t5IzOHkawmoh6XaueSotbGnMg",
-            ctaText: "View Details",
-            ctaAction: "/discounts/offers/1",
-            provider: "Engivora Academy",
-            featured: true,
-            validUntil: "2024-12-31T23:59:59Z",
-            termsAndConditions: [
-              "Valid for new students only",
-              "Cannot be combined with other offers",
-            ],
-            popularity: 95,
-          },
-          {
-            id: "2",
-            title: "Free access to premium resources",
-            description:
-              "Get unlimited access to our library of articles, papers, and research materials.",
-            category: "resources",
-            discountType: "free",
-            discountValue: 0,
-            originalPrice: 49,
-            discountedPrice: 0,
-            image:
-              "https://lh3.googleusercontent.com/aida-public/AB6AXuAHizWWhTVHfQ_PKQEc7h4LnLtfVjPSXwcE7atFX1yzshoGImb55qmNPaghdGl-ZKe0KJbigYLx6SJGjmvgwBJfCw9LHT2RtJpcO53Rw3GlCi4lXg-T3BUYAo9RoiUGeMTIQE4HqAjZ2x2WHarIffoyqCBGvxlt0O1nU80Y0PeF-U32IHTGzjna9Sra01aAAMXrUlz1RfuemdGvmY-XkgqqIou7mFlvXf-XPXPFjEmZeCtiu9knLx3PO-8626mBrIgwGZpzQS34-G0",
-            ctaText: "View Details",
-            ctaAction: "/discounts/offers/2",
-            provider: "Academic Hub",
-            featured: true,
-            validUntil: "2024-12-31T23:59:59Z",
-            popularity: 87,
-          },
-          {
-            id: "3",
-            title: "Exclusive discounts on lab equipment",
-            description:
-              "Gear up your lab with top-quality equipment at discounted prices.",
-            category: "equipment",
-            discountType: "percentage",
-            discountValue: 15,
-            originalPrice: 1999,
-            discountedPrice: 1699,
-            image:
-              "https://lh3.googleusercontent.com/aida-public/AB6AXuAH9v1fMfK3Bopk9alh_JmBLoxOpSzZYhKaSUEr6bSIRJUDKhAjzeOwdEzzGkZUNJsto9O0r62Zzb_23zDYd_kh6tKvgfYoBYC11aDjseWuvBNLvfOva4AANnpLwbu8TUXYvUzQ2wpQR4uuzPBQadpV72KWIkguL5vrfzpXSei9YGEYRC0NxaBwWMxjluFLrDyiRCD6-lI6kh-rFXv8-IoqqFPi2jFcBMlxMcePZcE1UL8SWOZyaIOv9dO8LI9Ay_b702OqoX2noSg",
-            ctaText: "View Details",
-            ctaAction: "/discounts/offers/3",
-            provider: "TechLab Solutions",
-            featured: true,
-            validUntil: "2024-11-30T23:59:59Z",
-            popularity: 78,
-          },
-          {
-            id: "4",
-            title: "Student Software Pack",
-            description:
-              "Access essential engineering software for free with valid student ID.",
-            category: "software",
-            discountType: "free",
-            discountValue: 0,
-            originalPrice: 599,
-            discountedPrice: 0,
-            image:
-              "https://lh3.googleusercontent.com/aida-public/AB6AXuAKkjl5tAIsUCq9RwMkFg75cwsVHfe0eFNBMW2XxMBz2RCK2ttp-CzMb8oUzzdfz9leO7XML7kmRvvpaujOmJ4RXPDaKsw2WiKE7gfgpP7iDaoN1eISCoycyg3Ih7pq7-24vYYK2YXsWyr3DLS2i0rzEj0rZePsAVcbV8IbnKMxIIPLFoU7QXYZQ7q8ACePJgGX_nDTlQKMEyqgJDhMmAZFidDG8xeTn1yOgo8c5i9maqOn8cSAVvrx7Ol1j8Hnj8O5kBcf6s_iMQs",
-            ctaText: "View Details",
-            ctaAction: "/discounts/offers/4",
-            provider: "Software Depot",
-            featured: true,
-            validUntil: "2024-12-31T23:59:59Z",
-            popularity: 92,
-          },
-        ]);
-        
-        setCouponCodes([
-          {
-            id: "1",
-            code: "ENGIVORA30",
-            title: "30% off on software tools",
-            description:
-              "Save big on professional engineering software and development tools.",
-            discountValue: 30,
-            discountType: "percentage",
-            category: "software",
-            provider: "DevTools Pro",
-            image:
-              "https://lh3.googleusercontent.com/aida-public/AB6AXuDSXFqVNGTG5i1jc9ySQowsZKoFVV17YKO6oFm_7W9-bRj1fR6pVjr0nKG64EkWbTb_YFYsbIO3UvjFfUeKeUfFFasvBS_kb0t4Qmu7mExdT8OMoSuftUmr0Y2kh1VPksAmDjDwR8WHLRxbM1NWGtC0IFINwoVDwYKfST_Kzm9nCtRMjaTHkVKSwuY37XUkNTaVZTXOiIyYS58OJ2HZXuz7oVbR0hj5y7zz_OAyVxDQXRkCgzgwhs4gnY5rDW_cm58qZxBAIjXSfVg",
-            validUntil: "2024-12-31T23:59:59Z",
-            usageCount: 1247,
-            maxUsage: 5000,
-            isActive: true,
-          },
-          {
-            id: "2",
-            code: "STUDY15",
-            title: "15% off on textbooks",
-            description:
-              "Get discount on engineering textbooks and reference materials.",
-            discountValue: 15,
-            discountType: "percentage",
-            category: "books",
-            provider: "Academic Books",
-            image:
-              "https://lh3.googleusercontent.com/aida-public/AB6AXuDW-gpxheo9XbMfNAWNRS78zRYbga9VbssQTiIEBpvOc-l8gkmLNqjyaYJDuP7JhVMhT-aC8L9DDxmQdhk1hS3MSIsC0RCUHaNyUJg8mFBObEO57vM8R-8p_uypAbeGVvNwnhjNISr5nmF78d71sJmoEZKBbPyHjV1ASTw18iLOcuB4muBJd8HhGugyYl4NImwi9X6Xlncz7s97Ls2aAeEt5BaYat_42ROyLcGWcX4JApsb3QS8_Za6WGkuOzH-qwqMnpnLplpYsHk",
-            validUntil: "2024-11-30T23:59:59Z",
-            usageCount: 892,
-            maxUsage: 2000,
-            isActive: true,
-          },
-        ]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
   }, []);
 
   useEffect(() => {
@@ -353,8 +237,8 @@ export default function DiscountsClient() {
     // Track click analytics
     console.log(`Clicked on offer: ${offer.title}`);
 
-    // Navigate to the public discount detail page
-    window.location.href = `/discounts/offers/${offer.id}`;
+    // Navigate to the public discount detail page with proper encoding
+    window.location.href = `/discounts/offers/${encodeURIComponent(offer.id)}`;
   };
 
   const handleAffiliateClick = (link: AffiliateLink) => {
@@ -490,49 +374,73 @@ export default function DiscountsClient() {
                         transition={{ duration: 0.5, delay: index * 0.1 }}
                         className="flex-shrink-0 w-full sm:w-80 group relative"
                       >
-                        <div className="bg-slate-900 border border-slate-800 rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-sky-500/20 hover:-translate-y-1">
-                          {/* Image */}
+                        <div className="bg-slate-900 border border-slate-800 rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-sky-500/20 hover:-translate-y-1 group">
+                          {/* Enhanced Image */}
                           <div className="relative w-full h-48 overflow-hidden">
-                            <Image
+                            <EnhancedImage
                               src={offer.image}
                               alt={offer.title}
+                              type="discount"
                               fill
                               sizes="(max-width: 640px) 100vw, 320px"
-                              className="object-cover transition-transform duration-300 group-hover:scale-105"
+                              className="transition-transform duration-500 group-hover:scale-110"
+                              overlayGradient={true}
+                              showPattern={true}
+                              featured={offer.featured}
                             />
+                            {/* Gradient overlay for text readability */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none" />
+                            
                             {/* Badges */}
-                            <div className="absolute top-4 left-4 flex gap-2">
+                            <div className="absolute top-4 left-4 flex gap-2 z-20">
                               {getDiscountBadge(offer)}
                               {offer.featured && (
-                                <span className="bg-yellow-500 text-black px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                                  <Star className="w-3 h-3" />
+                                <span className="bg-yellow-500/90 backdrop-blur-sm text-black px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 shadow-lg animate-pulse">
+                                  <Sparkles className="w-3 h-3" />
                                   FEATURED
                                 </span>
                               )}
                             </div>
                             {/* Actions */}
-                            <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
                               <button
-                                onClick={() => handleLike(offer.id)}
-                                className={`p-2 rounded-full backdrop-blur-sm transition-colors ${
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleLike(offer.id);
+                                }}
+                                className={`p-2 rounded-full backdrop-blur-md transition-all transform hover:scale-110 ${
                                   likedOffers.has(offer.id)
-                                    ? "bg-red-500 text-white"
-                                    : "bg-black/50 text-white hover:bg-red-500"
+                                    ? "bg-red-500 text-white shadow-lg"
+                                    : "bg-black/60 text-white hover:bg-red-500"
                                 }`}
                               >
-                                <Heart className="w-4 h-4" />
+                                <Heart className={`w-4 h-4 ${likedOffers.has(offer.id) ? 'fill-current' : ''}`} />
                               </button>
                               <button
-                                onClick={() => handleShare(offer.id)}
-                                className="p-2 rounded-full bg-black/50 text-white hover:bg-sky-500 backdrop-blur-sm transition-colors"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handleShare(offer.id);
+                                }}
+                                className="p-2 rounded-full bg-black/60 text-white hover:bg-sky-500 backdrop-blur-md transition-all transform hover:scale-110"
                               >
                                 <Share className="w-4 h-4" />
                               </button>
                             </div>
-                            {/* Popularity indicator */}
-                            <div className="absolute bottom-4 left-4 bg-black/70 backdrop-blur-sm rounded-full px-2 py-1 text-xs text-white">
-                              🔥 {offer.popularity}% popular
+                            {/* Popularity indicator with animation */}
+                            <div className="absolute bottom-4 left-4 bg-gradient-to-r from-orange-500/90 to-red-500/90 backdrop-blur-sm rounded-full px-3 py-1.5 text-xs font-bold text-white shadow-lg flex items-center gap-1.5 z-20">
+                              <span className="animate-pulse">🔥</span>
+                              <span>{offer.popularity}% popular</span>
                             </div>
+                            
+                            {/* Animated sparkle effects for featured items */}
+                            {offer.featured && (
+                              <div className="absolute inset-0 pointer-events-none z-10">
+                                <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-yellow-400 rounded-full animate-ping opacity-75" style={{ animationDelay: '0s' }} />
+                                <div className="absolute top-1/3 right-1/4 w-1.5 h-1.5 bg-yellow-300 rounded-full animate-ping opacity-75" style={{ animationDelay: '0.5s' }} />
+                                <div className="absolute bottom-1/4 left-1/3 w-1.5 h-1.5 bg-yellow-400 rounded-full animate-ping opacity-75" style={{ animationDelay: '1s' }} />
+                                <div className="absolute top-1/2 right-1/3 w-2 h-2 bg-yellow-300 rounded-full animate-ping opacity-75" style={{ animationDelay: '1.5s' }} />
+                              </div>
+                            )}
                           </div>
 
                           {/* Content */}
@@ -629,15 +537,25 @@ export default function DiscountsClient() {
                         className="group bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-lg transition-all duration-300 hover:shadow-sky-500/20 hover:border-slate-700"
                       >
                         <div className="flex items-center gap-6">
-                          {/* Image */}
-                          <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
-                            <Image
+                          {/* Enhanced Image */}
+                          <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 group">
+                            <EnhancedImage
                               src={coupon.image}
                               alt={coupon.title}
+                              type="discount"
                               fill
                               sizes="96px"
-                              className="object-cover"
+                              className="object-cover group-hover:scale-110 transition-transform duration-300"
+                              overlayGradient={false}
+                              showPattern={false}
+                              featured={false}
                             />
+                            {/* Discount badge overlay */}
+                            <div className="absolute top-1 right-1 z-10">
+                              <div className="bg-green-500/90 backdrop-blur-sm rounded-full px-1.5 py-0.5 text-xs font-bold text-white shadow-lg">
+                                {coupon.discountValue}%
+                              </div>
+                            </div>
                           </div>
 
                           {/* Content */}
@@ -737,22 +655,33 @@ export default function DiscountsClient() {
                         className="group bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-lg transition-all duration-300 hover:shadow-sky-500/20 hover:border-slate-700"
                       >
                         <div className="flex items-center gap-6">
-                          {/* Image */}
-                          <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
-                            <Image
+                          {/* Enhanced Image */}
+                          <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0 group">
+                            <EnhancedImage
                               src={link.image}
                               alt={link.title}
+                              type="discount"
                               fill
                               sizes="96px"
-                              className="object-cover"
+                              className="object-cover group-hover:scale-110 transition-transform duration-300"
+                              overlayGradient={false}
+                              showPattern={false}
+                              featured={link.isNew}
                             />
                             {link.isNew && (
-                              <div className="absolute top-1 right-1">
-                                <span className="bg-green-500 text-white px-1 py-0.5 rounded text-xs font-bold">
+                              <div className="absolute top-1 right-1 z-10">
+                                <span className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-lg animate-pulse flex items-center gap-1">
+                                  <Sparkles className="w-2.5 h-2.5" />
                                   NEW
                                 </span>
                               </div>
                             )}
+                            {/* Cashback badge */}
+                            <div className="absolute bottom-1 left-1 z-10">
+                              <div className="bg-sky-500/90 backdrop-blur-sm rounded-full px-1.5 py-0.5 text-xs font-bold text-white shadow-lg">
+                                {link.cashbackPercent}%
+                              </div>
+                            </div>
                           </div>
 
                           {/* Content */}
@@ -838,15 +767,29 @@ export default function DiscountsClient() {
 
                     <div className="bg-gradient-to-br from-sky-600 to-blue-700 rounded-2xl p-8 shadow-2xl">
                       <div className="grid md:grid-cols-2 gap-8 items-center">
-                        {/* Image */}
-                        <div className="relative h-64 md:h-48 rounded-xl overflow-hidden">
-                          <Image
+                        {/* Enhanced Image */}
+                        <div className="relative h-64 md:h-48 rounded-xl overflow-hidden group">
+                          <EnhancedImage
                             src={referralProgram.image}
                             alt={referralProgram.title}
+                            type="discount"
                             fill
                             sizes="(min-width: 768px) 50vw, 100vw"
-                            className="object-cover"
+                            className="object-cover group-hover:scale-105 transition-transform duration-500"
+                            overlayGradient={true}
+                            showPattern={true}
+                            featured={true}
                           />
+                          {/* Gradient overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-r from-sky-600/40 to-blue-700/40 pointer-events-none" />
+                          
+                          {/* Animated sparkle effects */}
+                          <div className="absolute inset-0 pointer-events-none z-10">
+                            <div className="absolute top-1/4 left-1/4 w-3 h-3 bg-yellow-300 rounded-full animate-ping opacity-75" style={{ animationDelay: '0s' }} />
+                            <div className="absolute top-1/3 right-1/4 w-2 h-2 bg-yellow-200 rounded-full animate-ping opacity-75" style={{ animationDelay: '0.5s' }} />
+                            <div className="absolute bottom-1/4 left-1/3 w-2.5 h-2.5 bg-yellow-300 rounded-full animate-ping opacity-75" style={{ animationDelay: '1s' }} />
+                            <div className="absolute top-1/2 right-1/3 w-3 h-3 bg-yellow-200 rounded-full animate-ping opacity-75" style={{ animationDelay: '1.5s' }} />
+                          </div>
                         </div>
 
                         {/* Content */}

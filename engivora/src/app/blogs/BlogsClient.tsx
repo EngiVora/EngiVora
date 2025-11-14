@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { EnhancedImage } from "@/components/enhanced-image";
 import {
   Search,
   Filter,
@@ -12,6 +13,8 @@ import {
   Eye,
   Heart,
   Clock,
+  Sparkles,
+  TrendingUp,
 } from "lucide-react";
 
 interface Author {
@@ -112,8 +115,14 @@ export default function BlogsClient() {
         if (result.success) {
           // Transform data to match expected format
           const transformedBlogs = result.data.map((blog: any) => {
-            // Generate slug from title if slug is missing
+            // Use slug from database if it exists, otherwise use ID as fallback
+            // The route handler will handle both slug and ID lookups
             let slug = blog.slug;
+            if (!slug && blog._id) {
+              // Use ID as fallback - the route handler supports ID lookups
+              slug = blog._id.toString();
+            }
+            // If still no slug, generate from title (but this should rarely happen)
             if (!slug && blog.title) {
               slug = blog.title
                 .toLowerCase()
@@ -122,15 +131,11 @@ export default function BlogsClient() {
                 .replace(/\s+/g, '-')
                 .substring(0, 80);
             }
-            // Fallback to ID if slug is still missing
-            if (!slug && blog._id) {
-              slug = blog._id.toString();
-            }
             
             return {
               _id: blog._id,
               title: blog.title,
-              slug: slug || 'untitled',
+              slug: slug || blog._id?.toString() || 'untitled',
               summary: blog.summary,
               category: blog.category,
               tags: blog.tags,
@@ -316,7 +321,7 @@ export default function BlogsClient() {
                     {featuredBlogs.map((blog) => (
                       <Link
                         key={blog._id}
-                        href={`/blogs/${blog.slug}`}
+                        href={`/blogs/${encodeURIComponent(blog.slug)}`}
                         className="block"
                       >
                         <motion.article
@@ -325,22 +330,39 @@ export default function BlogsClient() {
                           transition={{ duration: 0.5 }}
                           className="flex flex-col bg-slate-900 border border-slate-800 rounded-lg shadow-lg overflow-hidden group transition-all duration-300 hover:shadow-sky-500/20 hover:-translate-y-1 hover:border-sky-500/50 cursor-pointer h-full"
                         >
-                          <div className="w-full h-48 overflow-hidden relative">
-                            <Image
+                          <div className="w-full h-48 overflow-hidden relative group">
+                            <EnhancedImage
                               src={blog.image}
                               alt={blog.title}
+                              type="blog"
                               fill
                               sizes="(min-width: 768px) 50vw, 100vw"
                               className="object-cover group-hover:scale-110 transition-transform duration-500"
+                              overlayGradient={true}
+                              showPattern={true}
+                              featured={blog.featured}
                             />
-                            <div className="absolute top-4 left-4">
+                            {/* Gradient overlay for text readability */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none" />
+                            
+                            <div className="absolute top-4 left-4 z-20">
                               <span
-                                className={`px-2 py-1 rounded-full text-xs font-medium border ${getCategoryColor(blog.category)}`}
+                                className={`px-3 py-1.5 rounded-full text-xs font-bold border backdrop-blur-md shadow-lg ${getCategoryColor(blog.category)}`}
                               >
                                 {blog.category.charAt(0).toUpperCase() +
                                   blog.category.slice(1)}
                               </span>
                             </div>
+                            
+                            {/* Featured badge */}
+                            {blog.featured && (
+                              <div className="absolute top-4 right-4 z-20">
+                                <div className="bg-gradient-to-r from-yellow-400/90 to-orange-400/90 backdrop-blur-md rounded-full px-3 py-1.5 text-xs font-bold text-black shadow-lg flex items-center gap-1.5 animate-pulse">
+                                  <Sparkles className="w-3 h-3" />
+                                  FEATURED
+                                </div>
+                              </div>
+                            )}
                           </div>
                           <div className="p-6 flex flex-col flex-grow">
                             <h3 className="text-lg font-bold leading-tight mb-2 group-hover:text-sky-400 transition-colors">
@@ -445,7 +467,7 @@ export default function BlogsClient() {
                       {blogs.map((blog, index) => (
                         <Link
                           key={blog._id}
-                          href={`/blogs/${blog.slug}`}
+                          href={`/blogs/${encodeURIComponent(blog.slug)}`}
                           className="block"
                         >
                           <motion.article
@@ -454,23 +476,69 @@ export default function BlogsClient() {
                             transition={{ duration: 0.5, delay: index * 0.1 }}
                             className="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden hover:border-sky-500/50 hover:shadow-xl hover:shadow-sky-500/10 transition-all duration-300 group cursor-pointer h-full flex flex-col"
                           >
-                            <div className="aspect-video overflow-hidden relative">
-                              <Image
-                                src={blog.image}
-                                alt={blog.title}
-                                fill
-                                sizes="(min-width: 768px) 50vw, 100vw"
-                                className="object-cover group-hover:scale-110 transition-transform duration-500"
-                              />
-                              <div className="absolute top-4 left-4">
-                                <span
-                                  className={`px-2 py-1 rounded-full text-xs font-medium border ${getCategoryColor(blog.category)}`}
-                                >
-                                  {blog.category.charAt(0).toUpperCase() +
-                                    blog.category.slice(1)}
-                                </span>
+                          <div className="aspect-video overflow-hidden relative group">
+                            <EnhancedImage
+                              src={blog.image}
+                              alt={blog.title}
+                              type="blog"
+                              fill
+                              sizes="(min-width: 768px) 50vw, 100vw"
+                              className="object-cover group-hover:scale-110 transition-transform duration-500"
+                              overlayGradient={true}
+                              showPattern={true}
+                              featured={blog.featured}
+                            />
+                            {/* Gradient overlay for text readability */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none" />
+                            
+                            {/* Category badge */}
+                            <div className="absolute top-4 left-4 z-20">
+                              <span
+                                className={`px-3 py-1.5 rounded-full text-xs font-bold border backdrop-blur-md shadow-lg ${getCategoryColor(blog.category)}`}
+                              >
+                                {blog.category.charAt(0).toUpperCase() +
+                                  blog.category.slice(1)}
+                              </span>
+                            </div>
+                            
+                            {/* Featured badge */}
+                            {blog.featured && (
+                              <div className="absolute top-4 right-4 z-20">
+                                <div className="bg-gradient-to-r from-yellow-400/90 to-orange-400/90 backdrop-blur-md rounded-full px-3 py-1.5 text-xs font-bold text-black shadow-lg flex items-center gap-1.5 animate-pulse">
+                                  <Sparkles className="w-3 h-3" />
+                                  FEATURED
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* View count badge */}
+                            <div className="absolute bottom-4 left-4 z-20">
+                              <div className="bg-black/70 backdrop-blur-md rounded-full px-3 py-1.5 text-xs font-medium text-white shadow-lg flex items-center gap-1.5">
+                                <Eye className="w-3 h-3" />
+                                <span>{blog.views || 0}</span>
                               </div>
                             </div>
+                            
+                            {/* Trending indicator for popular blogs */}
+                            {blog.views > 1000 && (
+                              <div className="absolute bottom-4 right-4 z-20">
+                                <div className="bg-gradient-to-r from-red-500/90 to-orange-500/90 backdrop-blur-md rounded-full px-3 py-1.5 text-xs font-bold text-white shadow-lg flex items-center gap-1.5">
+                                  <TrendingUp className="w-3 h-3" />
+                                  <span>TRENDING</span>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Animated sparkle effects for featured blogs */}
+                            {blog.featured && (
+                              <div className="absolute inset-0 pointer-events-none z-10">
+                                <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-blue-400 rounded-full animate-ping opacity-75" style={{ animationDelay: '0s' }} />
+                                <div className="absolute top-1/3 right-1/4 w-1.5 h-1.5 bg-purple-300 rounded-full animate-ping opacity-75" style={{ animationDelay: '0.5s' }} />
+                                <div className="absolute bottom-1/4 left-1/3 w-1.5 h-1.5 bg-pink-400 rounded-full animate-ping opacity-75" style={{ animationDelay: '1s' }} />
+                                <div className="absolute top-1/2 right-1/3 w-2 h-2 bg-blue-300 rounded-full animate-ping opacity-75" style={{ animationDelay: '1.5s' }} />
+                              </div>
+                            )}
+                          </div>
 
                             <div className="p-6 flex flex-col flex-grow">
                               <div className="flex items-center gap-2 mb-3">
